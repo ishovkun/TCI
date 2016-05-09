@@ -22,7 +22,6 @@ from .lib.setup_plot import setup_plot
 # from lib.functions import *
 from .lib.Colors import DataViewerTreeColors
 from .lib.LabelStyles import *
-# from lib.Slider import SliderWidget
 from .base_widgets.Slider import SliderWidget
 from .base_classes.InputReader import InputReader
 
@@ -92,9 +91,9 @@ class DataViewer(QtGui.QWidget):
         self.calcPlotButton.triggered.connect(self.runCalcPlot)
         self.calcPlotButton.setDisabled(True)
 
-        # # connect cursors
-        # self.plt.sigRangeChanged.connect(self.scaleCursors)
-        # self.addPointButton.triggered.connect(self.addCursor)
+        # connect cursors
+        self.plt.sigRangeChanged.connect(self.scaleCursors)
+        self.addPointButton.triggered.connect(self.addCursor)
         # self.removePointButton.triggered.connect(self.removeCursor)
         # self.drawCirclesButton.triggered.connect(self.plotMohrCircles)
         # #  Finally enable the save button
@@ -269,11 +268,11 @@ class DataViewer(QtGui.QWidget):
         self.setTreeParameters()
         self.connectParameters()
         # self.mcSettings.setAvailableVariables(self.data.keys())
-        # self.settings.mcWidget.setAvailableVariables(self.data.keys())
-        # self.calcPlotButton.setDisabled(False)
-        # if self.calcPlot.active:
-        #     print('Calculator active')
-        #     self.calcPlot.setData(self.data)
+        self.settings.mcWidget.setAvailableVariables(self.keys)
+        self.calcPlotButton.setDisabled(False)
+        if self.calcPlot.active:
+            print('Calculator active')
+            self.calcPlot.setData(self.data, self.keys)
         # self.updatePlot()
 
     def setTreeParameters(self):
@@ -329,13 +328,13 @@ class DataViewer(QtGui.QWidget):
         self.modparams.param('Plot vs.').sigValueChanged.connect(self.setTrendParameter)
         self.computeTrendFlag.sigValueChanged.connect(self.checkTrendUpdates)
         self.trendParameter.sigValueChanged.connect(self.setTrendParameter)
-        # # connect Null parameter
-        # self.nullFlag.sigValueChanged.connect(self.updatePlot)
+        # connect Null parameter
+        self.nullFlag.sigValueChanged.connect(self.updatePlot)
 
-        # ### enable cursors buttons
-        # self.addPointButton.setEnabled(True)
-        # self.removePointButton.setEnabled(True)
-        # self.drawCirclesButton.setEnabled(True)
+        # enable cursors buttons
+        self.addPointButton.setEnabled(True)
+        self.removePointButton.setEnabled(True)
+        self.drawCirclesButton.setEnabled(True)
         
     def addCursor(self):
         print('adding a Cursor')
@@ -445,7 +444,7 @@ class DataViewer(QtGui.QWidget):
     def checkTrendUpdates(self):
         if self.computeTrendFlag.value(): 
             self.computeTrend()
-            self.updatePlot()
+        self.updatePlot()
         
     def setTrendParameter(self):
         entries = self.activeEntries() 
@@ -573,7 +572,7 @@ class DataViewer(QtGui.QWidget):
         if self.mainAxis == 'y':
             xpar = self.trendParameter.value()
             ypar = self.modparams.param('Parameter').value()
-        x = self.data[xpar][self.indices]
+        x = self.findData(xpar)[self.indices]
         y = self.slope*x + self.intersection
         self.plt.plot(x,y,pen=TrendPen, name='%s Trend'%(self.trendParameter.value()))
         self.plt.setLabel('bottom', xpar)
@@ -715,7 +714,6 @@ class DataViewer(QtGui.QWidget):
         self.splitter.setStretchFactor(0, 0)
         self.splitter.setStretchFactor(1, 1)
         
-        # self.plt = self.sublayout.addPlot()
         # crosshair plot is a class with cross hair capabilities
         # first we need to add it's label attribute to sublayout
         # so we could show the values of the crosshair
@@ -804,11 +802,13 @@ class DataViewer(QtGui.QWidget):
             x = item.xData
             y = item.yData
             self.comboList.addItem(name,x,y)
+
     def runCalcPlot(self):
         self.calcPlot.active = True
-        self.calcPlot.setData(self.data)
+        self.calcPlot.setData(self.data, self.keys)
         self.calcPlot.show()
         self.calcPlot.activateWindow()
+
 
 if __name__ == '__main__':
     App = QtGui.QApplication(sys.argv)

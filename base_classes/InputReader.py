@@ -124,7 +124,12 @@ class InputReader:
             if (len(sp) == 1):
                 unitless.append(sp[0])
             elif (len(sp) == 2):
-                names.append(sp[0])
+                key = sp[0]
+                # disable symbols that may have wierd symbols
+                key = key.replace("-", "_")
+                key = key.replace("+", "_")
+                key = key.replace("/", "_")
+                names.append(key)
                 units.append(sp[1])
             else:
                 raise NotImplementedError("strange entry %s" % e)

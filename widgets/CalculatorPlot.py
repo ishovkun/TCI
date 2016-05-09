@@ -33,6 +33,7 @@ class CalculatorPlot(QtGui.QWidget):
         self.applyButton.pressed.connect(self.getData)
         self.addPlotButton.pressed.connect(self.addItem)
         self.enterAction.triggered.connect(self.applyButton.pressed)
+        
     def setupGUI(self):
         self.setWindowTitle("Calculator plot")
         self.setGeometry(80, 50, 800, 600)
@@ -148,6 +149,7 @@ class CalculatorPlot(QtGui.QWidget):
         except: pass
         self.nItems -= 1
         self.plot()
+        
     def getParent(self,item,dic):
         '''
         looks for item parent in dictionary
@@ -155,14 +157,24 @@ class CalculatorPlot(QtGui.QWidget):
         for key in dic.keys():
             if dic[key] == item:
                 return key
-    def setData(self,data):
+
+    def findData(self, key):
+        i = self.keys.index(key)
+        return self.data[:, i]
+
+    def findUnits(self, key):
+        i = self.keys.index(key)
+        return self.units[i]
+            
+    def setData(self,data, keys):
         '''
         data is a dictionary with np array values
         '''
         print('Calculator: Setting data')
         self.data = data
-        someKey = data.keys()[0]
-        npoints = len(data[someKey])
+        self.keys = keys
+        someKey = keys[0]
+        npoints = len(self.findData(someKey))
         if self.parent:
             self.indices = self.parent.indices
         else:
@@ -190,7 +202,7 @@ class CalculatorPlot(QtGui.QWidget):
         self.plot()
 
 
-    def parseExpression(self,expr):
+    def parseExpression(self, expr):
         '''
         computes array corresponding to expression
         '''
@@ -199,10 +211,8 @@ class CalculatorPlot(QtGui.QWidget):
         if 'import' in expr: return 0
         if 'sys' in expr: return 0
         if 'os' in expr: return 0
-        for key in self.data.keys():
-            # print self.data[key]
-            exec('%s=self.findData(\'%s\')'%(key,key))
-            # print key
+        for key in self.keys:
+            exec('%s=self.parent.findData(\'%s\')'%(key, key))
         try: 
             return eval(expr)
         except: 
