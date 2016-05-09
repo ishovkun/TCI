@@ -3,9 +3,9 @@ import sys
 import pyqtgraph as pg
 from PySide import QtCore, QtGui
 import numpy as np
-from CParameterTree import ColorButton
-from functions import findInDict
-from setupPlot import setup_plot
+from ..base_widgets.ColorButton import ColorButton
+from ..lib.utils import findInDict
+from ..lib.setup_plot import setup_plot
 
 CoulumbText = 'Mohr - Coulomb'
 HoekText = 'Hoek - Brown'
@@ -31,6 +31,7 @@ class EditEnvelopeWidget(QtGui.QMainWindow):
 	def __init__(self):
 		super(EditEnvelopeWidget,self).__init__()
 		self.setupGUI()
+                
 	def setupGUI(self):
 		self.setWindowTitle("Edit envelope options")
 		self.setGeometry(500, 300, 400, 100)

@@ -12,14 +12,14 @@ from PySide import QtGui, QtCore
 from pyqtgraph.parametertree import Parameter, ParameterTree
 # from pyqtgraph.parametertree import types as pTypes
 from pyqtgraph.Point import Point
-# from lib import pymat, readclf, CursorItem, MohrCircles, CParameterTree, ComboList
+from .base_widgets.CursorItem import CursorItem
 from .base_widgets.ComboList import ComboList
 from .widgets.SettingsWidget import SettingsWidget
 from .widgets.CParameterTree import CParameterTree
 from .widgets.CrossHairPlot import CrossHairPlot
 from .widgets.CalculatorPlot import CalculatorPlot
+from .widgets.MohrCircles import MohrCircles
 from .lib.setup_plot import setup_plot
-# from lib.functions import *
 from .lib.Colors import DataViewerTreeColors
 from .lib.LabelStyles import *
 from .base_widgets.Slider import SliderWidget
@@ -94,11 +94,12 @@ class DataViewer(QtGui.QWidget):
         # connect cursors
         self.plt.sigRangeChanged.connect(self.scaleCursors)
         self.addPointButton.triggered.connect(self.addCursor)
-        # self.removePointButton.triggered.connect(self.removeCursor)
-        # self.drawCirclesButton.triggered.connect(self.plotMohrCircles)
-        # #  Finally enable the save button
+        self.removePointButton.triggered.connect(self.removeCursor)
+        self.drawCirclesButton.triggered.connect(self.plotMohrCircles)
+        
+        #  Finally enable the save button
         # self.saveButton.triggered.connect(self.save)
-        # self.setStatus('Ready')
+        self.setStatus('Ready')
 
     def toggleCrossHair(self):
         ch_mode = self.crossHairButton.isChecked()
@@ -345,7 +346,7 @@ class DataViewer(QtGui.QWidget):
         pos = [(rangeX[0] + rangeX[1])/2,(rangeY[0] + rangeY[1])/2]
         xSize = float(rangeX[1]-rangeX[0])/50*800/self.plt.width()
         ySize = float(rangeY[1]-rangeY[0])/50*800/self.plt.height()
-        Cursor = CursorItem.CursorItem(pos,[xSize,ySize],pen=(4,9))
+        Cursor = CursorItem(pos,[xSize,ySize],pen=(4,9))
         self.cursors.append(Cursor)
         self.allCursors[self.currentDataSetName] = self.cursors
         # bind cursor if there is something to plot
@@ -361,7 +362,7 @@ class DataViewer(QtGui.QWidget):
 
     def plotMohrCircles(self):
         global CirclesWidget
-        CirclesWidget = MohrCircles.MohrCircles()
+        CirclesWidget = MohrCircles()
         params = self.settings.mcWidget.parameters()
         b = params[3] # biot coef
         names = []
@@ -379,15 +380,15 @@ class DataViewer(QtGui.QWidget):
                 for cursor in cursors:
                     indices.append(cursor.index)
                     ncircles += 1
-                    Sig1 = data[params[0]][cursor.index] #axial stress
+                    Sig1 = self.findData(params[0])[cursor.index] #axial stress
                     if params[1]=='0':
                         Pc = 0
                     else:
-                        Pc = data[params[1]][cursor.index] # confining press
+                        Pc = self.findData(params[1])[cursor.index] # confining press
                     if params[2]=='0':
                         Pu = 0
                     else:
-                        Pu = data[params[2]][cursor.index] # pore pressure
+                        Pu = self.findData(params[2])[cursor.index] # pore pressure
                     sigma1 = Sig1 - b*Pu
                     sigma3 = Pc - b*Pu
                     CirclesWidget.addData(max(sigma1,sigma3),min(sigma1,sigma3),name=DataSet +'_'+ str(ncircles))

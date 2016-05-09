@@ -7,16 +7,16 @@ USE X BUTTON INSTEAD
     AS A STANDALONE)
 '''
 
+from PySide import QtGui, QtCore
 import pyqtgraph as pg
 import numpy as np
 import sys
 from scipy.optimize import curve_fit
-from PySide import QtGui, QtCore
 from pyqtgraph.parametertree import Parameter, ParameterTree
 from pyqtgraph.parametertree import types as pTypes
-from setupPlot import setup_plot
-from CParameterTree import ColorButton,CheckBox
-from EditEnvelopeWidget import EditEnvelopeWidget
+from ..lib.setup_plot import setup_plot
+from ..base_widgets import ColorButton, CheckBox
+from .EditEnvelopeWidget import EditEnvelopeWidget
 
 EnvelopeParameters = [
     {'name':'Cohesion', 'type':'float', 'value':300.0,'step':10.0},
@@ -47,9 +47,9 @@ def hoek_on_mohr_plane(s3,m,ucs):
 
 class MohrCircles(QtGui.QWidget):
     def __init__(self):
-    	"""
+        """
         Plots Morh's Circles for given datapoints
-    	"""
+        """
         QtGui.QWidget.__init__(self)
         self.s1 = []
         self.s3 = []
@@ -134,7 +134,7 @@ class MohrCircles(QtGui.QWidget):
         self.fpoints.addChild(item)
         # self.tree.addTopLevelItem(item)
         color = (0,0,0)
-        colorButton = ColorButton()
+        colorButton = ColorButton.ColorButton()
         item.setWidget(2,colorButton)
         self.dCButtons[name] = colorButton
         colorButton.setColor(color)
@@ -154,7 +154,7 @@ class MohrCircles(QtGui.QWidget):
         self.eTypes[name] = etype
         typeLabel = QtGui.QLabel(etype)
         item.setWidget(2,typeLabel)
-        colorButton = ColorButton()
+        colorButton = ColorButton.ColorButton()
         self.eCButtons[name] = colorButton
         color = get_color()
         colorButton.setColor(color)
@@ -172,7 +172,7 @@ class MohrCircles(QtGui.QWidget):
             step1 = 1
             step2 = 1
         else:
-            print etype
+            print(etype)
             return 0
         item.addChild(colorItem)
         item.addChild(item1)
@@ -181,15 +181,15 @@ class MohrCircles(QtGui.QWidget):
         cohesionBox = pg.SpinBox(value=1e3, step=step2)
         frictionBox.sigValueChanged.connect(self.plot)
         cohesionBox.sigValueChanged.connect(self.plot)
-        colorItem.setWidget(2,colorButton)
-        item1.setWidget(2,frictionBox)
-        item2.setWidget(2,cohesionBox)
+        colorItem.setWidget(2, colorButton)
+        item1.setWidget(2, frictionBox)
+        item2.setWidget(2, cohesionBox)
         self.fBoxes[name] = frictionBox
         self.cBoxes[name] = cohesionBox
         for dname in self.dNames:
             child = pg.TreeWidgetItem([dname])
             item.addChild(child)
-            box = CheckBox()
+            box = CheckBox.CheckBox()
             child.setWidget(2,box)
             self.eBoxes[name][dname] = box
             box.click()
@@ -202,7 +202,8 @@ class MohrCircles(QtGui.QWidget):
         colorButton.sigColorChanged.connect(self.plot)
         self.nEnvelopes += 1
         self.getEnvelope(eName=name)
-    def removeEnvelope(self,envelope):
+        
+    def removeEnvelope(self, envelope):
         '''
         removes Current Envelopes
         '''
@@ -213,6 +214,7 @@ class MohrCircles(QtGui.QWidget):
         del self.cBoxes[name],self.fBoxes[name]
         self.eNames.pop(index)
         self.plot()
+        
     def getEnvelope(self,eName=None):
         if eName == None: eName = self.eNames[0]
         etype = self.eTypes[eName]
@@ -231,6 +233,7 @@ class MohrCircles(QtGui.QWidget):
             par1,par2 = self.computeEnvelope(s1,s3,etype)
             self.fBoxes[eName].setValue(par1)
             self.cBoxes[eName].setValue(par2)
+            
     def computeEnvelope(self,s1,s3,etype='Coulomb'):
         s1 = np.array(s1)
         s3 = np.array(s3)
@@ -247,7 +250,6 @@ class MohrCircles(QtGui.QWidget):
              s3, s1,maxfev=int(1e5))
             return popt[0],popt[1]
         
-
     def generateCircles(self,npoints=1e4):
         self.s1 = np.array(self.s1)
         self.s3 = np.array(self.s3)
