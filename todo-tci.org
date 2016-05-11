@@ -1,0 +1,35 @@
+* Dataviewer part
+** TODO Finish porting
+** Finish InputReader
+*** TODO Add better handling of comment section
+*** TODO Add exception handling
+*** TODO Add reading sample length and other params (mass, density, porosity?)
+** TODO Save state of the slider
+** DONE Add cross-hair option
+   
+* Sonic part
+** TODO Start porting to Python3
+** TODO Finish porting to Python3
+** TODO dt can be different in each sonic file
+** TODO Shifting to the transmitter signal for each track
+   May be different start-recording times and scaling
+** TODO Better automated arrival picking
+** TODO (Maybe) Better hand arrival picking
+** TODO Computation of attenuation
+** TODO Arrival-time algorithm widget appears after asking for arrival times
+
+* General
+** TODO Make sure works on Win
+** TODO Make sure runs on other Linux computers
+   Send to Vadya/Vasya, ask to run
+** TODO Learn how to handle relative paths
+** TODO Make Windows executable
+** DONE Add .gitignore
+** TODO Add Readme.md (maybe with images?)
+** TODO Add folder with an example experiment
+** TODO Submit to GitHub
+** TODO Assign a lisence on GitHub
+** TODO Add unit testing
+        Also, figure out how to do it properly...
+        1. make sure it doesn't break
+        2. make sure arrival values are correct

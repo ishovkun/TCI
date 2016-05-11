@@ -39,7 +39,7 @@ class CrossHairPlot(pg.PlotItem):
             except: pass
 
     def mouseMoved(self, evt):
-        pos = (evt.x(), evt.y())
+        pos = (evt.x(), evt.color: redy())
         if self.sceneBoundingRect().contains(evt):
             mousePoint = self.vb.mapSceneToView(evt)
             index = int(mousePoint.x())
