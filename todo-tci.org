@@ -28,7 +28,7 @@
 ** TODO Add Readme.md (maybe with images?)
 ** TODO Add folder with an example experiment
 ** DONE Submit to GitHub
-** TODO Assign a lisence on GitHub
+** DONE Assign a license on GitHub
 ** TODO Add unit testing
         Also, figure out how to do it properly...
         1. make sure it doesn't break
