@@ -201,7 +201,6 @@ class CalculatorPlot(QtGui.QWidget):
                 self.yTexts[key] = yText
         self.plot()
 
-
     def parseExpression(self, expr):
         '''
         computes array corresponding to expression
