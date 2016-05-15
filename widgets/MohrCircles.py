@@ -74,6 +74,7 @@ class MohrCircles(QtGui.QWidget):
         self.edit.setDefaultName(name)
         self.edit.show()
         self.edit.activateWindow()
+        
     def callAddEnvelope(self):
         name = self.edit.nameBox.text()
         self.addEnvelope(etype=self.edit.value(),name=name)
@@ -133,9 +134,9 @@ class MohrCircles(QtGui.QWidget):
         self.dNames.append(name)
         self.fpoints.addChild(item)
         # self.tree.addTopLevelItem(item)
-        color = (0,0,0)
+        color = (0, 0, 0)
         colorButton = ColorButton.ColorButton()
-        item.setWidget(2,colorButton)
+        item.setWidget(2, colorButton)
         self.dCButtons[name] = colorButton
         colorButton.setColor(color)
         colorButton.sigColorChanged.connect(self.plot)
