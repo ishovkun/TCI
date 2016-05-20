@@ -24,7 +24,8 @@ dataviewer init method will read the file and initialize the plugins
 **** DONE Calculator
 CLOSED: [2016-05-19 Thu 23:26]
 **** TODO Mohr Circles
-**** TODO Combo Plot
+**** DONE Combo Plot
+CLOSED: [2016-05-20 Fri 00:07]
 * Sonic part
 ** TODO Start porting to Python3
 ** TODO Finish porting to Python3
@@ -60,3 +61,5 @@ CLOSED: [2016-05-19 Thu 23:26]
 ** TODO Rename Colors.py into Styles.py
    and put all the stylystic things in there
    (such as LabelStyle in the dataviewer class)
+
+** TODO ComboList styles in styles file

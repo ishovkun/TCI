@@ -57,7 +57,7 @@ class DataViewer(QtGui.QWidget):
 
     def __init__(self):
         super(DataViewer, self).__init__()
-        self.comboList = ComboList()
+        self.comboList = ComboList(parent=self)
         self.settings = SettingsWidget()
         self.iReader = InputReader()
         self.calcPlot = CalculatorPlot(parent=self)
@@ -74,9 +74,9 @@ class DataViewer(QtGui.QWidget):
         self.dataSetButtons = {} # list of items in the dataset section of the menu bar
         '''
         Note:
-            indices = piece of all data indices, corresponding to the
-            values interval, contrained by the slider
-            THE VIEWER PLOTTS DATA using indices!!!!
+        indices = piece of all data indices, corresponding to the
+        values interval, contrained by the slider
+        THE VIEWER PLOTTS DATA using indices!!!!
         '''
         self.data = None         # dictionary with full current data set
         self.indices = None     # array with indices for the current interval
@@ -93,8 +93,6 @@ class DataViewer(QtGui.QWidget):
         self.settingsButton.triggered.connect(self.settings.show)
         self.loadButton.triggered.connect(self.requestLoad)
         self.crossHairButton.triggered.connect(self.toggleCrossHair)
-        # self.addSceneButton.triggered.connect(self.addSceneToCombo)
-        # self.showComboDataButton.triggered.connect(self.comboList.show)
 
         # connect cursors
         self.plt.sigRangeChanged.connect(self.scaleCursors)
@@ -109,11 +107,6 @@ class DataViewer(QtGui.QWidget):
     def toggleCrossHair(self):
         ch_mode = self.crossHairButton.isChecked()
         self.plt.setCrossHairMode(ch_mode)
-
-
-    def showComboList(self):
-        self.comboList.show()
-        self.comboList.activateWindow()
 
     def checkForLastDir(self):
         '''
@@ -650,7 +643,6 @@ class DataViewer(QtGui.QWidget):
         self.viewMenu = self.menuBar.addMenu('View')
         self.dataSetMenu = self.menuBar.addMenu('Dataset')
         self.mohrMenu = self.menuBar.addMenu('Mohr\' Circles')
-        self.comboPlotMenu = self.menuBar.addMenu('Combo plot')
         self.prefMenu = self.menuBar.addMenu('Preferences')
         self.dataSetGroup = QtGui.QActionGroup(self)
         # create status bar
@@ -665,8 +657,6 @@ class DataViewer(QtGui.QWidget):
         self.addPointButton = QtGui.QAction('Add point',self,shortcut='Ctrl+Q')
         self.removePointButton = QtGui.QAction('Remove point',self,shortcut='Ctrl+R')
         # self.drawCirclesButton = QtGui.QAction('Draw Mohr\'s Circles',self,shortcut='Alt+M')
-        # self.showComboDataButton = QtGui.QAction('Show',self,shortcut='Ctrl+Shift+C')
-        # self.addSceneButton = QtGui.QAction('Add scene',self,shortcut='Ctrl+C')
         self.settingsButton = QtGui.QAction('Settings',self)
         self.addPointButton.setEnabled(False)
         self.removePointButton.setEnabled(False)
@@ -680,8 +670,6 @@ class DataViewer(QtGui.QWidget):
         # self.mohrMenu.addAction(self.drawCirclesButton)
         self.viewMenu.addAction(self.autoScaleButton)
         self.viewMenu.addAction(self.crossHairButton)
-        # self.comboPlotMenu.addAction(self.showComboDataButton)
-        # self.comboPlotMenu.addAction(self.addSceneButton)
         self.prefMenu.addAction(self.settingsButton)
         # splitter is a widget, which handles the layout
         # it splits the main window into parameter window
@@ -702,10 +690,11 @@ class DataViewer(QtGui.QWidget):
         self.buttonsplitter = QtGui.QSplitter()
         self.treesplitter.setOrientation(QtCore.Qt.Vertical)
         self.treesplitter.addWidget(self.tree)
+
         self.treesplitter.addWidget(self.modtree)
-        self.treesplitter.setSizes([int(self.height()*0.7),
-                                    int(self.height()*0.3),
-                                    20])
+        self.treesplitter.setSizes(
+            [int(self.height()*0.7), int(self.height()*0.3), 20]
+        )
         self.treesplitter.setStretchFactor(0, 0)
         self.treesplitter.setStretchFactor(1, 0.9)
 
@@ -795,15 +784,6 @@ class DataViewer(QtGui.QWidget):
         # else:
         #     event.ignore()
         sys.exit()
-
-    def addSceneToCombo(self):
-        print('adding scene to Combo plot')
-        rootname = self.currentDataSetName
-        for item in self.plt.listDataItems():
-            name = rootname+'_'+item.name()
-            x = item.xData
-            y = item.yData
-            self.comboList.addItem(name,x,y)
 
 
 if __name__ == '__main__':
