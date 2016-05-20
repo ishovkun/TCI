@@ -8,16 +8,23 @@
 ** DONE Add cross-hair option
 ** Plugin setup
 *** signals
-**** TODO after updating plot
+**** DONE after updating plot
+CLOSED: [2016-05-19 Thu 23:25]
 plugin plots itself if visible.
 when show plugin button is pressed, plugin can update plot in inself.
 so we don't have to draw everything each time.
-**** TODO after setting GU
+**** DONE after setting GU
+CLOSED: [2016-05-19 Thu 23:25]
 each plugin adds entries to dataviewer menus
 *** Plugin list file
 **** TODO Way to load plugins
 dataviewer init method will read the file and initialize the plugins
 **** TODO Paths to plugins
+*** Make plugins work
+**** DONE Calculator
+CLOSED: [2016-05-19 Thu 23:26]
+**** TODO Mohr Circles
+**** TODO Combo Plot
 * Sonic part
 ** TODO Start porting to Python3
 ** TODO Finish porting to Python3
@@ -31,6 +38,7 @@ dataviewer init method will read the file and initialize the plugins
 ** TODO (Maybe) Better hand arrival picking
 ** TODO Computation of attenuation
 ** TODO Arrival-time algorithm widget appears after asking for arrival times
+** TODO Sonic part as a separate plugin
 * General
 ** TODO Make sure works on Win
 ** TODO Make sure runs on other Linux computers

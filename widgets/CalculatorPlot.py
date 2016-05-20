@@ -33,11 +33,31 @@ class CalculatorPlot(QtGui.QWidget):
         self.applyButton.pressed.connect(self.getData)
         self.addPlotButton.pressed.connect(self.addItem)
         self.enterAction.triggered.connect(self.applyButton.pressed)
-        
+        if parent is not None:
+            self.parent.sigSettingGUI.connect(self.modifyParentMenu)
+            self.parent.sigUpdatingPlot.connect(self.plot)
+            self.parent.sigConnectParameters.connect(self.setParentMenuEntryActivated)
+            self.parent.sigUpdatingPlot.connect(self.plot)
+
+    def setParentMenuEntryActivated(self):
+        self.activateAction.setDisabled(False)
+
+    def modifyParentMenu(self):
+        print("adding Calculator to menu")
+        self.activateAction = QtGui.QAction('Calculator',self.parent)
+        self.activateAction.setDisabled(True)
+        self.parent.viewMenu.addAction(self.activateAction)
+        self.activateAction.triggered.connect(self.run)
+
+    def run(self):
+        self.setData(self.parent.data, self.parent.keys)
+        self.show()
+        self.activateWindow()
+
     def setupGUI(self):
         self.setWindowTitle("Calculator plot")
         self.setGeometry(80, 50, 800, 600)
-        self.setWindowIcon(QtGui.QIcon('../images/Logo.png')) 
+        self.setWindowIcon(QtGui.QIcon('../images/Logo.png'))
         pg.setConfigOption('background', (255,255,255))
         pg.setConfigOption('foreground',(0,0,0))
         self.layout = QtGui.QVBoxLayout()
@@ -87,8 +107,8 @@ class CalculatorPlot(QtGui.QWidget):
         self.tree.addTopLevelItem(addPlotItem)
         optItem.setExpanded(True)
 
-        self.xNameEdit = QtGui.QLineEdit('X')       
-        self.yNameEdit = QtGui.QLineEdit('Y')       
+        self.xNameEdit = QtGui.QLineEdit('X')
+        self.yNameEdit = QtGui.QLineEdit('Y')
         xNameItem.setWidget(1,self.xNameEdit)
         yNameItem.setWidget(1,self.yNameEdit)
         self.plt.setLabel('bottom', 'X',**LabelStyle)
@@ -137,7 +157,7 @@ class CalculatorPlot(QtGui.QWidget):
     def removeItem(self,itemName=None):
         if itemName == None:
             sender = self.sender()
-            itemName = self.getParent(sender,self.removeButtons)
+            itemName = self.getItemParent(sender,self.removeButtons)
         index = self.names.index(itemName)
         self.items.takeChild(index)
         # self.tree.takeTopLevelItem(index)
@@ -149,8 +169,8 @@ class CalculatorPlot(QtGui.QWidget):
         except: pass
         self.nItems -= 1
         self.plot()
-        
-    def getParent(self,item,dic):
+
+    def getItemParent(self, item, dic):
         '''
         looks for item parent in dictionary
         '''
@@ -165,7 +185,7 @@ class CalculatorPlot(QtGui.QWidget):
     def findUnits(self, key):
         i = self.keys.index(key)
         return self.units[i]
-            
+
     def setData(self,data, keys):
         '''
         data is a dictionary with np array values
@@ -205,18 +225,18 @@ class CalculatorPlot(QtGui.QWidget):
         '''
         computes array corresponding to expression
         '''
-        if expr=='': 
+        if expr=='':
             return 0
         if 'import' in expr: return 0
         if 'sys' in expr: return 0
         if 'os' in expr: return 0
         for key in self.keys:
             exec('%s=self.parent.findData(\'%s\')'%(key, key))
-        try: 
+        try:
             return eval(expr)
-        except: 
+        except:
             # print self.data.keys()
-            return 0 
+            return 0
 
     def validItems(self):
         '''
@@ -230,15 +250,17 @@ class CalculatorPlot(QtGui.QWidget):
             if 'x' in itms[key] and 'y' in itms[key]:
                 pass
             else: continue
-            validNames.append(key)          
+            validNames.append(key)
         return validNames
 
     def plot(self):
+        if not self.isVisible():
+            return
         self.plt.clear()
         self.plt.showGrid(x=True, y=True)
         xlabel = self.xNameEdit.text()
         ylabel = self.yNameEdit.text()
-        
+
         for name in self.validItems():
             x = self.plotItems[name]['x'][self.indices]
             y = self.plotItems[name]['y'][self.indices]

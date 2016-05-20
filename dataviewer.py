@@ -48,8 +48,12 @@ TrendPen = pg.mkPen(color=(72,209,204), width=3)
 MAXNROWS = 1e4  # if data is longer, we slice data
 
 class DataViewer(QtGui.QWidget):
+    # to update plots in visible plugins
     sigUpdatingPlot = QtCore.Signal(object)
+    # to add GUI entries for plugins
     sigSettingGUI  = QtCore.Signal(object)
+    # to enable some data upon loading
+    sigConnectParameters = QtCore.Signal(object)
 
     def __init__(self):
         super(DataViewer, self).__init__()
@@ -89,16 +93,14 @@ class DataViewer(QtGui.QWidget):
         self.settingsButton.triggered.connect(self.settings.show)
         self.loadButton.triggered.connect(self.requestLoad)
         self.crossHairButton.triggered.connect(self.toggleCrossHair)
-        self.addSceneButton.triggered.connect(self.addSceneToCombo)
-        self.showComboDataButton.triggered.connect(self.comboList.show)
-        self.calcPlotButton.triggered.connect(self.runCalcPlot)
-        self.calcPlotButton.setDisabled(True)
+        # self.addSceneButton.triggered.connect(self.addSceneToCombo)
+        # self.showComboDataButton.triggered.connect(self.comboList.show)
 
         # connect cursors
         self.plt.sigRangeChanged.connect(self.scaleCursors)
         self.addPointButton.triggered.connect(self.addCursor)
         self.removePointButton.triggered.connect(self.removeCursor)
-        self.drawCirclesButton.triggered.connect(self.plotMohrCircles)
+        # self.drawCirclesButton.triggered.connect(self.plotMohrCircles)
 
         #  Finally enable the save button
         # self.saveButton.triggered.connect(self.save)
@@ -272,12 +274,7 @@ class DataViewer(QtGui.QWidget):
         self.setTreeParameters()
         self.connectParameters()
         # self.mcSettings.setAvailableVariables(self.data.keys())
-        self.settings.mcWidget.setAvailableVariables(self.keys)
-        self.calcPlotButton.setDisabled(False)
-        if self.calcPlot.active:
-            print('Calculator active')
-            self.calcPlot.setData(self.data, self.keys)
-        # self.updatePlot()
+        # self.settings.mcWidget.setAvailableVariables(self.keys)
 
     def setTreeParameters(self):
         print( 'Modifying GUI: adding parameters to plot')
@@ -338,7 +335,9 @@ class DataViewer(QtGui.QWidget):
         # enable cursors buttons
         self.addPointButton.setEnabled(True)
         self.removePointButton.setEnabled(True)
-        self.drawCirclesButton.setEnabled(True)
+
+        # send signals to plugins
+        self.sigConnectParameters.emit(self)
 
     def addCursor(self):
         print('adding a Cursor')
@@ -510,9 +509,9 @@ class DataViewer(QtGui.QWidget):
             self.plotVersusY()
         if self.computeTrendFlag.value():
             self.plotTrend()
-        if self.calcPlot.active:
-            self.calcPlot.indices = self.indices
-            self.calcPlot.plot()
+
+        # send signal to plugins
+        self.sigUpdatingPlot.emit(self)
 
     def plotVersusX(self):
         '''
@@ -661,30 +660,28 @@ class DataViewer(QtGui.QWidget):
         self.loadButton = QtGui.QAction('Load',self)
         self.saveButton = QtGui.QAction('Save',self)
         self.exitButton = QtGui.QAction('Exit',self,shortcut="Alt+F4")
-        self.calcPlotButton = QtGui.QAction('Calculator',self)
         self.autoScaleButton = QtGui.QAction('Auto scale',self)
         self.crossHairButton = QtGui.QAction('Cross-hair',self, checkable=True)
         self.addPointButton = QtGui.QAction('Add point',self,shortcut='Ctrl+Q')
         self.removePointButton = QtGui.QAction('Remove point',self,shortcut='Ctrl+R')
-        self.drawCirclesButton = QtGui.QAction('Draw Mohr\'s Circles',self,shortcut='Alt+M')
-        self.showComboDataButton = QtGui.QAction('Show',self,shortcut='Ctrl+Shift+C')
-        self.addSceneButton = QtGui.QAction('Add scene',self,shortcut='Ctrl+C')
+        # self.drawCirclesButton = QtGui.QAction('Draw Mohr\'s Circles',self,shortcut='Alt+M')
+        # self.showComboDataButton = QtGui.QAction('Show',self,shortcut='Ctrl+Shift+C')
+        # self.addSceneButton = QtGui.QAction('Add scene',self,shortcut='Ctrl+C')
         self.settingsButton = QtGui.QAction('Settings',self)
         self.addPointButton.setEnabled(False)
         self.removePointButton.setEnabled(False)
-        self.drawCirclesButton.setEnabled(False)
+        # self.drawCirclesButton.setEnabled(False)
         # Add buttons to submenus
         self.fileMenu.addAction(self.loadButton)
         self.fileMenu.addAction(self.saveButton)
         self.fileMenu.addAction(self.exitButton)
         self.mohrMenu.addAction(self.addPointButton)
         self.mohrMenu.addAction(self.removePointButton)
-        self.mohrMenu.addAction(self.drawCirclesButton)
-        self.viewMenu.addAction(self.calcPlotButton)
+        # self.mohrMenu.addAction(self.drawCirclesButton)
         self.viewMenu.addAction(self.autoScaleButton)
         self.viewMenu.addAction(self.crossHairButton)
-        self.comboPlotMenu.addAction(self.showComboDataButton)
-        self.comboPlotMenu.addAction(self.addSceneButton)
+        # self.comboPlotMenu.addAction(self.showComboDataButton)
+        # self.comboPlotMenu.addAction(self.addSceneButton)
         self.prefMenu.addAction(self.settingsButton)
         # splitter is a widget, which handles the layout
         # it splits the main window into parameter window
@@ -746,6 +743,7 @@ class DataViewer(QtGui.QWidget):
         self.statusBar.setSizePolicy(QtGui.QSizePolicy.Ignored,
             QtGui.QSizePolicy.Fixed)
         self.setGeometry(80, 30, 1000, 700)
+        self.sigSettingGUI.emit(self)
 
     def setStatus(self,message):
         self.statusBar.showMessage(message)
@@ -806,12 +804,6 @@ class DataViewer(QtGui.QWidget):
             x = item.xData
             y = item.yData
             self.comboList.addItem(name,x,y)
-
-    def runCalcPlot(self):
-        self.calcPlot.active = True
-        self.calcPlot.setData(self.data, self.keys)
-        self.calcPlot.show()
-        self.calcPlot.activateWindow()
 
 
 if __name__ == '__main__':
