@@ -3,7 +3,7 @@
 WARNING:
 PRESSING 'CANCEL' BUTTON DOESN'T CLOSE THE APPLICATION
 USE X BUTTON INSTEAD
-(THIS IS ONLY IMPORTANT FOR RUNNING THIS WIDGET 
+(THIS IS ONLY IMPORTANT FOR RUNNING THIS WIDGET
     AS A STANDALONE)
 '''
 
@@ -45,12 +45,14 @@ def hoek_on_mohr_plane(s3,m,ucs):
     t = (s1-s3)*ds1ds3**0.5/(ds1ds3 + 1.)
     return sn,t
 
+
 class MohrCircles(QtGui.QWidget):
-    def __init__(self):
+    def __init__(self, parent=None):
         """
         Plots Morh's Circles for given datapoints
         """
         QtGui.QWidget.__init__(self)
+        self.parent = parent
         self.s1 = []
         self.s3 = []
         self.nData = 0
@@ -68,21 +70,46 @@ class MohrCircles(QtGui.QWidget):
         self.edit = EditEnvelopeWidget()
         self.addEnvelopeButton.clicked.connect(self.callEditWidget)
         self.edit.okButton.clicked.connect(self.callAddEnvelope)
+        if parent is not None:
+            self.modifyParentGUI()
+
+    def modifyParentGUI(self):
+        self.parentMenu = self.parent.menuBar.addMenu('Mohr\' Circles')
+        self.addPointAction = QtGui.QAction('Add point',
+                                            self, shortcut='Ctrl+Q')
+        self.removePointAction = QtGui.QAction('Remove point',
+                                               self, shortcut='Ctrl+R')
+        self.activateAction = QtGui.QAction('Draw Mohr\'s Circles',
+                                            self.parent, shortcut='Alt+M')
+        self.addPointAction.setEnabled(False)
+        self.removePointAction.setEnabled(False)
+        self.drawCirclesAction.setEnabled(False)
+        self.parentMenu .addAction(self.addPointAction)
+        self.parentMenu.addAction(self.removePointAction)
+        self.parentMenu.addAction(self.drawCirclesAction)
+        self.addPointAction.triggered.connect(self.parent.addCursor)
+        self.removePointAction.triggered.connect(self.parent.removeCursor)
+        self.parent.sigConnectParameters.connect(self.enableParentMenu)
+
+    def enableParentMenu(self):
+        self.addPointAction.setEnabled(True)
+        self.removePointAction.setEnabled(True)
 
     def callEditWidget(self):
         name = 'Env_%d'%(self.nEnvelopes)
         self.edit.setDefaultName(name)
         self.edit.show()
         self.edit.activateWindow()
-        
+
     def callAddEnvelope(self):
         name = self.edit.nameBox.text()
         self.addEnvelope(etype=self.edit.value(),name=name)
         self.edit.hide()
+
     def setupGUI(self):
         pg.setConfigOption('background', (255,255,255))
         pg.setConfigOption('foreground',(0,0,0))
-        self.setWindowIcon(QtGui.QIcon('../images/Logo.png')) 
+        self.setWindowIcon(QtGui.QIcon('../images/Logo.png'))
         self.setGeometry(80, 30, 1000, 700)
         # layout is the main layout widget
         self.layout = QtGui.QVBoxLayout()
@@ -123,7 +150,6 @@ class MohrCircles(QtGui.QWidget):
         self.tree.addTopLevelItem(addEnvelopeItem)
         self.addEnvelopeButton = QtGui.QPushButton('Add Envelope')
         addEnvelopeItem.setWidget(0,self.addEnvelopeButton)
-        
 
     def addData(self,s1,s3,name=None):
         if name is None:
@@ -141,13 +167,15 @@ class MohrCircles(QtGui.QWidget):
         colorButton.setColor(color)
         colorButton.sigColorChanged.connect(self.plot)
         self.nData += 1
+
     def start(self):
         '''
-        all the data is loaded 
+        all the data is loaded
         and it's time to work
         '''
         self.generateCircles()
         self.addEnvelope()
+
     def addEnvelope(self,etype='Coulomb',name='Env'):
         item = pg.TreeWidgetItem([name])
         self.envelopes.addChild(item)
@@ -195,6 +223,7 @@ class MohrCircles(QtGui.QWidget):
             self.eBoxes[name][dname] = box
             box.click()
             box.clicked.connect(lambda:self.getEnvelope(name))
+
         removeEnvelopeItem = pg.TreeWidgetItem([''])
         item.addChild(removeEnvelopeItem)
         removeButton = QtGui.QPushButton('Remove')
@@ -203,7 +232,7 @@ class MohrCircles(QtGui.QWidget):
         colorButton.sigColorChanged.connect(self.plot)
         self.nEnvelopes += 1
         self.getEnvelope(eName=name)
-        
+
     def removeEnvelope(self, envelope):
         '''
         removes Current Envelopes
@@ -215,7 +244,7 @@ class MohrCircles(QtGui.QWidget):
         del self.cBoxes[name],self.fBoxes[name]
         self.eNames.pop(index)
         self.plot()
-        
+
     def getEnvelope(self,eName=None):
         if eName == None: eName = self.eNames[0]
         etype = self.eTypes[eName]
@@ -234,7 +263,7 @@ class MohrCircles(QtGui.QWidget):
             par1,par2 = self.computeEnvelope(s1,s3,etype)
             self.fBoxes[eName].setValue(par1)
             self.cBoxes[eName].setValue(par2)
-            
+
     def computeEnvelope(self,s1,s3,etype='Coulomb'):
         s1 = np.array(s1)
         s3 = np.array(s3)
@@ -242,7 +271,7 @@ class MohrCircles(QtGui.QWidget):
             popt, pcov = curve_fit(morh_coulomb,
              s3, s1,maxfev=int(1e5))
             a = popt[0]; b = popt[1]
-            phi = np.arcsin((a-1.)/(a+1.))        
+            phi = np.arcsin((a-1.)/(a+1.))
             cohesion = b/(2*np.cos(phi))*(1-np.sin(phi))
             angle = np.degrees(phi)
             return angle,cohesion
@@ -250,7 +279,7 @@ class MohrCircles(QtGui.QWidget):
             popt, pcov = curve_fit(hoek_brown,
              s3, s1,maxfev=int(1e5))
             return popt[0],popt[1]
-        
+
     def generateCircles(self,npoints=1e4):
         self.s1 = np.array(self.s1)
         self.s3 = np.array(self.s3)
@@ -304,5 +333,3 @@ if __name__ == '__main__':
     win.start()
     win.show()
     McApp.exec_()
-    
-

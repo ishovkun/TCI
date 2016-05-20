@@ -1,4 +1,13 @@
 * Dataviewer part
+** Make plugins work
+*** DONE Calculator
+CLOSED: [2016-05-19 Thu 23:26]
+*** Mohr Circles
+**** TODO Cursors must be a part of the plugin
+**** TODO Make MC a widget, don't init it each time!
+*** DONE Combo Plot
+CLOSED: [2016-05-20 Fri 00:07]
+
 ** TODO Finish porting
 ** Finish InputReader
 *** TODO Add better handling of comment section
@@ -20,15 +29,10 @@ each plugin adds entries to dataviewer menus
 **** TODO Way to load plugins
 dataviewer init method will read the file and initialize the plugins
 **** TODO Paths to plugins
-*** Make plugins work
-**** DONE Calculator
-CLOSED: [2016-05-19 Thu 23:26]
-**** TODO Mohr Circles
-**** DONE Combo Plot
-CLOSED: [2016-05-20 Fri 00:07]
 * Sonic part
 ** TODO Start porting to Python3
 ** TODO Finish porting to Python3
+** TODO Make it a plugin (no need for GEOTRAVIS class)
 ** TODO dt can be different in each sonic file
 ** TODO Shifting to the transmitter signal for each track
    May be different start-recording times and scaling
@@ -61,5 +65,6 @@ CLOSED: [2016-05-20 Fri 00:07]
 ** TODO Rename Colors.py into Styles.py
    and put all the stylystic things in there
    (such as LabelStyle in the dataviewer class)
-
 ** TODO ComboList styles in styles file
+** DONE put plugins into a folder plugins
+CLOSED: [2016-05-20 Fri 00:36]

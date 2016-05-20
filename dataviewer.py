@@ -13,12 +13,12 @@ from pyqtgraph.parametertree import Parameter, ParameterTree
 # from pyqtgraph.parametertree import types as pTypes
 from pyqtgraph.Point import Point
 from TCI.base_widgets.CursorItem import CursorItem
-from TCI.base_widgets.ComboList import ComboList
+from TCI.plugins.ComboList import ComboList
 from TCI.widgets.SettingsWidget import SettingsWidget
 from TCI.widgets.CParameterTree import CParameterTree
 from TCI.widgets.CrossHairPlot import CrossHairPlot
-from TCI.widgets.CalculatorPlot import CalculatorPlot
-from TCI.widgets.MohrCircles import MohrCircles
+from TCI.plugins.CalculatorPlot import CalculatorPlot
+from TCI.plugins.MohrCircles import MohrCircles
 from TCI.lib.setup_plot import setup_plot
 from TCI.lib.Colors import DataViewerTreeColors
 from TCI.lib.LabelStyles import *
@@ -96,8 +96,8 @@ class DataViewer(QtGui.QWidget):
 
         # connect cursors
         self.plt.sigRangeChanged.connect(self.scaleCursors)
-        self.addPointButton.triggered.connect(self.addCursor)
-        self.removePointButton.triggered.connect(self.removeCursor)
+        # self.addPointButton.triggered.connect(self.addCursor)
+        # self.removePointButton.triggered.connect(self.removeCursor)
         # self.drawCirclesButton.triggered.connect(self.plotMohrCircles)
 
         #  Finally enable the save button
@@ -252,6 +252,7 @@ class DataViewer(QtGui.QWidget):
             self.allIndices[self.currentDataSetName] = self.indices
             self.allCursors[self.currentDataSetName] = self.cursors
             self.allComments[self.currentDataSetName] = self.comments
+
         print('Setting new data')
         # set current data dictionaries to new values
         self.currentDataSetName = dataSetName
@@ -324,10 +325,6 @@ class DataViewer(QtGui.QWidget):
         self.trendParameter.sigValueChanged.connect(self.setTrendParameter)
         # connect Null parameter
         self.nullFlag.sigValueChanged.connect(self.updatePlot)
-
-        # enable cursors buttons
-        self.addPointButton.setEnabled(True)
-        self.removePointButton.setEnabled(True)
 
         # send signals to plugins
         self.sigConnectParameters.emit(self)
@@ -642,7 +639,7 @@ class DataViewer(QtGui.QWidget):
         self.fileMenu = self.menuBar.addMenu('File')
         self.viewMenu = self.menuBar.addMenu('View')
         self.dataSetMenu = self.menuBar.addMenu('Dataset')
-        self.mohrMenu = self.menuBar.addMenu('Mohr\' Circles')
+        # self.mohrMenu = self.menuBar.addMenu('Mohr\' Circles')
         self.prefMenu = self.menuBar.addMenu('Preferences')
         self.dataSetGroup = QtGui.QActionGroup(self)
         # create status bar
@@ -654,20 +651,14 @@ class DataViewer(QtGui.QWidget):
         self.exitButton = QtGui.QAction('Exit',self,shortcut="Alt+F4")
         self.autoScaleButton = QtGui.QAction('Auto scale',self)
         self.crossHairButton = QtGui.QAction('Cross-hair',self, checkable=True)
-        self.addPointButton = QtGui.QAction('Add point',self,shortcut='Ctrl+Q')
-        self.removePointButton = QtGui.QAction('Remove point',self,shortcut='Ctrl+R')
-        # self.drawCirclesButton = QtGui.QAction('Draw Mohr\'s Circles',self,shortcut='Alt+M')
         self.settingsButton = QtGui.QAction('Settings',self)
-        self.addPointButton.setEnabled(False)
-        self.removePointButton.setEnabled(False)
+        # self.addPointButton.setEnabled(False)
+        # self.removePointButton.setEnabled(False)
         # self.drawCirclesButton.setEnabled(False)
         # Add buttons to submenus
         self.fileMenu.addAction(self.loadButton)
         self.fileMenu.addAction(self.saveButton)
         self.fileMenu.addAction(self.exitButton)
-        self.mohrMenu.addAction(self.addPointButton)
-        self.mohrMenu.addAction(self.removePointButton)
-        # self.mohrMenu.addAction(self.drawCirclesButton)
         self.viewMenu.addAction(self.autoScaleButton)
         self.viewMenu.addAction(self.crossHairButton)
         self.prefMenu.addAction(self.settingsButton)
