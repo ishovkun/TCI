@@ -12,18 +12,18 @@ from PySide import QtGui, QtCore
 from pyqtgraph.parametertree import Parameter, ParameterTree
 # from pyqtgraph.parametertree import types as pTypes
 from pyqtgraph.Point import Point
-from .base_widgets.CursorItem import CursorItem
-from .base_widgets.ComboList import ComboList
-from .widgets.SettingsWidget import SettingsWidget
-from .widgets.CParameterTree import CParameterTree
-from .widgets.CrossHairPlot import CrossHairPlot
-from .widgets.CalculatorPlot import CalculatorPlot
-from .widgets.MohrCircles import MohrCircles
-from .lib.setup_plot import setup_plot
-from .lib.Colors import DataViewerTreeColors
-from .lib.LabelStyles import *
-from .base_widgets.Slider import SliderWidget
-from .base_classes.InputReader import InputReader
+from TCI.base_widgets.CursorItem import CursorItem
+from TCI.base_widgets.ComboList import ComboList
+from TCI.widgets.SettingsWidget import SettingsWidget
+from TCI.widgets.CParameterTree import CParameterTree
+from TCI.widgets.CrossHairPlot import CrossHairPlot
+from TCI.widgets.CalculatorPlot import CalculatorPlot
+from TCI.widgets.MohrCircles import MohrCircles
+from TCI.lib.setup_plot import setup_plot
+from TCI.lib.Colors import DataViewerTreeColors
+from TCI.lib.LabelStyles import *
+from TCI.base_widgets.Slider import SliderWidget
+from TCI.base_classes.InputReader import InputReader
 
 BadHeaderMessage = '''Couldn't locate the header.
 Go to Preferences->Main settings and adjust the header parameters'''
@@ -48,6 +48,9 @@ TrendPen = pg.mkPen(color=(72,209,204), width=3)
 MAXNROWS = 1e4  # if data is longer, we slice data
 
 class DataViewer(QtGui.QWidget):
+    sigUpdatingPlot = QtCore.Signal(object)
+    sigSettingGUI  = QtCore.Signal(object)
+
     def __init__(self):
         super(DataViewer, self).__init__()
         self.comboList = ComboList()
@@ -67,7 +70,7 @@ class DataViewer(QtGui.QWidget):
         self.dataSetButtons = {} # list of items in the dataset section of the menu bar
         '''
         Note:
-            indices = piece of all data indices, corresponding to the 
+            indices = piece of all data indices, corresponding to the
             values interval, contrained by the slider
             THE VIEWER PLOTTS DATA using indices!!!!
         '''
@@ -96,7 +99,7 @@ class DataViewer(QtGui.QWidget):
         self.addPointButton.triggered.connect(self.addCursor)
         self.removePointButton.triggered.connect(self.removeCursor)
         self.drawCirclesButton.triggered.connect(self.plotMohrCircles)
-        
+
         #  Finally enable the save button
         # self.saveButton.triggered.connect(self.save)
         self.setStatus('Ready')
@@ -104,12 +107,12 @@ class DataViewer(QtGui.QWidget):
     def toggleCrossHair(self):
         ch_mode = self.crossHairButton.isChecked()
         self.plt.setCrossHairMode(ch_mode)
-            
-        
+
+
     def showComboList(self):
         self.comboList.show()
         self.comboList.activateWindow()
-        
+
     def checkForLastDir(self):
         '''
         tries to open file 'lastdir'
@@ -121,15 +124,15 @@ class DataViewer(QtGui.QWidget):
                 return f.read()
         except IOError:
             return ''
-        
+
     def makeLastDir(self,filename):
         '''
         gets directory name from file absolute path
-        create file 'lastdir' and writes 
+        create file 'lastdir' and writes
         '''
         with open('lastdir','w') as f:
             f.write(os.path.dirname(filename))
-            
+
     def requestLoad(self):
         '''
         opens file manager, gets filename,
@@ -142,7 +145,7 @@ class DataViewer(QtGui.QWidget):
         filename = QtGui.QFileDialog.getOpenFileName(self, "",
          "%s"%(self.lastdir), "*.clf;;MAT files (*.mat)")
         self.load(filename)
-        
+
 
     def findData(self, key):
         i = self.keys.index(key)
@@ -151,7 +154,7 @@ class DataViewer(QtGui.QWidget):
     def findUnits(self, key):
         i = self.keys.index(key)
         return self.units[i]
-    
+
     def sliceData(self, nrows):
         """
         slice data so that the number of rows is less than nrows.
@@ -175,7 +178,7 @@ class DataViewer(QtGui.QWidget):
 
         self.data = sliced_data
         self.comments = sliced_comments
-    
+
     def load(self,filename):
         '''
         opens file manager, reads data from file,
@@ -188,7 +191,7 @@ class DataViewer(QtGui.QWidget):
         elif filename[1] == u'*.clf':
             clf_data = self.iReader.read_clf(filename[0])
             # names, units, values, comments = clf_data
-            
+
         # Handle wrong header
         #     if tup==None:
         #         reply = QtGui.QMessageBox.warning(self,
@@ -196,7 +199,7 @@ class DataViewer(QtGui.QWidget):
         #         BadHeaderMessage, QtGui.QMessageBox.Ok )
         #         IOError('Cannot read this file.')
         #     data,comments,length = tup
-        
+
         # If something's wrong
         # else: raise IOError('Cannot read this file format.')
 
@@ -206,11 +209,11 @@ class DataViewer(QtGui.QWidget):
         self.comments = clf_data[3]
         if self.data.shape[0] > MAXNROWS:
             self.sliceData(MAXNROWS)
-        
+
         # this is to remember this name when we wanna save file
         self.makeLastDir(filename[0]) # extract filename from absolute path
         self.filename = os.path.basename(filename[0])
-        
+
         # # remove extension from name
         dataSetName = os.path.splitext(self.filename)[0]
         self.currentDataSetName = dataSetName
@@ -232,7 +235,7 @@ class DataViewer(QtGui.QWidget):
         self.allData[dataSetName] = self.data
         if isNew:       # modify gui dataset entries
             self.addDataSetToGUI(dataSetName)
-        
+
     def addDataSetToGUI(self, dataSetName):
         print('Modifying GUI: adding data set button')
 
@@ -244,12 +247,12 @@ class DataViewer(QtGui.QWidget):
         self.dataSetButtons[dataSetName] = dataSetButton
         dataSetButton.triggered.connect(lambda: self.setCurrentDataSet(dataSetName))
         self.allCursors[dataSetName] = []
-        
+
     def setCurrentDataSet(self, dataSetName):
         print( 'New data set is chosen')
         # if we switch to a different data set (if it's not the first),
         # remember cursors for the old one
-        if self.currentDataSetName: 
+        if self.currentDataSetName:
             print('Saving old data')
             self.allIndices[self.currentDataSetName] = self.indices
             self.allCursors[self.currentDataSetName] = self.cursors
@@ -264,7 +267,7 @@ class DataViewer(QtGui.QWidget):
         self.dataSetMenu.setDefaultAction(self.dataSetButtons[dataSetName])
         self.cursors = self.allCursors[dataSetName]
         self.comments = self.allComments[dataSetName]
-        
+
         # fill the data tree widget with data keys
         self.setTreeParameters()
         self.connectParameters()
@@ -293,13 +296,13 @@ class DataViewer(QtGui.QWidget):
         self.modtree.setParameters(self.modparams, showTop=True)
         self.assignAttributes() # to get shorter names
 
-        
+
     def save(self):
         self.lastdir = self.checkForLastDir()
         # second par - name of file dialog window
         # third parameter - default file name
         # forth parameter - file filter. types separated by ';;'
-        filename = pg.QtGui.QFileDialog.getSaveFileName(self, 
+        filename = pg.QtGui.QFileDialog.getSaveFileName(self,
             "Save to MATLAB format", "%s%s"%(self.lastdir,self.currentDataSetName), "MAT files (*.mat)")
         if filename[0] == '': return
         pymat.save(filename[0],self.data)
@@ -322,8 +325,8 @@ class DataViewer(QtGui.QWidget):
         self.modparams.param('max').sigValueChanged.connect(self.setTicks)
         self.modparams.param('Parameter').sigValueChanged.connect(self.updatePlot)
         self.modparams.param('Plot vs.').sigValueChanged.connect(self.setMainAxis)
-        
-        # connection with trend computations        
+
+        # connection with trend computations
         self.tree.sigStateChanged.connect(self.setTrendParameter)
         self.modparams.param('Parameter').sigValueChanged.connect(self.checkTrendUpdates)
         self.modparams.param('Plot vs.').sigValueChanged.connect(self.setTrendParameter)
@@ -336,7 +339,7 @@ class DataViewer(QtGui.QWidget):
         self.addPointButton.setEnabled(True)
         self.removePointButton.setEnabled(True)
         self.drawCirclesButton.setEnabled(True)
-        
+
     def addCursor(self):
         print('adding a Cursor')
         viewrange = self.plt.viewRange()
@@ -351,7 +354,7 @@ class DataViewer(QtGui.QWidget):
         self.allCursors[self.currentDataSetName] = self.cursors
         # bind cursor if there is something to plot
         plotlist = self.activeEntries()
-        if len(plotlist)>0: 
+        if len(plotlist)>0:
             self.bindCursors()
             self.updatePlot()
 
@@ -373,9 +376,9 @@ class DataViewer(QtGui.QWidget):
         for DataSet in self.allCursors.keys():
             cursors = self.allCursors[DataSet]
             data = self.allData[DataSet]
-            if cursors == []: 
+            if cursors == []:
                 continue
-            else: 
+            else:
                 indices = []
                 for cursor in cursors:
                     indices.append(cursor.index)
@@ -412,20 +415,20 @@ class DataViewer(QtGui.QWidget):
             cursor.translate(oldSize/2,snap=None)
             cursor.setSize(size)
             cursor.translate(-size/2,snap=None)
-            
+
     def drawCursors(self):
         '''
         add cursors again after clearing the plot window
         '''
         for cursor in self.cursors:
             self.plt.addItem(cursor)
-            
+
     def bindCursors(self):
         '''
         make cursor slide along data
         '''
         # print self.sender()
-        try: 
+        try:
             plotlist = self.activeEntries()
             if self.mainAxis == 'y':
                 xlabel = plotlist[-1]
@@ -443,12 +446,12 @@ class DataViewer(QtGui.QWidget):
         except: pass
 
     def checkTrendUpdates(self):
-        if self.computeTrendFlag.value(): 
+        if self.computeTrendFlag.value():
             self.computeTrend()
         self.updatePlot()
-        
+
     def setTrendParameter(self):
-        entries = self.activeEntries() 
+        entries = self.activeEntries()
         for i in entries: pass
         if entries != []: self.trendParameter.setValue(i)
         self.checkTrendUpdates()
@@ -457,7 +460,7 @@ class DataViewer(QtGui.QWidget):
         interval = self.slider.interval()
         arr = self.findData(self.sliderParam)
         self.indices = (arr>=interval[0]) & (arr <= interval[1])
-        self.checkTrendUpdates() 
+        self.checkTrendUpdates()
         self.updatePlot()
 
     def setMainAxis(self):
@@ -475,7 +478,7 @@ class DataViewer(QtGui.QWidget):
         self.modparams.param('max').setValue(interval[1])
         self.modparams.param('min').sigValueChanged.connect(self.setTicks)
         self.modparams.param('max').sigValueChanged.connect(self.setTicks)
-        
+
     def setTicks(self):
         '''
         sets ticks to state coressponding to  Interval min/max
@@ -528,16 +531,16 @@ class DataViewer(QtGui.QWidget):
             xdata = self.findData(xlabel)[self.indices]
             ydata = self.findData(ylabel)[self.indices]
             if null: ydata -= ydata[0]
-            self.plt.plot(xdata, ydata, 
+            self.plt.plot(xdata, ydata,
                 pen=linestyle, name=plotlist[i])
             ylabel += " " + yunits
             self.plt.setLabel('left', ylabel, **AxisLabelStyle)
-            
+
         xunits = self.findUnits(xlabel)
         xlabel += " " + xunits
-        self.plt.setLabel('bottom', xlabel, **AxisLabelStyle)
         # if len(plotlist)>0: self.bindCursors(data[xlabel],data[ylabel])
-        
+        self.plt.setLabel('bottom', xlabel, **AxisLabelStyle)
+
     def plotVersusY(self):
         '''
         plot when we have sevaral y's versus of x.
@@ -557,14 +560,14 @@ class DataViewer(QtGui.QWidget):
             if null: xdata -= xdata[0]
             xunits = self.units[xlabel]
             xlabel += " " + xunits
-            self.plt.plot(xdata, ydata, 
+            self.plt.plot(xdata, ydata,
                 pen=linestyle, name=plotlist[i])
             self.plt.setLabel('bottom', xlabel,units=xunits,**AxisLabelStyle)
         self.plt.setLabel('left', ylabel,units=yunits,**AxisLabelStyle)
 
     def plotTrend(self):
         '''
-        plots linear trend 
+        plots linear trend
         '''
         if self.mainAxis == 'x':
             xpar = self.modparams.param('Parameter').value()
@@ -589,13 +592,13 @@ class DataViewer(QtGui.QWidget):
         # clear plot area
         self.plt.clear()
         # remove old legend
-        if self.legend: 
+        if self.legend:
             position = self.legend.pos()
             self.legend.scene().removeItem(self.legend)
         # creadte new legend
         self.plt.addLegend([90,20],offset=position)
         self.legend = self.plt.legend
-        
+
     def setAxisScale(self):
         '''
         sets scale to the interval axis. if time, sets minimum value to 0,
@@ -632,11 +635,11 @@ class DataViewer(QtGui.QWidget):
         self.trendParameter = self.modparams.param('Linear Trend').children()[1]
         self.trendSlope = self.modparams.param('Linear Trend').children()[2]
         self.trendIntersection = self.modparams.param('Linear Trend').children()[3]
-        
+
     def setupGUI(self):
         pg.setConfigOption('background', (255,255,255))
         pg.setConfigOption('foreground',(0,0,0))
-        self.setWindowIcon(QtGui.QIcon('images/Logo.png'))    
+        self.setWindowIcon(QtGui.QIcon('images/Logo.png'))
         # Global widget where we place our layout
         self.layout = QtGui.QVBoxLayout()
         self.layout.setContentsMargins(0,0,0,0)
@@ -714,7 +717,7 @@ class DataViewer(QtGui.QWidget):
         self.splitter.setSizes([int(self.width()*0.4), int(self.width()*0.6)])
         self.splitter.setStretchFactor(0, 0)
         self.splitter.setStretchFactor(1, 1)
-        
+
         # crosshair plot is a class with cross hair capabilities
         # first we need to add it's label attribute to sublayout
         # so we could show the values of the crosshair
@@ -722,10 +725,10 @@ class DataViewer(QtGui.QWidget):
         self.sublayout.addItem(self.plt.label)
         self.sublayout.nextRow()
         self.sublayout.addItem(self.plt)
-        
+
         # set nice fonts
         setup_plot(self.plt)
-        
+
         self.plt.setLabel('bottom', 'X Axis',**AxisLabelStyle)
         self.plt.setLabel('left', 'Y Axis',**AxisLabelStyle)
         self.plt.enableAutoRange(enable=True)
@@ -743,15 +746,15 @@ class DataViewer(QtGui.QWidget):
         self.statusBar.setSizePolicy(QtGui.QSizePolicy.Ignored,
             QtGui.QSizePolicy.Fixed)
         self.setGeometry(80, 30, 1000, 700)
-        
+
     def setStatus(self,message):
         self.statusBar.showMessage(message)
         print(message)
-        
+
     def computeTrend(self):
         '''
-        computer linear trend a and b and 
-        from truncated data. 
+        computer linear trend a and b and
+        from truncated data.
         '''
         if self.mainAxis == 'x': # if multiple plots vs x
             xpar = self.modparams.param('Parameter').value()
@@ -759,12 +762,12 @@ class DataViewer(QtGui.QWidget):
         if self.mainAxis == 'y': # if multiple plots vs y
             ypar = self.modparams.param('Parameter').value()
             xpar = self.trendParameter.value()
-        
+
         x = self.findData(xpar)[self.indices]
         y = self.findData(ypar)[self.indices]
         A = np.array([x, np.ones(len(y))]).T
-        ## Solves the equation a x = b by computing a vector x that 
-        ## minimizes the Euclidean 2-norm || b - a x ||^2. 
+        ## Solves the equation a x = b by computing a vector x that
+        ## minimizes the Euclidean 2-norm || b - a x ||^2.
         self.slope,self.intersection = np.linalg.lstsq(A,y)[0]
         self.trendSlope.setValue(self.slope)
         self.trendIntersection.setValue(self.intersection)
@@ -785,7 +788,7 @@ class DataViewer(QtGui.QWidget):
         if yes, closes the window and ends the process
         '''
         # reply = QtGui.QMessageBox.question(self, 'Quit Dataviewer',
-        #     "Are you sure to quit?", QtGui.QMessageBox.Yes | 
+        #     "Are you sure to quit?", QtGui.QMessageBox.Yes |
         #     QtGui.QMessageBox.No, QtGui.QMessageBox.No)
 
         # if reply == QtGui.QMessageBox.Yes:
@@ -813,8 +816,8 @@ class DataViewer(QtGui.QWidget):
 
 if __name__ == '__main__':
     App = QtGui.QApplication(sys.argv)
-    
-    win = DataViewer()    
+
+    win = DataViewer()
     # win.showMaximized()
     win.show()
     # win.showFullScreen()
@@ -822,9 +825,5 @@ if __name__ == '__main__':
         "_Training_Pc=1500 psi Sonic endcaps_Berea Mechanical Testing _2015-04-27_001.clf",
         u'*.clf']
     win.load(filename)
-    
+
     App.exec_()
-
-
-
-

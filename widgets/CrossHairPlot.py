@@ -1,5 +1,5 @@
 """
-Demonstrates some customized mouse interaction by drawing a crosshair that follows 
+Demonstrates some customized mouse interaction by drawing a crosshair that follows
 the mouse.
 
 
@@ -12,14 +12,14 @@ from pyqtgraph.Point import Point
 
 
 class CrossHairPlot(pg.PlotItem):
+    vLine = pg.InfiniteLine(angle=90, movable=False)
+    hLine = pg.InfiniteLine(angle=0, movable=False)
+
     def __init__(self):
         super(CrossHairPlot, self).__init__()
         self.label = pg.LabelItem(justify='right')
         self.chMode = False
 
-    vLine = pg.InfiniteLine(angle=90, movable=False)
-    hLine = pg.InfiniteLine(angle=0, movable=False)
-    
     def setCrossHairMode(self, setMode=False):
         if setMode:
             self.chMode = True
@@ -39,7 +39,7 @@ class CrossHairPlot(pg.PlotItem):
             except: pass
 
     def mouseMoved(self, evt):
-        pos = (evt.x(), evt.color: redy())
+        pos = (evt.x(), evt.y())
         if self.sceneBoundingRect().contains(evt):
             mousePoint = self.vb.mapSceneToView(evt)
             index = int(mousePoint.x())
@@ -51,16 +51,16 @@ class CrossHairPlot(pg.PlotItem):
                 )
                 self.vLine.setPos(mousePoint.x())
                 self.hLine.setPos(mousePoint.y())
-                
+
     def plot(self, *args, **kwargs):
         super(CrossHairPlot, self).plot(*args, **kwargs)
         if self.chMode:
             self.addItem(self.vLine, ignoreBounds = True)
             self.addItem(self.hLine, ignoreBounds = True)
-        
 
 
-if __name__ == "__main__":  
+
+if __name__ == "__main__":
     #generate layout
     app = QtGui.QApplication([])
     win = pg.GraphicsWindow()
@@ -82,5 +82,3 @@ if __name__ == "__main__":
     import sys
     if (sys.flags.interactive != 1) or not hasattr(QtCore, 'PYQT_VERSION'):
         QtGui.QApplication.instance().exec_()
-
-
