@@ -54,6 +54,10 @@ class DataViewer(QtGui.QWidget):
     sigSettingGUI  = QtCore.Signal(object)
     # to enable some data upon loading
     sigConnectParameters = QtCore.Signal(object)
+    # to save data for the dataset
+    sigSaveData = QtCore.Signal(object)
+    # to load data for the stored dataset
+    sigLoadData = QtCore.Signal(object)
 
     def __init__(self):
         super(DataViewer, self).__init__()
@@ -98,6 +102,7 @@ class DataViewer(QtGui.QWidget):
         # connect cursors
         self.plt.sigRangeChanged.connect(self.scaleCursors)
         # self.addPointButton.triggered.connect(self.addCursor)
+        # self.mcWidget.addPointButton.triggered.connect(self.addCursor)
         # self.removePointButton.triggered.connect(self.removeCursor)
         # self.drawCirclesButton.triggered.connect(self.plotMohrCircles)
 
@@ -557,7 +562,7 @@ class DataViewer(QtGui.QWidget):
 
     def plotTrend(self):
         '''
-        plots linear trend
+       plots linear trend
         '''
         if self.mainAxis == 'x':
             xpar = self.modparams.param('Parameter').value()
@@ -785,12 +790,12 @@ if __name__ == '__main__':
     # win.showMaximized()
     win.show()
     # win.showFullScreen()
-    filename = ["C:/Users/is6645/Dropbox/Experiments/TO_BE_ANALYZED/1500psi/" + \
-               "_Training_Pc=1500 psi Sonic endcaps_Berea Mechanical Testing _2015-04-27_001.clf",
-                u'*.clf']
-    # filename = ["/home/ishovkun/Dropbox/Experiments/TO_BE_ANALYZED/1500psi/" + \
-    #     "_Training_Pc=1500 psi Sonic endcaps_Berea Mechanical Testing _2015-04-27_001.clf",
-    #     u'*.clf']
+    # filename = ["C:/Users/is6645/Dropbox/Experiments/TO_BE_ANALYZED/1500psi/" + \
+    #            "_Training_Pc=1500 psi Sonic endcaps_Berea Mechanical Testing _2015-04-27_001.clf",
+    #             u'*.clf']
+    filename = ["/home/ishovkun/Dropbox/Experiments/TO_BE_ANALYZED/1500psi/" + \
+        "_Training_Pc=1500 psi Sonic endcaps_Berea Mechanical Testing _2015-04-27_001.clf",
+        u'*.clf']
     win.load(filename)
 
     App.exec_()

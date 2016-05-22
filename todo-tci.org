@@ -8,7 +8,6 @@ DEADLINE: <2016-05-25 Wed>
 **** TODO [#A] Make MC a widget, don't init it each time!
 *** DONE Combo Plot
 CLOSED: [2016-05-20 Fri 00:07]
-
 ** TODO [#A] Finish porting
 ** [#B] Finish InputReader
 *** TODO Add better handling of comment section
@@ -16,6 +15,7 @@ CLOSED: [2016-05-20 Fri 00:07]
 *** TODO Add reading sample length and other params (mass, density, porosity?)
 ** TODO [#B] Save state of the slider
 ** DONE Add cross-hair option
+** TODO [#C] Crosshair color (to stylesheet)
 ** Plugin setup
 *** signals
 **** DONE after updating plot
