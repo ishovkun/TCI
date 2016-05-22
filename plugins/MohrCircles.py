@@ -30,8 +30,10 @@ get_color = lambda: (rand()*230,rand()*230,rand()*230)
 
 def hoek_brown(x,m,ucs):
     return x + (m*ucs*x + ucs**2)**0.5
+
 def morh_coulomb(x,a,b):
     return a*x + b
+
 def hoek_on_mohr_plane(s3,m,ucs):
     '''
     s3 = sigma3
@@ -71,7 +73,9 @@ class MohrCircles(QtGui.QWidget):
         self.addEnvelopeButton.clicked.connect(self.callEditWidget)
         self.edit.okButton.clicked.connect(self.callAddEnvelope)
         if parent is not None:
-            self.modifyParentGUI()
+            self.parent.sigSettingGUI.connect(self.modifyParentGUI)
+            self.parent.sigConnectParameters.connect(self.enableParentMenu)
+
 
     def modifyParentGUI(self):
         self.parentMenu = self.parent.menuBar.addMenu('Mohr\' Circles')
@@ -81,9 +85,10 @@ class MohrCircles(QtGui.QWidget):
                                                self, shortcut='Ctrl+R')
         self.activateAction = QtGui.QAction('Draw Mohr\'s Circles',
                                             self.parent, shortcut='Alt+M')
-        self.addPointAction.setEnabled(False)
-        self.removePointAction.setEnabled(False)
-        self.drawCirclesAction.setEnabled(False)
+        # self.addPointAction.setEnabled(False)
+        # self.removePointAction.setEnabled(False)
+        # self.activateAction.setEnabled(False)
+        self.parentMenu.setEnabled(False)
         self.parentMenu .addAction(self.addPointAction)
         self.parentMenu.addAction(self.removePointAction)
         self.parentMenu.addAction(self.drawCirclesAction)
@@ -92,6 +97,7 @@ class MohrCircles(QtGui.QWidget):
         self.parent.sigConnectParameters.connect(self.enableParentMenu)
 
     def enableParentMenu(self):
+        self.parentMenu.setEnabled(True)
         self.addPointAction.setEnabled(True)
         self.removePointAction.setEnabled(True)
 
@@ -151,7 +157,9 @@ class MohrCircles(QtGui.QWidget):
         self.addEnvelopeButton = QtGui.QPushButton('Add Envelope')
         addEnvelopeItem.setWidget(0,self.addEnvelopeButton)
 
-    def addData(self,s1,s3,name=None):
+    def setData(self,s1,s3,name=None):
+        self.s1 = []
+        self.s3 = []
         if name is None:
             name = 'Untitled_%d'%(self.nData)
         self.s1.append(s1)

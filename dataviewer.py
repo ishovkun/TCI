@@ -61,6 +61,7 @@ class DataViewer(QtGui.QWidget):
         self.settings = SettingsWidget()
         self.iReader = InputReader()
         self.calcPlot = CalculatorPlot(parent=self)
+        self.mcWidget = MohrCircles(parent=self)
         self.setupGUI()
         # default plots will be drawn with multiple y and single x
         self.mainAxis = 'x'
@@ -383,7 +384,7 @@ class DataViewer(QtGui.QWidget):
                         Pu = self.findData(params[2])[cursor.index] # pore pressure
                     sigma1 = Sig1 - b*Pu
                     sigma3 = Pc - b*Pu
-                    CirclesWidget.addData(max(sigma1,sigma3),min(sigma1,sigma3),name=DataSet +'_'+ str(ncircles))
+                    CirclesWidget.setData(max(sigma1,sigma3),min(sigma1,sigma3),name=DataSet +'_'+ str(ncircles))
         if ncircles == 0: return 0
         CirclesWidget.start()
         CirclesWidget.show()
@@ -784,9 +785,12 @@ if __name__ == '__main__':
     # win.showMaximized()
     win.show()
     # win.showFullScreen()
-    filename = ["/home/ishovkun/Dropbox/Experiments/TO_BE_ANALYZED/1500psi/" + \
-        "_Training_Pc=1500 psi Sonic endcaps_Berea Mechanical Testing _2015-04-27_001.clf",
-        u'*.clf']
+    filename = ["C:/Users/is6645/Dropbox/Experiments/TO_BE_ANALYZED/1500psi/" + \
+               "_Training_Pc=1500 psi Sonic endcaps_Berea Mechanical Testing _2015-04-27_001.clf",
+                u'*.clf']
+    # filename = ["/home/ishovkun/Dropbox/Experiments/TO_BE_ANALYZED/1500psi/" + \
+    #     "_Training_Pc=1500 psi Sonic endcaps_Berea Mechanical Testing _2015-04-27_001.clf",
+    #     u'*.clf']
     win.load(filename)
 
     App.exec_()
