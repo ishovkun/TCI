@@ -20,8 +20,8 @@ class ComboList(QtGui.QMainWindow):
     sigStateChanged = QtCore.Signal(object) # emitted when color changed
     labelStyle = {'color': '#000000', 'font-size': '14pt','font':'Times'}
 
-    def __init__(self,name=None,items=None,colors=None, parent=None):
-        super(ComboList,self).__init__()
+    def __init__(self, name=None, items=None, colors=None, parent=None):
+        super(ComboList, self).__init__()
         self.setupGUI()
         self.setupPlotWindow()
         self.props = CustomizingWindow()
@@ -59,7 +59,6 @@ class ComboList(QtGui.QMainWindow):
             x = item.xData
             y = item.yData
             self.addItem(name,x,y)
-
 
     def saveProps(self):
         self.props.xname = self.props.xNameBox.text()
@@ -170,13 +169,12 @@ class ComboList(QtGui.QMainWindow):
         # clear plot area
         self.plt.clear()
         # remove old legend
-        if self.legend:
+        if self.legend is not None:
             position = self.legend.pos()
-        self.legend.scene().removeItem(self.legend)
+            self.legend.scene().removeItem(self.legend)
         # create new legend
-        self.plt.addLegend([90,20],offset=position)
+        self.plt.addLegend([90, 20],offset=position)
         self.legend = self.plt.legend
-        # print self.legend.pos()
 
 
 if __name__ == '__main__':

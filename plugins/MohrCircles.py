@@ -8,337 +8,198 @@ USE X BUTTON INSTEAD
 '''
 
 from PySide import QtGui, QtCore
+from PySide.QtCore import Slot
 import pyqtgraph as pg
 import numpy as np
 import sys
-from scipy.optimize import curve_fit
-from pyqtgraph.parametertree import Parameter, ParameterTree
-from pyqtgraph.parametertree import types as pTypes
-from ..lib.setup_plot import setup_plot
-from ..base_widgets import ColorButton, CheckBox
-from .EditEnvelopeWidget import EditEnvelopeWidget
 
-EnvelopeParameters = [
-    {'name':'Cohesion', 'type':'float', 'value':300.0,'step':10.0},
-    {'name':'Friction Angle', 'type':'float', 'value':30.0,'step':1.0},
-]
-LabelStyle = {'color': '#000000', 'font-size': '14pt','font':'Times'}
-CirclePen = pg.mkPen(color=(0,0,0), width=2)
-EnvelopePen = pg.mkPen(color=(255,0,0), width=2)
-rand = lambda: np.random.rand()
-get_color = lambda: (rand()*230,rand()*230,rand()*230)
+from TCI.base_widgets.CursorItem import CursorItem
+from TCI.plugins.lib.MohrCirclesWidget import MohrCirclesWidget
+# we need to store the parameters for effective stresses in settings,
+# add this widget to settings tab
+from TCI.plugins.lib.EffectiveStressSettingsWidget import EffectiveStressSettingsWidget
 
-def hoek_brown(x,m,ucs):
-    return x + (m*ucs*x + ucs**2)**0.5
+parentMenuString = 'Mohr\' Circles'
+addPointActionString = 'Add point'
+removePointActionString = 'Delete point'
+activateActionString = 'Draw Mohr\'s Circles'
 
-def morh_coulomb(x,a,b):
-    return a*x + b
-
-def hoek_on_mohr_plane(s3,m,ucs):
-    '''
-    s3 = sigma3
-    returns sigma_n, tau
-    '''
-    ds1ds3 = 1. + m*ucs/2/(m*ucs*s3 + ucs**2)**0.5
-    s1 = hoek_brown(s3,m,ucs)
-    # sigma n
-    sn = s3 + (s1 - s3)/(ds1ds3 + 1.)
-    # tau
-    t = (s1-s3)*ds1ds3**0.5/(ds1ds3 + 1.)
-    return sn,t
-
-
-class MohrCircles(QtGui.QWidget):
-    def __init__(self, parent=None):
-        """
-        Plots Morh's Circles for given datapoints
-        """
-        QtGui.QWidget.__init__(self)
+class MohrCircles:
+    def __init__(self, parent):
         self.parent = parent
-        self.s1 = []
-        self.s3 = []
-        self.nData = 0
-        self.nEnvelopes = 0
-        self.dCButtons = {}
-        self.eCButtons = {}
-        self.eBoxes = {}
-        self.dNames = [] # names of Datasets
-        self.eNames = [] # envelope names
-        self.eTypes = {} # envelope types
-        self.fBoxes = {} # boxes with friction angle values
-        self.cBoxes = {} # boxes with cohesion values
-        self.eItemNames = [] # item names inside envelope menus
-        self.setupGUI()
-        self.edit = EditEnvelopeWidget()
-        self.addEnvelopeButton.clicked.connect(self.callEditWidget)
-        self.edit.okButton.clicked.connect(self.callAddEnvelope)
-        if parent is not None:
-            self.parent.sigSettingGUI.connect(self.modifyParentGUI)
-            self.parent.sigConnectParameters.connect(self.enableParentMenu)
-
+        self.cursors = []   # cursors for current data set
+        self.allCursors = {}    # cursors for all datasets
+        self.parent.sigSettingGUI.connect(self.modifyParentGUI)
+        self.parent.sigConnectParameters.connect(self.enableParentMenu)
+        self.mcWidget = MohrCirclesWidget()
 
     def modifyParentGUI(self):
-        self.parentMenu = self.parent.menuBar.addMenu('Mohr\' Circles')
-        self.addPointAction = QtGui.QAction('Add point',
-                                            self, shortcut='Ctrl+Q')
-        self.removePointAction = QtGui.QAction('Remove point',
-                                               self, shortcut='Ctrl+R')
-        self.activateAction = QtGui.QAction('Draw Mohr\'s Circles',
+        self.parentMenu = self.parent.menuBar.addMenu(parentMenuString)
+        # self.parentMenu.setEnabled(False)
+        
+        # add EffectiveStressSettingsWidget to parent settings menu
+        self.effectiveStressWidget = EffectiveStressSettingsWidget()
+        self.parent.settings.addWidget(self.effectiveStressWidget,
+                                       config_header="effective_stress",
+                                       label="Effective stress")
+        
+        self.addPointAction = QtGui.QAction(addPointActionString,
+                                            self.parent, shortcut='Ctrl+Q')
+        self.removePointAction = QtGui.QAction(removePointActionString,
+                                               self.parent, shortcut='Ctrl+R')
+        self.activateAction = QtGui.QAction(activateActionString,
                                             self.parent, shortcut='Alt+M')
-        # self.addPointAction.setEnabled(False)
-        # self.removePointAction.setEnabled(False)
-        # self.activateAction.setEnabled(False)
-        self.parentMenu.setEnabled(False)
         self.parentMenu.addAction(self.addPointAction)
         self.parentMenu.addAction(self.removePointAction)
-        # self.parentMenu.addAction(self.drawCirclesAction)
         self.parentMenu.addAction(self.activateAction)
-        self.addPointAction.triggered.connect(self.parent.addCursor)
-        self.removePointAction.triggered.connect(self.parent.removeCursor)
-        self.parent.sigConnectParameters.connect(self.enableParentMenu)
-
-    def enableParentMenu(self):
-        self.parentMenu.setEnabled(True)
+        
         self.addPointAction.setEnabled(True)
         self.removePointAction.setEnabled(True)
+        self.activateAction.setEnabled(True)
+        self.addPointAction.triggered.connect(self.addCursor)
+        self.removePointAction.triggered.connect(self.removeCursor)
+        self.parent.sigConnectParameters.connect(self.enableParentMenu)
+        self.parent.plt.sigRangeChanged.connect(self.scaleCursors)
+        self.parent.tree.sigStateChanged.connect(self.bindCursors)
+        self.parent.sigNewDataSet.connect(self.newDataSet)
+        self.parent.sigSaveDataSet.connect(self.saveDataSet)
+        self.parent.sigUpdatingPlot.connect(self.drawCursors)
+        self.activateAction.triggered.connect(self.runMCWidget)
 
-    def callEditWidget(self):
-        name = 'Env_%d'%(self.nEnvelopes)
-        self.edit.setDefaultName(name)
-        self.edit.show()
-        self.edit.activateWindow()
+    @Slot(str)
+    def saveDataSet(self, dataSetName):
+        self.allCursors[dataSetName] = self.cursors
 
-    def callAddEnvelope(self):
-        name = self.edit.nameBox.text()
-        self.addEnvelope(etype=self.edit.value(),name=name)
-        self.edit.hide()
+    @Slot(str)
+    def loadDataSet(self, dataSetName):
+        self.cursors = self.allCursors[dataSetName] 
 
-    def setupGUI(self):
-        pg.setConfigOption('background', (255,255,255))
-        pg.setConfigOption('foreground',(0,0,0))
-        self.setWindowIcon(QtGui.QIcon('../images/Logo.png'))
-        self.setGeometry(80, 30, 1000, 700)
-        # layout is the main layout widget
-        self.layout = QtGui.QVBoxLayout()
-        # sublayout is a widget we add plot window to
-        self.sublayout = pg.GraphicsLayoutWidget()
-        self.layout.setContentsMargins(0,0,0,0)
-        self.layout.setSpacing(0)
-        self.setLayout(self.layout)
-        # split window into two halfs
-        self.splitter = QtGui.QSplitter()
-        self.splitter.setOrientation(QtCore.Qt.Horizontal)
-        self.layout.addWidget(self.splitter)
+    def newDataSet(self):
+        self.allCursors[self.parent.currentDataSetName] = []
 
-        self.tree = pg.TreeWidget()
-        self.splitter.addWidget(self.tree)
-        self.splitter.addWidget(self.sublayout)
-        self.plt = self.sublayout.addPlot()
-        setup_plot(self.plt)
-        pg.setConfigOptions(antialias=True)
+    def addCursor(self):
+        print('adding a Cursor')
+        viewrange = self.parent.plt.viewRange()
+        
+        # this is a weird way to scale a new cursor initially
+        rangeX = [viewrange[0][0], viewrange[0][1]]
+        rangeY = [viewrange[1][0], viewrange[1][1]]
+        pos = [(rangeX[0] + rangeX[1])/2, (rangeY[0] + rangeY[1])/2]
+        xSize = float(rangeX[1]-rangeX[0])/50*800/self.parent.plt.width()
+        ySize = float(rangeY[1]-rangeY[0])/50*800/self.parent.plt.height()
+        cursor = CursorItem(pos, [xSize,ySize], pen=(4, 9))
+        self.cursors.append(cursor)
+        self.allCursors[self.parent.currentDataSetName] = self.cursors
+        
+        # bind cursor if there is something to plot
+        if len(self.parent.activeEntries()) > 0:
+            self.bindCursors()
+            self.drawCursors()
 
-        self.tree.setHeaderHidden(True)
-        self.tree.setDragEnabled(False)
-        self.tree.setIndentation(10)
-        self.tree.setColumnCount(4)
-        self.tree.setColumnWidth(0, 150)
-        self.tree.setColumnWidth(1, 20)
-        self.tree.setColumnWidth(2, 90)
-        self.tree.setColumnWidth(3, 50)
-        # self.tree.setColumnWidth(3, 50)
-        self.fpoints = pg.TreeWidgetItem(['Failure Points'])
-        self.envelopes = pg.TreeWidgetItem(['Failure Envelopes'])
-        self.tree.addTopLevelItem(self.fpoints)
-        self.tree.addTopLevelItem(self.envelopes)
-        self.tree.setDragEnabled(False)
-        self.fpoints.setExpanded(True)
-        self.envelopes.setExpanded(True)
-        addEnvelopeItem = pg.TreeWidgetItem([''])
-        self.tree.addTopLevelItem(addEnvelopeItem)
-        self.addEnvelopeButton = QtGui.QPushButton('Add Envelope')
-        addEnvelopeItem.setWidget(0,self.addEnvelopeButton)
+    def removeCursor(self):
+        if len(self.cursors)>0:
+            cursor = self.cursors.pop(-1)
+            self.parent.plt.removeItem(cursor)
 
-    def setData(self,s1,s3,name=None):
-        self.s1 = []
-        self.s3 = []
-        if name is None:
-            name = 'Untitled_%d'%(self.nData)
-        self.s1.append(s1)
-        self.s3.append(s3)
-        item = pg.TreeWidgetItem([name])
-        self.dNames.append(name)
-        self.fpoints.addChild(item)
-        # self.tree.addTopLevelItem(item)
-        color = (0, 0, 0)
-        colorButton = ColorButton.ColorButton()
-        item.setWidget(2, colorButton)
-        self.dCButtons[name] = colorButton
-        colorButton.setColor(color)
-        colorButton.sigColorChanged.connect(self.plot)
-        self.nData += 1
-
-    def start(self):
+    def scaleCursors(self):
         '''
-        all the data is loaded
-        and it's time to work
+        make cursors circles of an appropriate size when scaling plot
         '''
-        self.generateCircles()
-        self.addEnvelope()
-
-    def addEnvelope(self,etype='Coulomb',name='Env'):
-        item = pg.TreeWidgetItem([name])
-        self.envelopes.addChild(item)
-        self.eNames.append(name)
-        self.eTypes[name] = etype
-        typeLabel = QtGui.QLabel(etype)
-        item.setWidget(2,typeLabel)
-        colorButton = ColorButton.ColorButton()
-        self.eCButtons[name] = colorButton
-        color = get_color()
-        colorButton.setColor(color)
-        item.setExpanded(True)
-        self.eBoxes[name] = {}
-        colorItem = pg.TreeWidgetItem(['Color'])
-        if etype == 'Coulomb':
-            item1 = pg.TreeWidgetItem(['Friction Angle'])
-            item2 = pg.TreeWidgetItem(['Cohesion'])
-            step1 = 1
-            step2 = 50
-        elif etype == 'Brown':
-            item1 = pg.TreeWidgetItem(['m'])
-            item2 = pg.TreeWidgetItem(['UCS'])
-            step1 = 1
-            step2 = 1
-        else:
-            print(etype)
-            return 0
-        item.addChild(colorItem)
-        item.addChild(item1)
-        item.addChild(item2)
-        frictionBox = pg.SpinBox(value=50, step=step1)
-        cohesionBox = pg.SpinBox(value=1e3, step=step2)
-        frictionBox.sigValueChanged.connect(self.plot)
-        cohesionBox.sigValueChanged.connect(self.plot)
-        colorItem.setWidget(2, colorButton)
-        item1.setWidget(2, frictionBox)
-        item2.setWidget(2, cohesionBox)
-        self.fBoxes[name] = frictionBox
-        self.cBoxes[name] = cohesionBox
-        for dname in self.dNames:
-            child = pg.TreeWidgetItem([dname])
-            item.addChild(child)
-            box = CheckBox.CheckBox()
-            child.setWidget(2,box)
-            self.eBoxes[name][dname] = box
-            box.click()
-            box.clicked.connect(lambda:self.getEnvelope(name))
-
-        removeEnvelopeItem = pg.TreeWidgetItem([''])
-        item.addChild(removeEnvelopeItem)
-        removeButton = QtGui.QPushButton('Remove')
-        removeEnvelopeItem.setWidget(2,removeButton)
-        removeButton.clicked.connect(lambda:self.removeEnvelope(item))
-        colorButton.sigColorChanged.connect(self.plot)
-        self.nEnvelopes += 1
-        self.getEnvelope(eName=name)
-
-    def removeEnvelope(self, envelope):
+        plt = self.parent.plt
+        viewrange = plt.viewRange()
+        rangeX = [viewrange[0][0], viewrange[0][1]]
+        rangeY = [viewrange[1][0], viewrange[1][1]]
+        xSize = float(rangeX[1]-rangeX[0])*16/plt.width()
+        ySize = float(rangeY[1]-rangeY[0])*16/plt.height()
+        size = np.array([xSize,ySize])
+        for cursor in self.cursors:
+            # workaround to force the cursor stay on the same place
+            oldSize = cursor.getSize() 
+            cursor.translate(oldSize/2,snap=None)
+            cursor.setSize(size)
+            cursor.translate(-size/2,snap=None)
+        
+    def bindCursors(self):
         '''
-        removes Current Envelopes
+        make cursor slide along data
         '''
-        name = envelope.text(0)
-        index = self.envelopes.indexOfChild(envelope)
-        self.envelopes.takeChild(index)
-        del self.eBoxes[name],self.eCButtons[name]
-        del self.cBoxes[name],self.fBoxes[name]
-        self.eNames.pop(index)
-        self.plot()
+        plotlist = self.parent.activeEntries()
+        if len(plotlist) > 0: # if some of tree items are checked
+            if self.parent.mainAxis == 'y':
+                xlabel = plotlist[-1]
+                ylabel = self.parent.modparams.param('Parameter').value()
+            elif self.parent.mainAxis == 'x':
+                ylabel = plotlist[-1]
+                xlabel = self.parent.modparams.param('Parameter').value()
+                x_data = self.parent.findData(xlabel)
+                y_data = self.parent.findData(ylabel)
+                x = x_data[self.parent.indices]
+                y = y_data[self.parent.indices]
+            for cursor in self.cursors:
+                cursor.setData(x,y)
+        else:  # if tree is inactive remove cursors
+            for cursor in self.cursors:
+                self.parent.plt.removeItem(cursor)
 
-    def getEnvelope(self,eName=None):
-        if eName == None: eName = self.eNames[0]
-        etype = self.eTypes[eName]
-        s1 = []
-        s3 = []
-        for dName in self.dNames:
-            val = self.eBoxes[eName][dName].value()
-            if val:
-                index = self.dNames.index(dName)
-                s1.append(self.s1[index])
-                s3.append(self.s3[index])
-        if len(s1)==1:
-            s1.append(500)
-            s3.append(0)
-        if (s1!=[]) and (s3!=[]):
-            par1,par2 = self.computeEnvelope(s1,s3,etype)
-            self.fBoxes[eName].setValue(par1)
-            self.cBoxes[eName].setValue(par2)
+    def drawCursors(self):
+        '''
+        add cursors again after clearing the plot window
+        '''
+        if len(self.parent.activeEntries()) > 0:
+            for cursor in self.cursors:
+                self.parent.plt.addItem(cursor)
+            
+    def enableParentMenu(self):
+        pass
+        # self.parentMenu.setEnabled(True)
+        # self.addPointAction.setEnabled(True)
+        # self.removePointAction.setEnabled(True)
 
-    def computeEnvelope(self,s1,s3,etype='Coulomb'):
-        s1 = np.array(s1)
-        s3 = np.array(s3)
-        if etype == 'Coulomb':
-            popt, pcov = curve_fit(morh_coulomb,
-             s3, s1,maxfev=int(1e5))
-            a = popt[0]; b = popt[1]
-            phi = np.arcsin((a-1.)/(a+1.))
-            cohesion = b/(2*np.cos(phi))*(1-np.sin(phi))
-            angle = np.degrees(phi)
-            return angle,cohesion
-        elif etype == 'Brown':
-            popt, pcov = curve_fit(hoek_brown,
-             s3, s1,maxfev=int(1e5))
-            return popt[0],popt[1]
+    def runMCWidget(self):
+        config = self.effectiveStressWidget.parameters()
+        biot_coef = config[3]
+        # parent.settings.mcWidget.parameters()
+        # self.mcWidget.show()
+        for dataset in self.allCursors.keys():
+            print(dataset)
+            cursors = self.allCursors[dataset]
+            ncircles = 0
+            if cursors == []: continue    # skip dataset
+            else:    # retreive data from cursor-selected points
+                indices = []
+                for cursor in cursors:
+                    index = cursor.index
+                    indices.append(index)
+                    ncircles += 1
+                    
+                    # find axial stress
+                    all_ax_stress = self.parent.findDatainAllDatasets(dataset,
+                                                                  key=config[0])
+                    ax_stress = all_ax_stress[index]
 
-    def generateCircles(self,npoints=1e4):
-        self.s1 = np.array(self.s1)
-        self.s3 = np.array(self.s3)
-        self.centers = (self.s1 + self.s3)/2
-        self.radii = abs(self.s1 - self.s3)/2
-        # x and y of Mohr's circles
-        self.x = {}
-        self.y = {}
-        self.env_x = {}
-        for i in range(len(self.dNames)):
-            R = self.radii[i]
-            C = self.centers[i]
-            x = np.linspace(self.s3[i],self.s1[i],npoints)
-            self.x[self.dNames[i]] = x
-            self.y[self.dNames[i]] = (R**2-(x-C)**2)**0.5
-        minstess = min(np.minimum(self.s1,self.s3))
-        maxstess = max(np.maximum(self.s1,self.s3))
-        self.env_x = np.linspace(min(0,minstess),maxstess,npoints)
+                    # find confining stress
+                    if config[1] == '0': conf_stress = 0 # force to 0
+                    else:
+                        # all conf stress points
+                        all_conf_stress = self.parent.findDatainAllDatasets(dataset,
+                                                                 key=config[1])
+                        conf_stress = all_conf_stress[index]
 
-    def plot(self):
-        self.plt.clear()
-        self.plt.showGrid(x=True, y=True)
-        self.plt.setYRange(0,max(self.s1))
-        self.plt.setXRange(self.env_x.min(),self.env_x.max())
-        for dName in self.dNames:
-            color = self.dCButtons[dName].color()
-            pen = pg.mkPen(color=color, width=2)
-            self.plt.plot(self.x[dName],self.y[dName],pen=pen)
-        for eName in self.eNames:
-            color = self.eCButtons[eName].color()
-            pen = pg.mkPen(color=color, width=2)
-            a = self.fBoxes[eName].value()
-            b = self.cBoxes[eName].value()
-            x = self.env_x
-            if self.eTypes[eName]=='Coulomb':
-                tan_phi = np.tan(np.radians(a))
-                y = tan_phi*x + b
-            elif self.eTypes[eName]=='Brown':
-                x,y = hoek_on_mohr_plane(x,a,b)
+                    # find pore pressure
+                    if config[2]=='0': pressure = 0 # force to 0
+                    else:
+                        all_pressure = self.parent.findDatainAllDatasets(dataset,
+                                                                 key=config[2])
+                        pressure = all_pressure[index]
 
-            self.plt.plot(x,y,pen=pen)
+                    # compute effective stresses
+                    sigma_ax = ax_stress - biot_coef*pressure
+                    sigma_conf = conf_stress - biot_coef*pressure
+                    sigma1 = max(sigma_ax, sigma_conf)
+                    sigma3 = min(sigma_ax, sigma_conf)
+                    self.mcWidget.addData(sigma1, sigma3,
+                                          name=dataset + "_" + str(ncircles))
+                    self.mcWidget.run()
+                    self.mcWidget.show()
+                    self.mcWidget.activateWindow()
 
-if __name__ == '__main__':
-    sigma1 = 1100
-    sigma3 = 100
-    McApp = QtGui.QApplication(sys.argv)
-    win = MohrCircles()
-    win.addData(0,-300)
-    win.addData(sigma1,sigma3)
-    win.addData(sigma1*2,sigma3*2)
-    win.start()
-    win.show()
-    McApp.exec_()

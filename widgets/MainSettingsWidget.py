@@ -12,7 +12,7 @@ class MainSettingsWidget(QtGui.QWidget):
     def __init__(self):
         super(MainSettingsWidget,self).__init__(None)
         self.setupGUI()
-        
+
     def setupGUI(self):
             # self.setWindowTitle("Igor")
             self.setGeometry(500, 300, 350, 200)
@@ -35,14 +35,14 @@ class MainSettingsWidget(QtGui.QWidget):
             # self.cancelButton = QtGui.QPushButton('Cancel')
             # self.buttonsLayout.addWidget(self.okButton)
             # self.buttonsLayout.addWidget(self.cancelButton)
-                
-    def setConfig(self,config):
+
+    def setConfig(self, config):
             self.sliderLine.setValue(config['slider'])
             self.timeLine.setValue(config['time'])
             self.fileHeaderLine.setValue(config['fileheader'])
             self.sampleLengthLine.setValue(config['SampleLengthParameter'])
             self.conf = config
-                
+
     def config(self):
         time = self.timeLine.value()
         slider = self.sliderLine.value()

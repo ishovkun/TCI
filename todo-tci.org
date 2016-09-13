@@ -2,10 +2,12 @@
 ** Make plugins work
 *** DONE Calculator
 CLOSED: [2016-05-19 Thu 23:26]
-*** Mohr ircles
+*** Mohr Circles
 DEADLINE: <2016-05-25 Wed>
 **** TODO [#A] Cursors must be a part of the plugin
 **** TODO [#A] Make MC a widget, don't init it each time!
+**** TODO EffectiveStressSettingsWidget is a part of Mohr Circles plugin
+**** TODO create a class that inherits from MC widget and integrates it into GUI
 *** DONE Combo Plot
 CLOSED: [2016-05-20 Fri 00:07]
 ** TODO [#A] Finish porting

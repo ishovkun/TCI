@@ -12,18 +12,19 @@ from PySide import QtGui, QtCore
 from pyqtgraph.parametertree import Parameter, ParameterTree
 # from pyqtgraph.parametertree import types as pTypes
 from pyqtgraph.Point import Point
-from TCI.base_widgets.CursorItem import CursorItem
+# from TCI.base_widgets.CursorItem import CursorItem
 from TCI.plugins.ComboList import ComboList
 from TCI.widgets.SettingsWidget import SettingsWidget
 from TCI.widgets.CParameterTree import CParameterTree
 from TCI.widgets.CrossHairPlot import CrossHairPlot
-from TCI.plugins.CalculatorPlot import CalculatorPlot
-from TCI.plugins.MohrCircles import MohrCircles
 from TCI.lib.setup_plot import setup_plot
 from TCI.lib.Colors import DataViewerTreeColors
 from TCI.lib.LabelStyles import *
 from TCI.base_widgets.Slider import SliderWidget
 from TCI.base_classes.InputReader import InputReader
+# Plugins
+from TCI.plugins.CalculatorPlot import CalculatorPlot
+from TCI.plugins.MohrCircles import MohrCircles
 
 BadHeaderMessage = '''Couldn't locate the header.
 Go to Preferences->Main settings and adjust the header parameters'''
@@ -54,10 +55,12 @@ class DataViewer(QtGui.QWidget):
     sigSettingGUI  = QtCore.Signal(object)
     # to enable some data upon loading
     sigConnectParameters = QtCore.Signal(object)
-    # to save data for the dataset
-    sigSaveData = QtCore.Signal(object)
+    # to save data for the dataset - carries data set name
+    sigSaveDataSet = QtCore.Signal(str)
     # to load data for the stored dataset
-    sigLoadData = QtCore.Signal(object)
+    sigLoadDataSet = QtCore.Signal(str)
+    # when creating a new dataset
+    sigNewDataSet = QtCore.Signal(object)
 
     def __init__(self):
         super(DataViewer, self).__init__()
@@ -65,7 +68,7 @@ class DataViewer(QtGui.QWidget):
         self.settings = SettingsWidget()
         self.iReader = InputReader()
         self.calcPlot = CalculatorPlot(parent=self)
-        self.mcWidget = MohrCircles(parent=self)
+        self.mcPlugin = MohrCircles(parent=self)
         self.setupGUI()
         # default plots will be drawn with multiple y and single x
         self.mainAxis = 'x'
@@ -74,8 +77,6 @@ class DataViewer(QtGui.QWidget):
         # no legend at first (there is no data)
         self.legend = None
         self.currentDataSetName = None
-        # cursors are movable items to point the failure points
-        self.cursors = []
         self.dataSetButtons = {} # list of items in the dataset section of the menu bar
         '''
         Note:
@@ -89,7 +90,6 @@ class DataViewer(QtGui.QWidget):
         self.allComments = {}
         self.allData = {}       # data values for different datasets
         self.allKeys = {}       # keys for different datasets
-        self.allCursors = {}    # cursors for different dataset
         self.allIndices = {}    # contains all truncated indices ???
         self.allSampleLengths = {}      # ????
         self.allUnits = {}
@@ -99,15 +99,6 @@ class DataViewer(QtGui.QWidget):
         self.loadButton.triggered.connect(self.requestLoad)
         self.crossHairButton.triggered.connect(self.toggleCrossHair)
 
-        # connect cursors
-        self.plt.sigRangeChanged.connect(self.scaleCursors)
-        # self.addPointButton.triggered.connect(self.addCursor)
-        # self.mcWidget.addPointButton.triggered.connect(self.addCursor)
-        # self.removePointButton.triggered.connect(self.removeCursor)
-        # self.drawCirclesButton.triggered.connect(self.plotMohrCircles)
-
-        #  Finally enable the save button
-        # self.saveButton.triggered.connect(self.save)
         self.setStatus('Ready')
 
     def toggleCrossHair(self):
@@ -147,10 +138,13 @@ class DataViewer(QtGui.QWidget):
          "%s"%(self.lastdir), "*.clf;;MAT files (*.mat)")
         self.load(filename)
 
-
     def findData(self, key):
         i = self.keys.index(key)
         return self.data[:, i]
+
+    def findDatainAllDatasets(self, dataset, key):
+        i = self.allKeys[dataset].index(key)
+        return self.allData[dataset][:, i]
 
     def findUnits(self, key):
         i = self.keys.index(key)
@@ -238,25 +232,31 @@ class DataViewer(QtGui.QWidget):
             self.addDataSetToGUI(dataSetName)
 
     def addDataSetToGUI(self, dataSetName):
+        '''
+        create menu entry for a new data set, set is as current,
+        add it to the list of all buttons, connect the menu entry to
+        an action
+        '''
         print('Modifying GUI: adding data set button')
-
-        dataSetButton = QtGui.QAction(dataSetName,
-                                      self, checkable=True)
+        dataSetButton = QtGui.QAction(dataSetName, self, checkable=True)
         dataSetButton.setActionGroup(self.dataSetGroup)
         dataSetButton.setChecked(True)
         self.dataSetMenu.addAction(dataSetButton)
         self.dataSetButtons[dataSetName] = dataSetButton
         dataSetButton.triggered.connect(lambda: self.setCurrentDataSet(dataSetName))
-        self.allCursors[dataSetName] = []
+        
+        self.sigNewDataSet.emit(self)
+        # self.allCursors[dataSetName] = []
 
     def setCurrentDataSet(self, dataSetName):
         print( 'New data set is chosen')
+        self.sigSaveDataSet.emit(dataSetName)
         # if we switch to a different data set (if it's not the first),
         # remember cursors for the old one
         if self.currentDataSetName:
             print('Saving old data')
             self.allIndices[self.currentDataSetName] = self.indices
-            self.allCursors[self.currentDataSetName] = self.cursors
+            # self.allCursors[self.currentDataSetName] = self.cursors
             self.allComments[self.currentDataSetName] = self.comments
 
         print('Setting new data')
@@ -267,14 +267,15 @@ class DataViewer(QtGui.QWidget):
         # self.sampleLength = self.allSampleLengths[dataSetName]
         self.indices = self.allIndices[dataSetName]
         self.dataSetMenu.setDefaultAction(self.dataSetButtons[dataSetName])
-        self.cursors = self.allCursors[dataSetName]
+
+        self.sigLoadDataSet.emit(dataSetName)
+        # self.cursors = self.allCursors[dataSetName]
         self.comments = self.allComments[dataSetName]
+        self.sigLoadDataSet.emit(self)
 
         # fill the data tree widget with data keys
         self.setTreeParameters()
         self.connectParameters()
-        # self.mcSettings.setAvailableVariables(self.data.keys())
-        # self.settings.mcWidget.setAvailableVariables(self.keys)
 
     def setTreeParameters(self):
         print( 'Modifying GUI: adding parameters to plot')
@@ -335,111 +336,6 @@ class DataViewer(QtGui.QWidget):
         # send signals to plugins
         self.sigConnectParameters.emit(self)
 
-    def addCursor(self):
-        print('adding a Cursor')
-        viewrange = self.plt.viewRange()
-        # print viewrange
-        rangeX = [viewrange[0][0],viewrange[0][1]]
-        rangeY = [viewrange[1][0],viewrange[1][1]]
-        pos = [(rangeX[0] + rangeX[1])/2,(rangeY[0] + rangeY[1])/2]
-        xSize = float(rangeX[1]-rangeX[0])/50*800/self.plt.width()
-        ySize = float(rangeY[1]-rangeY[0])/50*800/self.plt.height()
-        Cursor = CursorItem(pos,[xSize,ySize],pen=(4,9))
-        self.cursors.append(Cursor)
-        self.allCursors[self.currentDataSetName] = self.cursors
-        # bind cursor if there is something to plot
-        plotlist = self.activeEntries()
-        if len(plotlist)>0:
-            self.bindCursors()
-            self.updatePlot()
-
-    def removeCursor(self):
-        if len(self.cursors)>0:
-            self.cursors.pop(-1)
-            self.updatePlot()
-
-    def plotMohrCircles(self):
-        global CirclesWidget
-        CirclesWidget = MohrCircles()
-        params = self.settings.mcWidget.parameters()
-        b = params[3] # biot coef
-        names = []
-        PorePressure = []
-        AxialStress = []
-        ConfiningStress = []
-        ncircles = 0
-        for DataSet in self.allCursors.keys():
-            cursors = self.allCursors[DataSet]
-            data = self.allData[DataSet]
-            if cursors == []:
-                continue
-            else:
-                indices = []
-                for cursor in cursors:
-                    indices.append(cursor.index)
-                    ncircles += 1
-                    Sig1 = self.findData(params[0])[cursor.index] #axial stress
-                    if params[1]=='0':
-                        Pc = 0
-                    else:
-                        Pc = self.findData(params[1])[cursor.index] # confining press
-                    if params[2]=='0':
-                        Pu = 0
-                    else:
-                        Pu = self.findData(params[2])[cursor.index] # pore pressure
-                    sigma1 = Sig1 - b*Pu
-                    sigma3 = Pc - b*Pu
-                    CirclesWidget.setData(max(sigma1,sigma3),min(sigma1,sigma3),name=DataSet +'_'+ str(ncircles))
-        if ncircles == 0: return 0
-        CirclesWidget.start()
-        CirclesWidget.show()
-        CirclesWidget.activateWindow()
-
-    def scaleCursors(self):
-        '''
-        make cursors circles of an appropriate size when scaling plot
-        '''
-        viewrange = self.plt.viewRange()
-        rangeX = [viewrange[0][0],viewrange[0][1]]
-        rangeY = [viewrange[1][0],viewrange[1][1]]
-        xSize = float(rangeX[1]-rangeX[0])/50*800/self.plt.width()
-        ySize = float(rangeY[1]-rangeY[0])/50*800/self.plt.height()
-        size = np.array([xSize,ySize])
-        for cursor in self.cursors:
-            oldSize = cursor.getSize() # workaround to force the cursor stay on the same place
-            cursor.translate(oldSize/2,snap=None)
-            cursor.setSize(size)
-            cursor.translate(-size/2,snap=None)
-
-    def drawCursors(self):
-        '''
-        add cursors again after clearing the plot window
-        '''
-        for cursor in self.cursors:
-            self.plt.addItem(cursor)
-
-    def bindCursors(self):
-        '''
-        make cursor slide along data
-        '''
-        # print self.sender()
-        try:
-            plotlist = self.activeEntries()
-            if self.mainAxis == 'y':
-                xlabel = plotlist[-1]
-                ylabel = self.modparams.param('Parameter').value()
-            elif self.mainAxis == 'x':
-                ylabel = plotlist[-1]
-                xlabel = self.modparams.param('Parameter').value()
-            x_data = self.findData(xlabel)
-            y_data = self.findData(ylabel)
-            x = x_data[self.indices]
-            y = y_data[self.indices]
-
-            for cursor in self.cursors:
-                cursor.setData(x,y)
-        except: pass
-
     def checkTrendUpdates(self):
         if self.computeTrendFlag.value():
             self.computeTrend()
@@ -463,6 +359,9 @@ class DataViewer(QtGui.QWidget):
         self.updatePlot()
 
     def updateLimits(self):
+        '''
+        Update limits shown in options based on old slider state
+        '''
         interval = self.slider.interval()
         try:
             self.modparams.param('min').sigValueChanged.disconnect(self.setTicks)
@@ -494,10 +393,10 @@ class DataViewer(QtGui.QWidget):
         '''
         self.setAxisScale()
         self.updateLimits()
+        self.sigUpdatingPlot.emit(self)
         ### Ready to update
         # self.setAutoFillBackground(True)
         self.clearPlotWindow()
-        self.drawCursors()
         self.plt.showGrid(x=True, y=True)
         if self.mainAxis == 'x':
             self.plotVersusX()
@@ -583,7 +482,7 @@ class DataViewer(QtGui.QWidget):
         if there is no legend creates it
         '''
         # default legend position
-        position = [30,30]
+        position = [30, 30]
         # clear plot area
         self.plt.clear()
         # remove old legend
@@ -712,11 +611,10 @@ class DataViewer(QtGui.QWidget):
         # set nice fonts
         setup_plot(self.plt)
 
-        self.plt.setLabel('bottom', 'X Axis',**AxisLabelStyle)
-        self.plt.setLabel('left', 'Y Axis',**AxisLabelStyle)
+        self.plt.setLabel('bottom', 'X Axis', **AxisLabelStyle)
+        self.plt.setLabel('left', 'Y Axis', **AxisLabelStyle)
         self.plt.enableAutoRange(enable=True)
         self.autoScaleButton.triggered.connect(self.plt.enableAutoRange)
-        # self.slider = self.createSlider()
         self.slider = SliderWidget()
         self.sublayout.nextRow()
         self.sublayout.addItem(self.slider)
@@ -727,7 +625,7 @@ class DataViewer(QtGui.QWidget):
         self.treesplitter.setStretchFactor(2, 0)
         self.treesplitter.setCollapsible(2, 0)
         self.statusBar.setSizePolicy(QtGui.QSizePolicy.Ignored,
-            QtGui.QSizePolicy.Fixed)
+                                     QtGui.QSizePolicy.Fixed)
         self.setGeometry(80, 30, 1000, 700)
         self.sigSettingGUI.emit(self)
 
@@ -756,16 +654,6 @@ class DataViewer(QtGui.QWidget):
         self.trendSlope.setValue(self.slope)
         self.trendIntersection.setValue(self.intersection)
 
-    def createSlider(self):
-        slider = pg.GradientEditorItem(orientation='top', allowAdd=False)
-        # print slider.__dict__
-        # slider.tickPen = pg.mkPen(color=(255,255,255))
-        slider.tickSize = 0
-        # print slider.gradRect
-        slider.rectSize = 0
-        for i in slider.ticks:
-            slider.setTickColor(i, QtGui.QColor(150,150,150))
-        return slider
     def closeEvent(self,event):
         '''
         When pressing X button, show quit dialog.
@@ -785,7 +673,6 @@ class DataViewer(QtGui.QWidget):
 
 if __name__ == '__main__':
     App = QtGui.QApplication(sys.argv)
-
     win = DataViewer()
     # win.showMaximized()
     win.show()
@@ -797,5 +684,21 @@ if __name__ == '__main__':
         "_Training_Pc=1500 psi Sonic endcaps_Berea Mechanical Testing _2015-04-27_001.clf",
         u'*.clf']
     win.load(filename)
+    win.tree.boxes["Sig1"].setChecked(True)
+    
+    # Mohr circle actions
+    # win.mcPlugin.addPointAction.trigger()
+    # win.mcPlugin.addPointAction.trigger()
+    # win.mcPlugin.activateAction.trigger()
+    # win.settingsButton.trigger()
+    # win.tree.boxes["Sig1"].setChecked(True)
+    # win.mcPlugin.activateAction.trigger()
+    # autoscale bug case
+    # win.tree.boxes["Sig1"].setChecked(False)
 
+    # Combolist check
+    win.comboList.addSceneAction.trigger()
+    win.comboList.activateAction.trigger()
+    win.comboList.plotButton.click()
+    # win.com
     App.exec_()
