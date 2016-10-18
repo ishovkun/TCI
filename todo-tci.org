@@ -2,15 +2,12 @@
 ** Make plugins work
 *** DONE Calculator
 CLOSED: [2016-05-19 Thu 23:26]
-*** Mohr Circles
-DEADLINE: <2016-05-25 Wed>
-**** TODO [#A] Cursors must be a part of the plugin
-**** TODO [#A] Make MC a widget, don't init it each time!
-**** TODO EffectiveStressSettingsWidget is a part of Mohr Circles plugin
-**** TODO create a class that inherits from MC widget and integrates it into GUI
+*** DONE Mohr Circles
+CLOSED: [2016-09-13 Tue 17:15] DEADLINE: <2016-05-25 Wed>
 *** DONE Combo Plot
 CLOSED: [2016-05-20 Fri 00:07]
-** TODO [#A] Finish porting
+** DONE [#B] Finish porting
+CLOSED: [2016-09-13 Tue 17:15]
 ** [#B] Finish InputReader
 *** TODO Add better handling of comment section
 *** TODO Add exception handling
@@ -28,16 +25,18 @@ so we don't have to draw everything each time.
 **** DONE after setting GU
 CLOSED: [2016-05-19 Thu 23:25]
 each plugin adds entries to dataviewer menus
-**** TODO when saving data???
+**** DONE when saving data???
+CLOSED: [2016-09-13 Tue 17:16]
 maybe need to make a separate process for those plugins
 or block event until all the plugins are done saving files
 *** Plugin list file
-**** TODO Way to load plugins
+**** DONE Way to load plugins
+CLOSED: [2016-09-13 Tue 17:39]
 dataviewer init method will read the file and initialize the plugins
 **** TODO [#C] Types of plugins (need blocking of main class?)
 * Sonic part
-** TODO [#A] Start porting to Python3
-SCHEDULED: <2016-05-28 Sat>
+** DONE [#A] Start porting to Python3
+CLOSED: [2016-09-13 Tue 17:16] SCHEDULED: <2016-05-28 Sat>
 ** TODO [#A] Finish porting to Python3
 DEADLINE: <2016-06-04 Sat>
 ** TODO [#A] Make it a plugin (no need for GEOTRAVIS class)
@@ -79,4 +78,7 @@ CLOSED: [2016-05-21 Sat 19:43]
    (such as LabelStyle in the dataviewer class)
 ** TODO [#A] ComboList styles in styles file
 ** DONE put plugins into a folder plugins
-CLOSED: [2016-05-20 Fri 00:36]
+CLOSED: [2016-10-05 Wed 18:42]
+
+
+

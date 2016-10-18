@@ -8,7 +8,7 @@ from pyqtgraph.parametertree import Parameter, ParameterTree
 from pyqtgraph.parametertree import types as pTypes
 from pyqtgraph.Point import Point
 import numpy as np
-from MultiLine import MultiLine
+from TCI.widgets.MultiLine import MultiLine
 from functions import *
 from Gradients import Gradients
 from setupPlot import setup_plot
@@ -154,7 +154,7 @@ class SonicViewer(QtGui.QWidget):
 	    3rd dimension - datapoints
 		'''
 		if not self.hasData(): return 0 # if no data pass
-		print 'Building sonic matrix'
+		print('Building sonic matrix')
 		self.table = {}
 		for wave in WaveTypes:
 		    self.table[wave] = get_table(self.data[wave])
@@ -170,7 +170,7 @@ class SonicViewer(QtGui.QWidget):
 		self.parent.plotSonicData()
 	def getFourrierTransforms(self):
 		if not self.hasData(): return 0 # if no data pass
-		print 'Building Fourrier matrix'
+		print ('Building Fourrier matrix')
 		self.fft = {} # power
 		self.fftamp = {} # power
 		self.fftph = {} # phase
@@ -201,7 +201,7 @@ class SonicViewer(QtGui.QWidget):
 			self.params[wave].param('Show').sigValueChanged.connect(self.changeLayout)
 
 	def changeLayout(self):
-		print 'changing layout'
+		print ('changing layout')
 		for wave in WaveTypes:
 			try:
 				self.sublayout.removeItem(self.plots[wave])
@@ -504,10 +504,10 @@ class SonicViewer(QtGui.QWidget):
 			self.yAxisMenu.addAction(self.yAxisButtons[p])
 			pass
 		try: 
-			print 'Setting y axis to: Time'
+			print ('Setting y axis to: Time')
 			self.yAxisButtons['Time'].setChecked(True)
 			self.yAxis = 'Time'
-		except: print 'setting was not successful'
+		except: print ('setting was not successful')
 
 	def setMode(self,mode):
 		'''
@@ -515,10 +515,10 @@ class SonicViewer(QtGui.QWidget):
 		'''
 		self.mode = mode
 		if mode == 'WaveForms':
-			print 'Setting mode to Wave Forms'
+			print ('Setting mode to Wave Forms')
 			# self.modeMenu.setDefaultAction(self.waveFormButton)
 		elif mode == 'Contours':
-			print 'Setting mode to Contours'
+			print ('Setting mode to Contours')
 			# self.modeMenu.setDefaultAction(self.contourButton)
 		self.setYAxisParameters(self.allParameters)
 
@@ -639,7 +639,7 @@ class SonicViewer(QtGui.QWidget):
 		self.splitter.setStretchFactor(2, 0)
 
 	def pickArrivals(self,wave):
-		print 'Computing arrival times for %s wave'%(wave)
+		print ('Computing arrival times for %s wave'%(wave))
 		win = [0,0,0]
 		mpoint = self.params[wave].param('Arrival times').param('Mpoint').value()
 		win[0] = self.params[wave].param('Arrival times').param('BTA').value()

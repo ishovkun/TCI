@@ -13,7 +13,6 @@ from pyqtgraph.parametertree import Parameter, ParameterTree
 # from pyqtgraph.parametertree import types as pTypes
 from pyqtgraph.Point import Point
 # from TCI.base_widgets.CursorItem import CursorItem
-from TCI.plugins.ComboList import ComboList
 from TCI.widgets.SettingsWidget import SettingsWidget
 from TCI.widgets.CParameterTree import CParameterTree
 from TCI.widgets.CrossHairPlot import CrossHairPlot
@@ -22,9 +21,12 @@ from TCI.lib.Colors import DataViewerTreeColors
 from TCI.lib.LabelStyles import *
 from TCI.base_widgets.Slider import SliderWidget
 from TCI.base_classes.InputReader import InputReader
+
 # Plugins
-from TCI.plugins.CalculatorPlot import CalculatorPlot
-from TCI.plugins.MohrCircles import MohrCircles
+from plugin_list import get_plugin_list
+# from TCI.plugins.ComboList import ComboList
+# from TCI.plugins.CalculatorPlot import CalculatorPlot
+# from TCI.plugins.MohrCircles import MohrCircles
 
 BadHeaderMessage = '''Couldn't locate the header.
 Go to Preferences->Main settings and adjust the header parameters'''
@@ -64,12 +66,14 @@ class DataViewer(QtGui.QWidget):
 
     def __init__(self):
         super(DataViewer, self).__init__()
-        self.comboList = ComboList(parent=self)
         self.settings = SettingsWidget()
         self.iReader = InputReader()
-        self.calcPlot = CalculatorPlot(parent=self)
-        self.mcPlugin = MohrCircles(parent=self)
+        self.plugins = []   # list to store plugin items
+        self.loadPlugins()
         self.setupGUI()
+        # self.comboList = ComboList(parent=self)
+        # self.calcPlot = CalculatorPlot(parent=self)
+        # self.mcPlugin = MohrCircles(parent=self)
         # default plots will be drawn with multiple y and single x
         self.mainAxis = 'x'
         self.sliderParam = self.settings.config()['Main parameters']['slider']
@@ -77,7 +81,7 @@ class DataViewer(QtGui.QWidget):
         # no legend at first (there is no data)
         self.legend = None
         self.currentDataSetName = None
-        self.dataSetButtons = {} # list of items in the dataset section of the menu bar
+        self.dataSetButtons = {}  # list of items in the dataset section of the menu bar
         '''
         Note:
         indices = piece of all data indices, corresponding to the
@@ -98,9 +102,17 @@ class DataViewer(QtGui.QWidget):
         self.settingsButton.triggered.connect(self.settings.show)
         self.loadButton.triggered.connect(self.requestLoad)
         self.crossHairButton.triggered.connect(self.toggleCrossHair)
-
         self.setStatus('Ready')
 
+    def loadPlugins(self):
+        '''
+        get plugin list and create instances of plugins
+        set dataviewer as parent, and store them
+        '''
+        plugin_classes = get_plugin_list() 
+        for plugin_class in plugin_classes:
+            self.plugins.append(plugin_class(parent=self))
+    
     def toggleCrossHair(self):
         ch_mode = self.crossHairButton.isChecked()
         self.plt.setCrossHairMode(ch_mode)
@@ -246,10 +258,9 @@ class DataViewer(QtGui.QWidget):
         dataSetButton.triggered.connect(lambda: self.setCurrentDataSet(dataSetName))
         
         self.sigNewDataSet.emit(self)
-        # self.allCursors[dataSetName] = []
 
     def setCurrentDataSet(self, dataSetName):
-        print( 'New data set is chosen')
+        print('New data set is chosen')
         self.sigSaveDataSet.emit(dataSetName)
         # if we switch to a different data set (if it's not the first),
         # remember cursors for the old one
@@ -557,9 +568,6 @@ class DataViewer(QtGui.QWidget):
         self.autoScaleButton = QtGui.QAction('Auto scale',self)
         self.crossHairButton = QtGui.QAction('Cross-hair',self, checkable=True)
         self.settingsButton = QtGui.QAction('Settings',self)
-        # self.addPointButton.setEnabled(False)
-        # self.removePointButton.setEnabled(False)
-        # self.drawCirclesButton.setEnabled(False)
         # Add buttons to submenus
         self.fileMenu.addAction(self.loadButton)
         self.fileMenu.addAction(self.saveButton)
@@ -579,8 +587,6 @@ class DataViewer(QtGui.QWidget):
         self.tree = CParameterTree(name='Data')
         # modtree is a list of governing parameters to modify plot
         self.modtree = ParameterTree(showHeader=False)
-        # sublayout is were we place our plot and slider
-        self.sublayout = pg.GraphicsLayoutWidget()
         # treesplitter splits parameter window into 2 halfs
         self.treesplitter = QtGui.QSplitter()
         self.buttonsplitter = QtGui.QSplitter()
@@ -595,18 +601,32 @@ class DataViewer(QtGui.QWidget):
         self.treesplitter.setStretchFactor(1, 0.9)
 
         self.splitter.addWidget(self.treesplitter)
-        self.splitter.addWidget(self.sublayout)
+        
+        rightWidget = QtGui.QWidget()
+        self.sublayout = QtGui.QVBoxLayout()
+        rightWidget.setLayout(self.sublayout)
+        
+        self.tabWidget = QtGui.QTabWidget()
+        self.plotContainer = pg.GraphicsLayoutWidget()
+        self.sliderContainer = pg.GraphicsLayoutWidget()
+        self.sliderContainer.setFixedHeight(80)
+        self.tabWidget.addTab(self.plotContainer, u"Main")
+
+        self.sublayout.addWidget(self.tabWidget)
+        self.sublayout.addWidget(self.sliderContainer)
+        
+        self.splitter.addWidget(rightWidget)
         self.splitter.setSizes([int(self.width()*0.4), int(self.width()*0.6)])
         self.splitter.setStretchFactor(0, 0)
         self.splitter.setStretchFactor(1, 1)
 
-        # crosshair plot is a class with cross hair capabilities
-        # first we need to add it's label attribute to sublayout
-        # so we could show the values of the crosshair
+        # # crosshair plot is a class with cross hair capabilities
+        # # first we need to add it's label attribute to sublayout
+        # # so we could show the values of the crosshair
         self.plt = CrossHairPlot()
-        self.sublayout.addItem(self.plt.label)
-        self.sublayout.nextRow()
-        self.sublayout.addItem(self.plt)
+        self.plotContainer.addItem(self.plt.label)
+        self.plotContainer.nextRow()
+        self.plotContainer.addItem(self.plt)
 
         # set nice fonts
         setup_plot(self.plt)
@@ -615,23 +635,23 @@ class DataViewer(QtGui.QWidget):
         self.plt.setLabel('left', 'Y Axis', **AxisLabelStyle)
         self.plt.enableAutoRange(enable=True)
         self.autoScaleButton.triggered.connect(self.plt.enableAutoRange)
+        
         self.slider = SliderWidget()
-        self.sublayout.nextRow()
-        self.sublayout.addItem(self.slider)
-        self.sublayout.nextRow()
-        self.statusBar = QtGui.QStatusBar()
-        self.treesplitter.addWidget(self.statusBar)
+        self.sliderContainer.addItem(self.slider)
+
+
         self.setGeometry(80, 50, 800, 600)
         self.treesplitter.setStretchFactor(2, 0)
         self.treesplitter.setCollapsible(2, 0)
-        self.statusBar.setSizePolicy(QtGui.QSizePolicy.Ignored,
-                                     QtGui.QSizePolicy.Fixed)
+        # self.statusBar.setSizePolicy(QtGui.QSizePolicy.Ignored,
+        #                              QtGui.QSizePolicy.Fixed)
         self.setGeometry(80, 30, 1000, 700)
         self.sigSettingGUI.emit(self)
 
     def setStatus(self,message):
-        self.statusBar.showMessage(message)
-        print(message)
+        pass
+        # self.statusBar.showMessage(message)
+        # print(message)
 
     def computeTrend(self):
         '''
@@ -677,9 +697,7 @@ if __name__ == '__main__':
     # win.showMaximized()
     win.show()
     # win.showFullScreen()
-    # filename = ["C:/Users/is6645/Dropbox/Experiments/TO_BE_ANALYZED/1500psi/" + \
-    #            "_Training_Pc=1500 psi Sonic endcaps_Berea Mechanical Testing _2015-04-27_001.clf",
-    #             u'*.clf']
+    
     filename = ["/home/ishovkun/Dropbox/Experiments/TO_BE_ANALYZED/1500psi/" + \
         "_Training_Pc=1500 psi Sonic endcaps_Berea Mechanical Testing _2015-04-27_001.clf",
         u'*.clf']
@@ -697,8 +715,8 @@ if __name__ == '__main__':
     # win.tree.boxes["Sig1"].setChecked(False)
 
     # Combolist check
-    win.comboList.addSceneAction.trigger()
-    win.comboList.activateAction.trigger()
-    win.comboList.plotButton.click()
+    # win.comboList.addSceneAction.trigger()
+    # win.comboList.activateAction.trigger()
+    # win.comboList.plotButton.click()
     # win.com
     App.exec_()

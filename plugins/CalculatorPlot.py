@@ -13,7 +13,7 @@ get_color = lambda: (rand()*230,rand()*230,rand()*230)
 
 class CalculatorPlot(QtGui.QWidget):
     active = False
-    def __init__(self,parent=None):
+    def __init__(self, parent=None):
         QtGui.QWidget.__init__(self)
         self.setupGUI()
         self.nItems = 0
@@ -33,6 +33,7 @@ class CalculatorPlot(QtGui.QWidget):
         self.applyButton.pressed.connect(self.getData)
         self.addPlotButton.pressed.connect(self.addItem)
         self.enterAction.triggered.connect(self.applyButton.pressed)
+        
         if parent is not None:
             self.parent.sigSettingGUI.connect(self.modifyParentMenu)
             self.parent.sigUpdatingPlot.connect(self.plot)
@@ -53,6 +54,8 @@ class CalculatorPlot(QtGui.QWidget):
         self.setData(self.parent.data, self.parent.keys)
         self.show()
         self.activateWindow()
+        self.parent.tabWidget.addTab(self, "Calculator")
+        self.parent.tabWidget.setCurrentWidget(self)
 
     def setupGUI(self):
         self.setWindowTitle("Calculator plot")
@@ -260,6 +263,7 @@ class CalculatorPlot(QtGui.QWidget):
         self.plt.showGrid(x=True, y=True)
         xlabel = self.xNameEdit.text()
         ylabel = self.yNameEdit.text()
+        self.indices = self.parent.indices
 
         for name in self.validItems():
             x = self.plotItems[name]['x'][self.indices]
