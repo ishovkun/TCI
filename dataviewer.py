@@ -542,12 +542,13 @@ class DataViewer(QtGui.QWidget):
         self.trendIntersection = self.modparams.param('Linear Trend').children()[3]
 
     def setupGUI(self):
-        pg.setConfigOption('background', (255,255,255))
-        pg.setConfigOption('foreground',(0,0,0))
+        pg.setConfigOption('background', (255, 255, 255))
+        pg.setConfigOption('foreground',(0, 0, 0))
         self.setWindowIcon(QtGui.QIcon('images/Logo.png'))
+        
         # Global widget where we place our layout
         self.layout = QtGui.QVBoxLayout()
-        self.layout.setContentsMargins(0,0,0,0)
+        self.layout.setContentsMargins(0, 0, 0, 0)
         self.layout.setSpacing(0)
         self.setLayout(self.layout)
         # Create and add menu bar
@@ -559,7 +560,7 @@ class DataViewer(QtGui.QWidget):
         self.prefMenu = self.menuBar.addMenu('Preferences')
         self.dataSetGroup = QtGui.QActionGroup(self)
         # create status bar
-        self.layout.addWidget(self.menuBar,0)
+        self.layout.addWidget(self.menuBar, 0)
         self.layout.setMenuBar(self.menuBar)
         # create submenu items
         self.loadButton = QtGui.QAction('Load',self)
@@ -578,9 +579,11 @@ class DataViewer(QtGui.QWidget):
         # splitter is a widget, which handles the layout
         # it splits the main window into parameter window
         # and the plotting area
+        self.tabWidget = QtGui.QTabWidget()
+        self.layout.addWidget(self.tabWidget)
         self.splitter = QtGui.QSplitter()
         self.splitter.setOrientation(QtCore.Qt.Horizontal)
-        self.layout.addWidget(self.splitter)
+        self.tabWidget.addTab(self.splitter, 'Main')
 
         # tree is a list of parameters to plot
         # self.tree = ParameterTree(showHeader=False)
@@ -606,13 +609,13 @@ class DataViewer(QtGui.QWidget):
         self.sublayout = QtGui.QVBoxLayout()
         rightWidget.setLayout(self.sublayout)
         
-        self.tabWidget = QtGui.QTabWidget()
         self.plotContainer = pg.GraphicsLayoutWidget()
         self.sliderContainer = pg.GraphicsLayoutWidget()
         self.sliderContainer.setFixedHeight(80)
-        self.tabWidget.addTab(self.plotContainer, u"Main")
+        # self.tabWidget.addTab(self.plotContainer, u"Main")
 
-        self.sublayout.addWidget(self.tabWidget)
+        self.sublayout.addWidget(self.plotContainer)
+        self.layout.addWidget(self.sliderContainer)
         # self.sublayout.addWidget(self.sliderContainer)
         
         self.splitter.addWidget(rightWidget)
@@ -638,7 +641,6 @@ class DataViewer(QtGui.QWidget):
         
         self.slider = SliderWidget()
         self.sliderContainer.addItem(self.slider)
-
 
         self.setGeometry(80, 50, 800, 600)
         self.treesplitter.setStretchFactor(2, 0)
