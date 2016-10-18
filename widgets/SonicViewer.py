@@ -8,13 +8,13 @@ from pyqtgraph.parametertree import Parameter, ParameterTree
 from pyqtgraph.parametertree import types as pTypes
 from pyqtgraph.Point import Point
 import numpy as np
-from TCI.widgets.MultiLine import MultiLine
-from functions import *
-from Gradients import Gradients
-from setupPlot import setup_plot
-from ViewBox import ViewBox
-from TableWidget import TableWidget
-from TriplePlotWidget import TriplePlotWidget
+from TCI.base_classes.MultiLine import MultiLine
+from TCI.lib.functions import *
+from TCI.lib.Gradients import Gradients
+from TCI.lib.setup_plot import setup_plot
+from TCI.base_widgets.ViewBox import ViewBox
+from TCI.base_widgets.TableWidget import TableWidget
+from TCI.base_widgets.TriplePlotWidget import TriplePlotWidget
 from GradientEditorWidget import GradientEditorWidget
 from BindingWidget import BindingWidget
 from InterpretationSettingsWidget import InterpretationSettingsWidget

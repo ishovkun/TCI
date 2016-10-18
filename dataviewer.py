@@ -616,7 +616,6 @@ class DataViewer(QtGui.QWidget):
 
         self.sublayout.addWidget(self.plotContainer)
         self.layout.addWidget(self.sliderContainer)
-        # self.sublayout.addWidget(self.sliderContainer)
         
         self.splitter.addWidget(rightWidget)
         self.splitter.setSizes([int(self.width()*0.4), int(self.width()*0.6)])
