@@ -16,9 +16,9 @@ from pyqtgraph.Point import Point
 from TCI.widgets.SettingsWidget import SettingsWidget
 from TCI.widgets.CParameterTree import CParameterTree
 from TCI.widgets.CrossHairPlot import CrossHairPlot
-from TCI.lib.setup_plot import setup_plot
-from TCI.lib.Colors import DataViewerTreeColors
-from TCI.lib.LabelStyles import *
+from TCI.gui_settings.setup_plot import setup_plot
+from TCI.gui_settings.Colors import DataViewerTreeColors
+from TCI.gui_settings.LabelStyles import *
 from TCI.base_widgets.Slider import SliderWidget
 from TCI.base_classes.InputReader import InputReader
 

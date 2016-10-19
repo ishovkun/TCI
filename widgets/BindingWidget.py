@@ -4,10 +4,10 @@ import numpy as np
 from scipy.interpolate import interp1d
 import pyqtgraph as pg
 from PySide import QtGui, QtCore
-import setupPlot
-from CParameterTree import CParameterTree
-from LabelStyles import AxisLabelStyle
-from Colors import DynamicModuliColors,StaticModuliColors
+from TCI.gui_settings.setup_plot import setup_plot
+from TCI.widgets.CParameterTree import CParameterTree
+from TCI.gui_settings.LabelStyles import AxisLabelStyle
+from TCI.gui_settings.Colors import DynamicModuliColors,StaticModuliColors
 
 WaveTypes = ['P','Sx','Sy']
 psi = 6894.75729
@@ -21,8 +21,7 @@ class BindingWidget(QtGui.QWidget):
     and all moduli from sonic data
     '''
     def __init__(self,parents=[None,None]):
-        super(BindingWidget, self).__init__(None,
-            )
+        super(BindingWidget, self).__init__(None)
         	# QtCore.Qt.WindowStaysOnTopHint)
         self.setupGUI()
         self.smoduli = {} # static moduli
@@ -58,7 +57,7 @@ class BindingWidget(QtGui.QWidget):
 
     def interpolateGData(self):
         self.gdata = {}
-        print 'Interpolating geomechanical data'
+        print ('Interpolating geomechanical data')
         for key in self.gv.data.keys():
             interp = interp1d(self.gv.data['Time'],self.gv.data[key],
                 bounds_error=False)
@@ -91,7 +90,7 @@ class BindingWidget(QtGui.QWidget):
         also, there can be different amount of sonic data
         for each wave. so must make arrays same length.
         '''
-        print 'Computing times for output'
+        print ('Computing times for output')
         l = []
         for wave in WaveTypes:
             l.append(len(self.gv.sTimes[wave]))
@@ -214,7 +213,7 @@ class BindingWidget(QtGui.QWidget):
 
     def setupTree(self):
         # for mod in self.dmoduli:
-        print 'setting up binding widget tree'
+        print ('setting up binding widget tree')
         self.tree.clear()
         self.tree.addItems(self.dmoduli.keys(),group='Dynamic',colors=DynamicModuliColors)
         self.tree.addItems(self.smoduli.keys(),group='Static',colors=StaticModuliColors)
@@ -277,7 +276,7 @@ class BindingWidget(QtGui.QWidget):
         splitter.addWidget(self.tree)
         splitter.addWidget(self.sublayout)
         self.plt = self.sublayout.addPlot()
-        setupPlot.setup_plot(self.plt)
+        setup_plot(self.plt)
         #
         self.tree.setGeometry(0,0,200,15)
         splitter.setSizes([int(self.width()*0.4),

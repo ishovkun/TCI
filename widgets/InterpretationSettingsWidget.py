@@ -5,7 +5,7 @@ from PySide import QtCore, QtGui
 import numpy as np
 import re
 from configobj import ConfigObj
-from LineWidget import LineWidget
+from TCI.base_widgets.LineWidget import LineWidget
 
 
 class InterpretationSettingsWidget(QtGui.QWidget):
