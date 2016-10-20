@@ -704,6 +704,16 @@ if __name__ == '__main__':
         u'*.clf']
     win.load(filename)
     win.tree.boxes["Sig1"].setChecked(True)
+
+    # sonic widget testing
+    # win.loadSonicDataAction.trigger()
+    directory = "/home/ishovkun/Dropbox/Experiments/TO_BE_ANALYZED/1500psi/1500pc/"
+    files = os.listdir(directory)
+    for i in range(len(files)):
+        files[i] = os.path.join(directory, files[i])
+    # print(win.plugins[-1])
+    win.plugins[-1].loadData(files[:30])
+    win.close()
     
     # Mohr circle actions
     # win.mcPlugin.addPointAction.trigger()

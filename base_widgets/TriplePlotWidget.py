@@ -27,9 +27,7 @@ class TriplePlotWidget(QtGui.QWidget):
 	sigRegionChanged = QtCore.Signal(object)
 	sync = True
 	def __init__(self):
-		super(TriplePlotWidget, self).__init__(None,
-			# QtCore.Qt.WindowStaysOnTopHint
-			)
+		super(TriplePlotWidget, self).__init__(None)
 		self.regions = {}
 		brush = QtGui.QBrush(QtGui.QColor(0, 0, 255, 70))
 		for wave in WaveTypes:

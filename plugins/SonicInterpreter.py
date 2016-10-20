@@ -10,12 +10,16 @@ import numpy as np
 import pickle
 
 from TCI.widgets.SonicViewer import SonicViewer
+from TCI.lib.readtrc import read_TRC
 
 BadBindingMessage = '''
 Duplicates found in the comments column.
 This is bad. I will do my best to 
 square things away, but don't rely on me.
 '''
+
+FILE_DIALOG_TITLE = 'Open files'
+WAVE_TYPES = ['P','Sx','Sy']
 
 class SonicInterpreter:
     '''
@@ -30,20 +34,120 @@ class SonicInterpreter:
         # self.fAmlitudeWidget
         # self.fPhaseWidget
         self.parent = parent
+        self.progressDialog = QtGui.QProgressDialog()
         
         if parent is not None:
+            self.setupActions()
             self.parent.sigSettingGUI.connect(self.modifyParentMenu)
+            self.connectActions()
 
+    def showLoadFileDialog(self):
+        '''
+        shows file dialog and calls loadData upon selecting
+        files
+        '''
+        lastdir = self.parent.checkForLastDir()
+        filter_mask = "Sonic data files (*.TRC *.txt)"
+        filenames = QtGui.QFileDialog.getOpenFileNames(None,
+            FILE_DIALOG_TITLE, "%s"%(lastdir), filter_mask)[0]
+        
+        if filenames != []:
+            self.loadData(filenames)
+
+    def loadData(self, filenames):
+        '''
+        Read the supplied files.
+        show progress dialog during that operations
+        '''
+        n_files = len(filenames)
+        raw_data = {"P":{}, "Sx":{}, "Sy":{}}
+        self.progressDialog.show()
+
+        # iterate through files
+        i = 0.
+        for f in filenames:
+            fdir, fname = os.path.split(f)
+            # check file extension
+            if '.TRC' in fname:
+                waves = read_TRC(f)
+                # determine what wave this thing pertains to
+                wave_type_inferred = False
+                for wave_name in WAVE_TYPES:
+                    if wave_name  in fname:
+                        raw_data[wave_name][fname] = waves
+                        wave_type_inferred = True
+                        
+                if not wave_type_inferred:
+                    print("Could not infer wave type for %s"%(fname))
+            else:
+                print('unknown extension')
+            i += 1
+            self.progressDialog.setValue(i/n_files*100)
+        self.progressDialog.hide()
+
+        # organize data
+        self.sonicViewer.setData(raw_data)
+
+
+
+    def connectActions(self):
+        self.loadSonicDataAction.triggered.connect(self.showLoadFileDialog)
+
+    def setupActions(self):
+        # add entry to load sonic files
+        self.loadSonicDataAction = QtGui.QAction('Load sonic',
+                                                 self.parent)
+        self.parent.loadSonicDataAction = self.loadSonicDataAction
+        
+        self.autoScaleAction = QtGui.QAction('Auto scale', self.parent,
+                                             checkable=True,
+                                             shortcut='Ctrl+S')
+        self.autoScaleAction.setChecked(True)
+        self.showArrivalsAction = QtGui.QAction('Arrivals', self.parent,
+                                                checkable=True)
+        self.showArrivalsAction.setDisabled(True)
+        self.showTableAction = QtGui.QAction('Table', self.parent)
+        self.editGradientsAction = QtGui.QAction('Edit Gradients', self.parent)
+        self.invertYAction = QtGui.QAction('Invert y axis', self.parent,
+                                           checkable=True)
+        self.modeGroup = QtGui.QActionGroup(self.parent)
+        self.waveFormAction = QtGui.QAction('Wave Forms', self.parent,
+                                            checkable=True)
+        self.contourAction = QtGui.QAction('Contours', self.parent,
+                                           checkable=True)
+        self.waveFormAction.setActionGroup(self.modeGroup)
+        self.contourAction.setActionGroup(self.modeGroup)
+        self.contourAction.setChecked(True)
+        self.pickArrivalsAction = QtGui.QAction('Pick arrivals', self.parent)
+        self.handPickArrivalsAction = QtGui.QAction('Hand pick', self.parent,
+                                                    checkable=True)
+        self.moduliAction = QtGui.QAction('Elastic moduli', self.parent)
+        self.moduliAction.setDisabled(True)
+        self.handPickArrivalsAction.setDisabled(True)
+
+        self.showForrierMagnitudeAction = QtGui.QAction('Fourrier magnitude',
+                                                        self.parent)
+        self.showForrierPhasesAction = QtGui.QAction('Fourrier phases',
+                                                     self.parent)
+        self.filteringAction = QtGui.QAction('Frequency filtering',
+                                             self.parent,
+                                             checkable=True)
+
+        # dict to store actions for y Axis
+        self.yAxisActions = {}
+        self.yAxisGroup = QtGui.QActionGroup(self.parent)
+        self.yAxisActions['Track #'] = QtGui.QAction('Track #', self.parent,
+                                                     checkable=True)
+        self.yAxisActions['Track #'].setActionGroup(self.yAxisGroup)
+        self.yAxisActions['Track #'].setChecked(True)
         
     def modifyParentMenu(self):
         # setting up the menu bar
         menuBar = self.parent.menuBar
 
-        # add entry to load sonic files
-        self.loadSonicDataAction = QtGui.QAction('Load sonic',
-                                                 self.parent)
         self.parent.fileMenu.insertAction(self.parent.saveButton,
                                           self.loadSonicDataAction)
+        
         
         # menubar entry corresponding to sonic widget
         self.menu = menuBar.addMenu('Sonic')
@@ -53,67 +157,28 @@ class SonicInterpreter:
         self.intMenu = self.menu.addMenu('Interpretation')
  
         # VIEW MENU
-        self.autoScaleAction = QtGui.QAction('Auto scale', self.parent,
-                                             checkable=True,
-                                             shortcut='Ctrl+S')
-        self.autoScaleAction.setChecked(True)
-        self.showArrivalsAction = QtGui.QAction('Arrivals', self.parent,
-                                                checkable=True)
-        self.showArrivalsAction.setDisabled(True)
-        self.showTableAction = QtGui.QAction('Table', self.parent)
-        self.yAxisMenu = self.viewMenu.addMenu('y axis')
-        self.editGradientsAction = QtGui.QAction('Edit Gradients', self.parent)
-        self.invertYAction = QtGui.QAction('Invert y axis', self.parent,
-                                           checkable=True)
         self.viewMenu.addAction(self.autoScaleAction)
         self.viewMenu.addAction(self.showArrivalsAction)
         self.viewMenu.addAction(self.showTableAction)
         self.viewMenu.addAction(self.editGradientsAction)
         self.viewMenu.addAction(self.invertYAction)
 
-        # MODE MENU
-        self.modeGroup = QtGui.QActionGroup(self.parent)
-        self.waveFormAction = QtGui.QAction('Wave Forms', self.parent,
-                                            checkable=True)
-        self.contourAction = QtGui.QAction('Contours', self.parent,
-                                           checkable=True)
-        self.waveFormAction.setActionGroup(self.modeGroup)
-        self.contourAction.setActionGroup(self.modeGroup)
-        self.contourAction.setChecked(True)
+        # y axis menu
+        self.yAxisMenu = self.viewMenu.addMenu('y axis')
+        self.yAxisMenu.addAction(self.yAxisActions['Track #'])
 
+        # MODE MENU
         self.modeMenu.addAction(self.waveFormAction)
         self.modeMenu.addAction(self.contourAction)
 
         # INTERPRETATION MENU
-        self.pickArrivalsAction = QtGui.QAction('Pick arrivals', self.parent)
-        self.handPickArrivalsAction = QtGui.QAction('Hand pick', self.parent,
-                                                    checkable=True)
-        self.moduliAction = QtGui.QAction('Elastic moduli', self.parent)
-        self.moduliAction.setDisabled(True)
-        self.handPickArrivalsAction.setDisabled(True)
-
         self.intMenu.addAction(self.pickArrivalsAction)
         self.intMenu.addAction(self.handPickArrivalsAction)
         self.intMenu.addAction(self.moduliAction)
         
         # TRANSFORM MENU
-        self.showForrierMagnitudeAction = QtGui.QAction('Fourrier magnitude',
-                                                        self.parent)
-        self.showForrierPhasesAction = QtGui.QAction('Fourrier phases',
-                                                     self.parent)
-        self.filteringAction = QtGui.QAction('Frequency filtering',
-                                             self.parent,
-                                             checkable=True)
         self.transformMenu.addAction(self.showForrierMagnitudeAction)
         self.transformMenu.addAction(self.showForrierPhasesAction)
         self.transformMenu.addAction(self.filteringAction)
         
-        # dict to store actions for y Axis
-        self.yAxisActions = {}
-        self.yAxisGroup = QtGui.QActionGroup(self.parent)
-        self.yAxisActions['Track #'] = QtGui.QAction('Track #', self.parent,
-                                                     checkable=True)
-        self.yAxisActions['Track #'].setActionGroup(self.yAxisGroup)
-        self.yAxisMenu.addAction(self.yAxisActions['Track #'])
-        self.yAxisActions['Track #'].setChecked(True)
 

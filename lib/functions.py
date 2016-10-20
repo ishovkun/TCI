@@ -49,22 +49,22 @@ def get_table(dictionary):
     2nd dimension - number of file
     3rd dimension - datapoints
     '''
+    assert type(dictionary) == dict, "wrong input type"
     # get length of arrays (must be the same)
-    Npoints = dictionary.values()[0].shape[0]
+    n_points = list(dictionary.values())[0].shape[0]
     # get # of arrays
-    names = dictionary.keys()
+    names = list(dictionary.keys())
     names.sort(key=natural_keys)
-    # print names
-    Nfiles = len(names)
+    n_files = len(names)
     # allocate space
-    x = np.zeros((Nfiles,Npoints))
-    y = np.zeros((Nfiles,Npoints))
+    x = np.zeros((n_files, n_points))
+    y = np.zeros((n_files, n_points))
     # loop over files
-    for k in range(Nfiles): # use for cause needs to be sorted
-        x[k] = dictionary[names[k]][:,0]
-        y[k] = dictionary[names[k]][:,1] 
+    for k in range(n_files): # use for cause needs to be sorted
+        x[k] = dictionary[names[k]][:, 0]
+        y[k] = dictionary[names[k]][:, 1] 
     # Create table
-    table = np.array((x,y))
+    table = np.array((x, y))
     # print table
     return table
 

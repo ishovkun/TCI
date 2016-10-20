@@ -65,7 +65,7 @@ class SonicViewer(QtGui.QWidget):
         # self.phWidget = TriplePlotWidget()
         # self.bWidget = BindingWidget(parents=[parent,self])
         # self.isWidget = InterpretationSettingsWidget()
-        # self.data = {'P':{},'Sx':{},'Sy':{}}
+        self.data = {'P':{}, 'Sx':{}, 'Sy':{}}
         # self.currentShifts = {'P':0,'Sx':0,'Sy':0}
         # self.connectPlotButtons()
         # self.gEdit = GradientEditorWidget()
@@ -78,7 +78,7 @@ class SonicViewer(QtGui.QWidget):
         # self.pgw.restoreState(Gradients['hot'])
         # self.allParameters = []
         # self.yAxis = 'Track #'
-        # self.y = {}
+        self.y = {}
         # self.aTimes = {}
         # Connect everything
         # self.showArrivalsButton.triggered.connect(self.parent.plotSonicData)
@@ -140,7 +140,7 @@ class SonicViewer(QtGui.QWidget):
         for wave in WaveTypes:
             self.data[wave] = data[wave]
         self.createTable()
-        self.getFourrierTransforms()
+        # self.getFourrierTransforms()
         self.arrivalsPicked = False
 
     def hasData(self):
@@ -188,8 +188,8 @@ class SonicViewer(QtGui.QWidget):
             h = x[0,1] - x[0,0]
             # yf = np.fft.fft(y).real[:,:N/2]
             ft = np.fft.fft(y)
-            fft = ft[:,:N/2]
-            fft = np.fft.fft(y)[:,:N/2]
+            fft = ft[:, :N/2]
+            fft = np.fft.fft(y)[:, :N/2]
             yf = np.absolute(fft)
             yp = np.arctan2(fft.imag,fft.real)
             xf0 = np.fft.fftfreq(N,h)
