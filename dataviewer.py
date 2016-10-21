@@ -214,8 +214,16 @@ class DataViewer(QtGui.QWidget):
         self.units = clf_data[1]
         self.data = clf_data[2]
         self.comments = clf_data[3]
+
         if self.data.shape[0] > MAXNROWS:
             self.sliceData(MAXNROWS)
+
+        # this should be in read_clf command
+        comments = []
+        for c in self.comments:
+            comments.append(c[0].decode('UTF-8'))
+        self.comments = np.array(comments)
+        # end
 
         # this is to remember this name when we wanna save file
         self.makeLastDir(filename[0]) # extract filename from absolute path
@@ -712,7 +720,12 @@ if __name__ == '__main__':
     for i in range(len(files)):
         files[i] = os.path.join(directory, files[i])
     # print(win.plugins[-1])
-    win.plugins[-1].loadData(files[:30])
+    sonic_plugin = win.plugins[-1]
+    sonic_plugin.loadData(files[:30])
+    # sonic_plugin.loadData(files)
+    sonic_plugin.addSonicTab()
+    sonic_plugin.bindData()
+    
     win.close()
     
     # Mohr circle actions

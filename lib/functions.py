@@ -70,7 +70,7 @@ def get_table(dictionary):
 
 # No jit doesn't work for some reason
 # @jit
-def compare_arrays(array1,array2):
+def compare_arrays(array1, array2):
     '''
     returns indices of items in array1 whcich are also entries of 
     array2
@@ -78,7 +78,7 @@ def compare_arrays(array1,array2):
     x = [i for i,item in enumerate(array1) if item in array2]
     return np.array(x)
 
-def find_outliers(array1,array2):
+def array_diff(array1, array2):
     '''
     returns indices of items in array1 whcich are not entries of 
     array2
@@ -88,6 +88,7 @@ def find_outliers(array1,array2):
 
 def atoi(text):
     return int(text) if text.isdigit() else text
+
 def natural_keys(text):
     '''
     alist.sort(key=natural_keys) sorts in human order
@@ -127,9 +128,20 @@ def handle_comments(d):
         nt.append(t[ind][0])
     nc = np.array(nc)
     nt = np.array(nt)
-    new_comments = {'Time':nt,'Comments':nc}
+    new_comments = {'Time':nt, 'Comments':nc}
     return new_comments
 
+def remove_duplicates(comments):
+    '''
+    returns unique values and indices of last occurrence
+    '''
+    unique = np.unique(comments)
+    indices = []
+    for u in unique:
+        last_occur = np.argwhere(comments==u)[-1][0]
+        indices.append(last_occur)
+        
+    return unique, indices
 
 def multi_window(sig,win):
     '''

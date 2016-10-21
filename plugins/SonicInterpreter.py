@@ -11,6 +11,7 @@ import pickle
 
 from TCI.widgets.SonicViewer import SonicViewer
 from TCI.lib.readtrc import read_TRC
+from TCI.lib.functions import *
 
 BadBindingMessage = '''
 Duplicates found in the comments column.
@@ -41,7 +42,7 @@ class SonicInterpreter:
             self.parent.sigSettingGUI.connect(self.modifyParentMenu)
             self.connectActions()
 
-    def showLoadFileDialog(self):
+    def loadFileDialog(self):
         '''
         shows file dialog and calls loadData upon selecting
         files
@@ -53,6 +54,17 @@ class SonicInterpreter:
         
         if filenames != []:
             self.loadData(filenames)
+            self.addSonicTab()
+            self.bindData()
+
+    def addSonicTab(self):
+        '''
+        Adds sonic tab to parent. If it exists just activates it
+        '''
+        tab_bar = self.parent.tabWidget
+        if tab_bar.indexOf(self.sonicViewer) == -1:
+            tab_bar.addTab(self.sonicViewer, "Sonic")
+        tab_bar.setCurrentWidget(self.sonicViewer)
 
     def loadData(self, filenames):
         '''
@@ -89,9 +101,8 @@ class SonicInterpreter:
         self.sonicViewer.setData(raw_data)
 
 
-
     def connectActions(self):
-        self.loadSonicDataAction.triggered.connect(self.showLoadFileDialog)
+        self.loadSonicDataAction.triggered.connect(self.loadFileDialog)
 
     def setupActions(self):
         # add entry to load sonic files
@@ -181,4 +192,43 @@ class SonicInterpreter:
         self.transformMenu.addAction(self.showForrierPhasesAction)
         self.transformMenu.addAction(self.filteringAction)
         
+    def bindData(self):
+        '''
+        bind wave tracks to the time of experiment the were measured.
+        it essentially implies parsing comments and comparing it to sonic data
+        names
+        Algorithm:
+        - find times for non-empty comments
+        - throw out repeated comments (take last occurrence)
+        - compare comments with sonic file names
+        '''
+        record_times = {}
+        comments = self.parent.comments
+        times = self.parent.findData(self.parent.timeParam)
+        
+        # filter out empty comments
+        non_empty = [i for i, c in enumerate(comments) if c != b'' and c!='']
+        comments = comments[non_empty]
+        times = times[non_empty]
+
+        # check if there are any duplicates
+        comments, ind = remove_duplicates(comments)
+        times = times[ind]
+
+        # find same strings in sonic file names
+        for wave in WAVE_TYPES[0]:
+            wave_files = list(self.sonicViewer.data[wave].keys())
+            indices = compare_arrays(comments, wave_files)
+            # which items wave_keys are not in comments
+            spurious_entries = array_diff(wave_files, comments)
+            for e in spurious_entries:
+                del self.sonicViewer.data[wave][wave_files[e]]
+            record_times[wave] = times[indices]
+            
+        # rebuild sonic table
+        self.sonicViewer.createTable()
+           
+           
+           
+
 

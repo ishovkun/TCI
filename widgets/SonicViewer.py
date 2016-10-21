@@ -130,7 +130,7 @@ class SonicViewer(QtGui.QWidget):
         dens = self.isWidget.dens
         length = self.isWidget.length
         atime = self.isWidget.atime
-        self.bWidget.setConfig(testconf,capsconf,dens,length,atime)
+        self.bWidget.setConfig(testconf, capsconf, dens, length, atime)
         self.bWidget.run()
         
     def setData(self,data):
