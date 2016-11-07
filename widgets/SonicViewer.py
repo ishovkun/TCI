@@ -19,9 +19,10 @@ from TCI.base_widgets.GradientEditorWidget import GradientEditorWidget
 from TCI.widgets.BindingWidget import BindingWidget
 from TCI.widgets.InterpretationSettingsWidget import InterpretationSettingsWidget
 
-xAxisName = 'Oscilloscope time (μs)'
+X_LABEL = 'Oscilloscope time (μs)'
 fXAxisName = 'Frequency (MHz)'
 phXAxisName = 'Phase (deg)'
+N_COLORS = 100
 
 Parameters = [
     {'name': 'Show', 'type': 'bool', 'value': True, 'tip': "Press to plot wave"},
@@ -33,14 +34,8 @@ Parameters = [
         ]},
     ]
 WaveTypes = ['P','Sx','Sy']
-
 LabelStyle = {'color': '#000000', 'font-size': '14pt','font':'Times'}
 
-class IdleWidget(QtGui.QWidget):
-    def __init__(self):
-        QtGui.QWidget.__init__(self,None)
-    def plotSonicData(self):
-        pass
 
 class SonicViewer(QtGui.QWidget):
     '''
@@ -50,30 +45,29 @@ class SonicViewer(QtGui.QWidget):
     Amplify
     '''
     mode = 'Contours'
+    # mode = 'WaveForms'
     autoShift = {'P':True,'Sx':True,'Sy':True} # flag to match 0 and transmission time
     arrivalsPicked = False
     updateQTable = True # don't need 
     skipPlottingFAmpFlag = False
     skipPlottingFPhaseFlag = False
     
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, controller=None):
         super(SonicViewer, self).__init__()
         self.parent = parent
+        self.controller = controller
         
         self.setupGUI()
         # self.fWidget = TriplePlotWidget()
         # self.phWidget = TriplePlotWidget()
-        # self.bWidget = BindingWidget(parents=[parent,self])
+        # self.bWidget = BindingWidget(parents=[parent, self])
         # self.isWidget = InterpretationSettingsWidget()
         self.data = {'P':{}, 'Sx':{}, 'Sy':{}}
-        # self.currentShifts = {'P':0,'Sx':0,'Sy':0}
         # self.connectPlotButtons()
-        # self.gEdit = GradientEditorWidget()
-        # self.gw = self.gEdit.sgw
-        # self.fgw = self.gEdit.fgw
-        # self.pgw = self.gEdit.pgw
-        # # sel
-        # self.gw.restoreState(Gradients['hot'])
+        self.gradEditor = GradientEditorWidget()
+        self.gradEditor.waveGradientWidget.restoreState(Gradients['hot'])
+        self.gradEditor.fourierGradientWidget.restoreState(Gradients['hot'])
+        self.gradEditor.phaseGradientWidget.restoreState(Gradients['hot'])
         # self.fgw.restoreState(Gradients['hot'])
         # self.pgw.restoreState(Gradients['hot'])
         # self.allParameters = []
@@ -133,7 +127,7 @@ class SonicViewer(QtGui.QWidget):
         self.bWidget.setConfig(testconf, capsconf, dens, length, atime)
         self.bWidget.run()
         
-    def setData(self,data):
+    def setData(self, data):
         '''
         data is a dictionary with keys: P,Sx,Sy
         '''
@@ -142,6 +136,15 @@ class SonicViewer(QtGui.QWidget):
         self.createTable()
         # self.getFourrierTransforms()
         self.arrivalsPicked = False
+
+    def setIndices(self, ind, geo_ind=None):
+        '''
+        ind - indices for specific wave tracks
+        geo_indices - for geomechanical dataset
+        also 
+        '''
+        self.indices = ind
+        self.geo_indices = geo_ind
 
     def hasData(self):
         '''
@@ -234,11 +237,8 @@ class SonicViewer(QtGui.QWidget):
                 self.phWidget.plots[wave].disableAutoRange()
 
     def getActivePlots(self):
-        activePlots = []
-        for wave in WaveTypes:
-            val = self.params[wave].param('Show').value()
-            if val: activePlots.append(wave)
-        return activePlots
+        if self.controller is None: return WaveTypes
+        else: return self.controller.activeWaves()
 
     def pickAllArrivals(self) :
         pBar = QtGui.QProgressDialog(None,QtCore.Qt.WindowStaysOnTopHint)
@@ -272,7 +272,283 @@ class SonicViewer(QtGui.QWidget):
             ifft[wave] = np.array((x,ift.real))
         return ifft
 
-    def plot(self,indices=None,yarray=None,yindices=None,
+    def plot(self):
+        for k, wave in enumerate(self.getActivePlots()):
+            # prepare plot
+            plot = self.plots[wave]
+            plot.clear();
+            # labels
+            ylabel = self.controller.yLabel()
+            plot.getAxis('left').setLabel(ylabel, **LabelStyle)
+            plot.getAxis('bottom').setLabel(X_LABEL, **LabelStyle)
+
+            # auto scaling
+            if self.controller.autoScaleAction.isChecked():
+                plot.enableAutoRange(enable=True)
+            else:
+                plot.disableAutoRange()
+
+            # y axis invert
+            if self.controller.invertYAction.isChecked():
+                self.plots[wave].invertY(True)
+            else: self.plots[wave].invertY(False)
+
+            # y array of geomechanical data
+            ind = self.indices[wave] 
+            if ylabel == "Track #":
+                y = ind
+            else:
+                y = self.parent.findData(ylabel)[self.geo_indices[wave]]
+
+            data = self.table[wave][:, ind,:]
+            if data.shape[1] == 0: continue
+
+            if self.mode == 'WaveForms':
+                self.plotWaveForms(data, self.plots[wave], y)
+
+            elif self.mode == 'Contours':
+                if k == 0: # get only one color lookup table
+                    gradient_widget = self.gradEditor.sgw
+                    lut = gradient_widget.getLookupTable(N_COLORS, alpha=None)
+
+                self.plotContours(data, self.plots[wave], y, lut)
+
+
+    def plotWaveForms(self, data, plot_widget, y_array, amplify=None):
+        '''
+        input:
+        data - np.array(2, n_tracks, track_length)
+        plot_widget - pyqtgraph.plotItem that hold the image
+        y_array - array of geomechanical data
+        amplify - float, amplification coefficient (y-stretch of wave forms)
+        '''
+        # compute amplification
+        if amplify is None:
+            amplify = np.abs(np.diff(y_array)).max()/data[1, :, :].max()
+
+        # generate array to plot
+        n_lines = data.shape[1]
+        y = amplify*data[1,:,:] + y_array.reshape(n_lines, 1)
+
+        # convert array to a graphical path
+        graphic_path = MultiLine(data[0,:,:], y)
+        try: plot_widget.addItem(graphic_path)
+        except: pass
+
+    def plotContours(self, data, plot_widget, y_array, lut=None):
+        '''
+        input:
+        data - np.array(2, n_tracks, track_length)
+        plot_widget - pyqtgraph.plotItem that hold the image
+        y_array - array of geomechanical data
+        lut - lookup table for colors
+        '''
+        image = pg.ImageItem()
+        image.setImage(data[1, :, :].T)
+        plot_widget.addItem(image)
+
+        # scale image
+        x = data[0, 0, :]
+        shiftX0 = x[0]
+        scaleX = (x[-1] - x[0])/x.shape[0]
+        ymax = y_array.max()
+        ymin = y_array.min()
+        shiftY0 = ymin
+        scaleY = float(ymax - ymin)/y_array.shape[0]
+
+        image.translate(shiftX0, shiftY0)
+        image.scale(scaleX, scaleY)
+
+        # set Colors
+        if lut is not None:
+            image.setLookupTable(lut, update=True)
+
+    def plotArrivals(self,indices=None,yarray=None,yindices=None,
+        amplify=None,yAxisName='Track #'):
+        try: 
+            self.QTable.cellChanged.disconnect(self.editArrivals)
+        except:
+            pass
+        tableLabels = get_list(yAxisName, WaveTypes)
+        self.QTable.setHorizontalHeaderLabels(tableLabels)
+        for wave in self.getActivePlots():
+            k = WaveTypes.index(wave)
+            if yarray is None:
+                x = self.aTimes[wave]
+                y = np.arange(self.aTimes[wave].shape[0])
+            else: 
+                ind = yindices[wave]
+                sind = indices[wave]
+                y = yarray[ind]
+                x = self.aTimes[wave][sind]
+            if self.updateQTable:
+                self.QTable.setColumn(y,k)
+                self.QTable.setColumn(x,k+3)
+            else: self.QTable.close() # otherwise it stalls
+            plt = self.plots[wave]
+            pen = pg.mkPen(color=(72,209,204), width=2)
+            plt.plot(x,y,pen=pen)
+        self.updateQTable = True
+        self.QTable.cellChanged.connect(self.editArrivals)
+
+    def setYAxisParameters(self,parameters):
+        # we use setLimits because of weird implementation
+        # in pyqtgraph
+        self.allParameters = parameters
+        self.yAxisMenu.clear()
+        self.yAxisButtons = {}
+        self.yAxisButtons['Track #'] = QtGui.QAction('Track #',self,checkable=True)
+        self.yAxisButtons['Track #'].setActionGroup(self.yAxisGroup)
+        self.yAxisMenu.addAction(self.yAxisButtons['Track #'])
+        for p in parameters:
+            if self.mode == 'Contours' and p!='Time': continue
+            self.yAxisButtons[p] = QtGui.QAction(p,self,checkable=True)
+            self.yAxisButtons[p].setActionGroup(self.yAxisGroup)
+            self.yAxisMenu.addAction(self.yAxisButtons[p])
+            pass
+        try: 
+            print ('Setting y axis to: Time')
+            self.yAxisButtons['Time'].setChecked(True)
+            self.yAxis = 'Time'
+        except: print ('setting was not successful')
+
+    def setMode(self, mode):
+        '''
+        takes string arguments: WaveForms and Contours
+        '''
+        self.mode = mode
+        if mode == 'WaveForms':
+            print ('Setting mode to Wave Forms')
+            # self.modeMenu.setDefaultAction(self.waveFormButton)
+        elif mode == 'Contours':
+            print ('Setting mode to Contours')
+            # self.modeMenu.setDefaultAction(self.contourButton)
+
+    def setupGUI(self):
+        self.setWindowTitle("Sonic Viewer")
+ 
+        # setup layout
+        self.layout = QtGui.QVBoxLayout()
+        # pg.setConfigOption('foreground',(0,0,0))
+        pg.setConfigOption('background', (255,255,255))
+        self.layout.setContentsMargins(0,0,0,0)
+        self.layout.setSpacing(0)
+        self.setLayout(self.layout)
+ 
+        # splitter gonna contain plot widget and side widgets if necessary
+        self.splitter = QtGui.QSplitter(QtCore.Qt.Horizontal)
+        # self.splitter.setOrientation(QtCore.Qt.Horizontal)
+        self.layout.addWidget(self.splitter)
+        
+        self.plotWidget = TriplePlotWidget()
+        self.plots = self.plotWidget.plots
+        self.splitter.addWidget(self.plotWidget)
+        
+        # # split main widget into plotting area and parameters area
+        # # split parameter area into 3 for each wave
+        # self.treeSplitter = QtGui.QSplitter()
+        # self.treeSplitter.setOrientation(QtCore.Qt.Vertical)
+        # self.splitter.addWidget(self.treeSplitter)
+        # # create parameter trees
+        # self.trees={}
+        # for wave in WaveTypes:
+        #     self.trees[wave] = ParameterTree(showHeader=False)
+        #     self.treeSplitter.addWidget(self.trees[wave])
+        # # create layout for the plotting area
+        # self.sublayout = pg.GraphicsLayoutWidget()
+        # self.splitter.addWidget(self.sublayout)
+        # self.params = {}
+        # self.plots = {}
+        # for wave in WaveTypes:
+        #     self.plots[wave] = self.sublayout.addPlot()
+        #     self.params[wave] = Parameter.create(name=wave + ' wave',
+        #         type='group',children=Parameters)
+        #     self.trees[wave].setParameters(self.params[wave],showTop=True)
+        #     # fill plotting area with 3 plots
+        #     self.plots[wave] = self.sublayout.addPlot(viewBox=ViewBox())
+        #     setup_plot(self.plots[wave])
+        #     self.sublayout.nextRow()
+
+        # self.params['Sx'].param('Arrival times').param('BTA').setValue(36)
+        # self.params['Sx'].param('Arrival times').param('ATA').setValue(5)
+        # self.params['Sx'].param('Arrival times').param('DTA').setValue(20)
+        # self.params['Sy'].param('Arrival times').param('BTA').setValue(100)
+        # self.params['Sy'].param('Arrival times').param('ATA').setValue(5)
+        # self.params['Sy'].param('Arrival times').param('DTA').setValue(30)
+        # # create table widget to show arrival times
+        # self.QTable = TableWidget(['Number P','Number Sx','Number Sy','P','Sx','Sy'])
+        # # self.splitter.addWidget(self.QTable)
+        # self.QTable.setColumnCount(6)
+        # self.QTable.hide()
+
+        # self.splitter.setSizes([int(self.width()*0.30),
+        #                             int(self.width()*0.35),
+        #                             int(self.width()*0.35)
+        #                         ])
+        # self.splitter.setStretchFactor(0, 0)
+        # self.splitter.setStretchFactor(1, 1)
+        # self.splitter.setStretchFactor(2, 0)
+        
+
+    def setupArrivalsSettingsWidgets(self):
+        pass
+
+    def pickArrivals(self,wave):
+        print ('Computing arrival times for %s wave'%(wave))
+        win = [0,0,0]
+        mpoint = self.params[wave].param('Arrival times').param('Mpoint').value()
+        win[0] = self.params[wave].param('Arrival times').param('BTA').value()
+        win[1] = self.params[wave].param('Arrival times').param('ATA').value()
+        win[2] = self.params[wave].param('Arrival times').param('DTA').value()
+        x = self.table[wave][0,:,:]
+        y = self.table[wave][1,:,:]
+        h = x[0,1] - x[0,0]
+        r = multi_window(y,win) 
+        rx = np.arange(r.shape[1])*h + x[0,win[0]]
+        mind = abs(rx-mpoint).argmin() #index of middle point
+        sInd = r[:,:mind].argmax(axis=1) # sender indices
+        sTimes = rx[sInd] # sender times
+        rInd = r[:,mind:].argmax(axis=1) # receiver indices
+        rTimes = rx[mind+rInd]
+        self.aTimes[wave] = rTimes - sTimes
+        # shift initial data so
+        if self.autoShift[wave]:
+            shift = np.mean(sTimes)
+            self.table[wave][0,:,:] -= shift
+            self.autoShift[wave] = False
+
+    def editArrivals(self):
+        data = self.QTable.getValues()
+        indices = self.parent.trsIndices
+        if self.yAxis == 'Track #':
+            for wave in WaveTypes:
+                indices[wave] = np.arange(len(self.parent.sTimes[wave]))
+            pass
+        self.aTimes['P'][indices['P']] = data[:,3]
+        self.aTimes['Sx'][indices['Sx']] = data[:,4]
+        self.aTimes['Sy'][indices['Sy']] = data[:,5]
+        self.updateQTable = False
+        self.parent.plotSonicData()
+
+    def recomputeArrivals(self):
+        parent = self.sender().parent().parent().name()
+        wave = parent.split()[0]
+        self.pickArrivals(wave)
+        self.parent.plotSonicData()
+
+    def showTable(self):
+        # show = self.showTableButton.isChecked()
+        self.QTable.show()
+        self.QTable.activateWindow()
+
+    def closeEvent(self,event):
+        QtGui.QWidget.closeEvent(self, event)
+        # self.fWidget.close()
+        # self.phWidget.close()
+        # self.QTable.close()
+        # self.bWidget.close()
+
+    def plot_old(self, indices=None, yarray=None, yindices=None,
         amplify=None,yAxisName='Track #'):
         '''
         indices - number of sonic tracks to plot
@@ -364,303 +640,3 @@ class SonicViewer(QtGui.QWidget):
         self.skipPlottingFAmpFlag = False
         self.skipPlottingFPhaseFlag = False
         
-    def plotWaveForms(self,indices=None, amplify=None,yAxisName=''):
-        self.graphicPaths = {}
-        if (amplify is None):
-            amp=np.average(np.abs(np.diff(self.y['P'])))
-        for wave in self.getActivePlots():
-            plot = self.plots[wave]
-            if self.invertYButton.isChecked(): plot.invertY(True)
-            else: plot.invertY(False)
-            if indices: sind = indices[wave]
-            else: sind = np.arange(self.table[wave].shape[1])
-            Nlines = len(self.y[wave])
-            y = amp*self.table[wave][1,sind,:] + self.y[wave].reshape(Nlines,1)
-            # self.params[wave].param('Amplify').setValue(amp)
-            if indices:
-                self.graphicPaths[wave] = MultiLine(self.table[wave][0,sind,:],y)
-            else:
-                self.graphicPaths[wave] = MultiLine(self.table[wave][0,:,:],y)
-            try:
-                plot.addItem(self.graphicPaths[wave])
-            except: pass
-
-
-    def plotDataWaveForms(self,
-        data,widget,indices=None, amplify=None,yAxisName=''):
-        paths = {}
-        amp=np.average(np.abs(np.diff(self.y['P'])))/data['P'].max()
-        for wave in self.getActivePlots():
-            plot = widget.plots[wave]
-            if self.invertYButton.isChecked(): plot.invertY(True)
-            else: plot.invertY(False)
-            if indices: sind = indices[wave]
-            else: sind = np.arange(data[wave].shape[1])
-            Nlines = len(self.y[wave])
-            y = amp*data[wave][1,sind,:] + self.y[wave].reshape(Nlines,1)
-            if indices:
-                paths[wave] = MultiLine(data[wave][0,sind,:],y)
-            else:
-                paths[wave] = MultiLine(data[wave][0,:,:],y)
-            try:
-                plot.addItem(paths[wave])
-            except: pass
-
-    def plotDataContours(self,data,widget,gw,
-        indices=None,yarray=None,yindices=None,
-        amplify=None,yAxisName=''):
-        images = {}
-        k = 0
-        for wave in self.getActivePlots():
-            plot = widget.plots[wave]
-            if self.invertYButton.isChecked(): plot.invertY(True)
-            else: plot.invertY(False)
-            images[wave] = pg.ImageItem()
-            if indices:
-                z = data[wave][1,indices[wave],:].T
-            else:
-                z = data[wave][1,:,:].T
-            if k == 0: lut = gw.getLookupTable(z.shape[0], alpha=None)
-            images[wave].setImage(z)
-            plot.addItem(images[wave])
-            x = data[wave][0,0,:]
-            shiftX0 = x[0]
-            scaleX = (x[-1] - x[0])/x.shape[0]
-            y = self.y[wave]
-            ymax = y.max()
-            ymin = y.min()
-            shiftY0 = ymin
-            scaleY = float(ymax - ymin)/y.shape[0]
-
-            images[wave].translate(shiftX0,shiftY0)
-            images[wave].scale(scaleX,scaleY)
-            # set Colors
-            images[wave].setLookupTable(lut, update=True)
-            k += 1
-
-    def plotContours(self,indices=None,yarray=None,yindices=None,
-        amplify=None,yAxisName=''):
-        self.images = {}
-        k = 0
-        for wave in self.getActivePlots():
-            plot = self.plots[wave]
-            if self.invertYButton.isChecked(): plot.invertY(True)
-            else: plot.invertY(False)
-            self.images[wave] = pg.ImageItem()
-            if indices:
-                z = self.table[wave][1,indices[wave],:].T
-            else:
-                z = self.table[wave][1,:,:].T
-            if k == 0: lut = self.gw.getLookupTable(z.shape[0], alpha=None)
-            self.images[wave].setImage(z)
-            plot.addItem(self.images[wave])
-            # scale and shift image
-            x = self.table[wave][0,0,:]
-            shiftX0 = x[0]
-            scaleX = (x[-1] - x[0])/x.shape[0]
-
-            y = self.y[wave]
-            ymax = y.max()
-            ymin = y.min()
-            shiftY0 = ymin
-            scaleY = float(ymax - ymin)/y.shape[0]
-
-            self.images[wave].translate(shiftX0,shiftY0)
-            self.images[wave].scale(scaleX,scaleY)
-            # set Colors
-            self.images[wave].setLookupTable(lut, update=True)
-            k += 1
-
-    def plotArrivals(self,indices=None,yarray=None,yindices=None,
-        amplify=None,yAxisName='Track #'):
-        try: 
-            self.QTable.cellChanged.disconnect(self.editArrivals)
-        except: pass
-        tableLabels = get_list(yAxisName,WaveTypes)
-        self.QTable.setHorizontalHeaderLabels(tableLabels)
-        for wave in self.getActivePlots():
-            k = WaveTypes.index(wave)
-            if yarray is None:
-                x = self.aTimes[wave]
-                y = np.arange(self.aTimes[wave].shape[0])
-            else: 
-                ind = yindices[wave]
-                sind = indices[wave]
-                y = yarray[ind]
-                x = self.aTimes[wave][sind]
-            if self.updateQTable:
-                self.QTable.setColumn(y,k)
-                self.QTable.setColumn(x,k+3)
-            else: self.QTable.close() # otherwise it stalls
-            plt = self.plots[wave]
-            pen = pg.mkPen(color=(72,209,204), width=2)
-            plt.plot(x,y,pen=pen)
-        self.updateQTable = True
-        self.QTable.cellChanged.connect(self.editArrivals)
-
-    def setYAxisParameters(self,parameters):
-        # we use setLimits because of weird implementation
-        # in pyqtgraph
-        self.allParameters = parameters
-        self.yAxisMenu.clear()
-        self.yAxisButtons = {}
-        self.yAxisButtons['Track #'] = QtGui.QAction('Track #',self,checkable=True)
-        self.yAxisButtons['Track #'].setActionGroup(self.yAxisGroup)
-        self.yAxisMenu.addAction(self.yAxisButtons['Track #'])
-        for p in parameters:
-            if self.mode == 'Contours' and p!='Time': continue
-            self.yAxisButtons[p] = QtGui.QAction(p,self,checkable=True)
-            self.yAxisButtons[p].setActionGroup(self.yAxisGroup)
-            self.yAxisMenu.addAction(self.yAxisButtons[p])
-            pass
-        try: 
-            print ('Setting y axis to: Time')
-            self.yAxisButtons['Time'].setChecked(True)
-            self.yAxis = 'Time'
-        except: print ('setting was not successful')
-
-    def setMode(self, mode):
-        '''
-        takes string arguments: WaveForms and Contours
-        '''
-        self.mode = mode
-        if mode == 'WaveForms':
-            print ('Setting mode to Wave Forms')
-            # self.modeMenu.setDefaultAction(self.waveFormButton)
-        elif mode == 'Contours':
-            print ('Setting mode to Contours')
-            # self.modeMenu.setDefaultAction(self.contourButton)
-        self.setYAxisParameters(self.allParameters)
-
-    def setupGUI(self):
-        self.setWindowTitle("Sonic Viewer")
- 
-        # setup layout
-        self.layout = QtGui.QVBoxLayout()
-        # pg.setConfigOption('foreground',(0,0,0))
-        pg.setConfigOption('background', (255,255,255))
-        self.layout.setContentsMargins(0,0,0,0)
-        self.layout.setSpacing(0)
-        self.setLayout(self.layout)
- 
-        # splitter gonna contain plot widget and side widgets if necessary
-        self.splitter = QtGui.QSplitter(QtCore.Qt.Horizontal)
-        # self.splitter.setOrientation(QtCore.Qt.Horizontal)
-        self.layout.addWidget(self.splitter)
-        
-        self.plotWidget = TriplePlotWidget()
-        self.splitter.addWidget(self.plotWidget)
-        
-        # # split main widget into plotting area and parameters area
-        # # split parameter area into 3 for each wave
-        # self.treeSplitter = QtGui.QSplitter()
-        # self.treeSplitter.setOrientation(QtCore.Qt.Vertical)
-        # self.splitter.addWidget(self.treeSplitter)
-        # # create parameter trees
-        # self.trees={}
-        # for wave in WaveTypes:
-        #     self.trees[wave] = ParameterTree(showHeader=False)
-        #     self.treeSplitter.addWidget(self.trees[wave])
-        # # create layout for the plotting area
-        # self.sublayout = pg.GraphicsLayoutWidget()
-        # self.splitter.addWidget(self.sublayout)
-        # self.params = {}
-        # self.plots = {}
-        # for wave in WaveTypes:
-        #     # create parameter instances
-        #     self.params[wave] = Parameter.create(name=wave + ' wave',
-        #         type='group',children=Parameters)
-        #     self.trees[wave].setParameters(self.params[wave],showTop=True)
-        #     # fill plotting area with 3 plots
-        #     # self.plots[wave] = self.sublayout.addPlot()
-        #     self.plots[wave] = self.sublayout.addPlot(viewBox=ViewBox())
-        #     setup_plot(self.plots[wave])
-        #     self.sublayout.nextRow()
-
-        # self.params['Sx'].param('Arrival times').param('BTA').setValue(36)
-        # self.params['Sx'].param('Arrival times').param('ATA').setValue(5)
-        # self.params['Sx'].param('Arrival times').param('DTA').setValue(20)
-        # self.params['Sy'].param('Arrival times').param('BTA').setValue(100)
-        # self.params['Sy'].param('Arrival times').param('ATA').setValue(5)
-        # self.params['Sy'].param('Arrival times').param('DTA').setValue(30)
-        # # create table widget to show arrival times
-        # self.QTable = TableWidget(['Number P','Number Sx','Number Sy','P','Sx','Sy'])
-        # # self.splitter.addWidget(self.QTable)
-        # self.QTable.setColumnCount(6)
-        # self.QTable.hide()
-
-        # self.splitter.setSizes([int(self.width()*0.30),
-        #                             int(self.width()*0.35),
-        #                             int(self.width()*0.35)
-        #                         ])
-        # self.splitter.setStretchFactor(0, 0)
-        # self.splitter.setStretchFactor(1, 1)
-        # self.splitter.setStretchFactor(2, 0)
-        
-
-    def setupArrivalsSettingsWidgets(self):
-        pass
-
-    def pickArrivals(self,wave):
-        print ('Computing arrival times for %s wave'%(wave))
-        win = [0,0,0]
-        mpoint = self.params[wave].param('Arrival times').param('Mpoint').value()
-        win[0] = self.params[wave].param('Arrival times').param('BTA').value()
-        win[1] = self.params[wave].param('Arrival times').param('ATA').value()
-        win[2] = self.params[wave].param('Arrival times').param('DTA').value()
-        x = self.table[wave][0,:,:]
-        y = self.table[wave][1,:,:]
-        h = x[0,1] - x[0,0]
-        r = multi_window(y,win) 
-        rx = np.arange(r.shape[1])*h + x[0,win[0]]
-        mind = abs(rx-mpoint).argmin() #index of middle point
-        sInd = r[:,:mind].argmax(axis=1) # sender indices
-        sTimes = rx[sInd] # sender times
-        rInd = r[:,mind:].argmax(axis=1) # receiver indices
-        rTimes = rx[mind+rInd]
-        self.aTimes[wave] = rTimes - sTimes
-        # shift initial data so
-        if self.autoShift[wave]:
-            shift = np.mean(sTimes)
-            self.table[wave][0,:,:] -= shift
-            self.autoShift[wave] = False
-
-    def editArrivals(self):
-        data = self.QTable.getValues()
-        indices = self.parent.trsIndices
-        if self.yAxis == 'Track #':
-            for wave in WaveTypes:
-                indices[wave] = np.arange(len(self.parent.sTimes[wave]))
-            pass
-        self.aTimes['P'][indices['P']] = data[:,3]
-        self.aTimes['Sx'][indices['Sx']] = data[:,4]
-        self.aTimes['Sy'][indices['Sy']] = data[:,5]
-        self.updateQTable = False
-        self.parent.plotSonicData()
-
-    def recomputeArrivals(self):
-        parent = self.sender().parent().parent().name()
-        wave = parent.split()[0]
-        self.pickArrivals(wave)
-        self.parent.plotSonicData()
-
-    def showTable(self):
-        # show = self.showTableButton.isChecked()
-        self.QTable.show()
-        self.QTable.activateWindow()
-
-    def closeEvent(self,event):
-        QtGui.QWidget.closeEvent(self, event)
-        # self.fWidget.close()
-        # self.phWidget.close()
-        # self.QTable.close()
-        # self.bWidget.close()
-        
-
-if __name__ == '__main__':
-    SonicViewerApp = QtGui.QApplication(sys.argv)
-    win = SonicViewer(parent=IdleWidget())
-    win.setWindowTitle("Sonic Viewer")
-    win.show()
-    win.setGeometry(80, 30, 1000, 700)
-    SonicViewerApp.exec_()

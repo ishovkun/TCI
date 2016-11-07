@@ -38,6 +38,9 @@ class GradientEditorWidget(QtGui.QWidget):
         self.sgw = pg.GradientWidget(orientation='top')
         self.fgw = pg.GradientWidget(orientation='top')
         self.pgw = pg.GradientWidget(orientation='top')
+        self.waveGradientWidget = self.sgw
+        self.fourierGradientWidget = self.fgw
+        self.phaseGradientWidget = self.pgw
         self.sItem.setWidget(2,self.sgw)
         self.fItem.setWidget(2,self.fgw)
         self.pItem.setWidget(2,self.pgw)

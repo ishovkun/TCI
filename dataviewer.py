@@ -715,18 +715,23 @@ if __name__ == '__main__':
 
     # sonic widget testing
     # win.loadSonicDataAction.trigger()
-    directory = "/home/ishovkun/Dropbox/Experiments/TO_BE_ANALYZED/1500psi/1500pc/"
+    directory = "/home/ishovkun/Dropbox/Experiments/TO_BE_ANALYZED/1500psi/1500pc"
     files = os.listdir(directory)
     for i in range(len(files)):
         files[i] = os.path.join(directory, files[i])
     # print(win.plugins[-1])
     sonic_plugin = win.plugins[-1]
-    sonic_plugin.loadData(files[:30])
-    # sonic_plugin.loadData(files)
+    # sonic_plugin.loadData(files[:30])
+    sonic_plugin.loadData(files)
     sonic_plugin.addSonicTab()
     sonic_plugin.bindData()
+    sonic_plugin.sonicViewer.plot()
+    sonic_plugin.connectActions()
+    win.slider.setInterval([0.1, 0.5])
+    sonic_plugin.setYParameters(win.keys)
+    # win.slider.setInterval([1, 5])
     
-    win.close()
+    # win.close()
     
     # Mohr circle actions
     # win.mcPlugin.addPointAction.trigger()

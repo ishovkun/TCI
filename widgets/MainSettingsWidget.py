@@ -61,10 +61,10 @@ class MainSettingsWidget(QtGui.QWidget):
         if text == None: text = self.fileHeaderLine.value()
         hlist = text.split(',')
         N = len(hlist)
-        for i in xrange(N):
+        for i in range(N):
             hlist[i] = hlist[i].strip()
         expr = ''
-        for i in xrange(N):
+        for i in range(N):
             expr += hlist[i]
             if i!=N-1:
                 expr +='.*'

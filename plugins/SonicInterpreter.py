@@ -21,6 +21,7 @@ square things away, but don't rely on me.
 
 FILE_DIALOG_TITLE = 'Open files'
 WAVE_TYPES = ['P','Sx','Sy']
+TRACK_NUMBER_LABEL = "Track #"
 
 class SonicInterpreter:
     '''
@@ -28,20 +29,15 @@ class SonicInterpreter:
     and dataviewer class
     '''
     def __init__(self, parent=None):
-        self.sonicViewer = SonicViewer(parent=parent)
-        # self.sonicViewer.show()
-        # self.sonicViewer.activateWindow()
-        # self.sonicViewer.raise_()
-        # self.fAmlitudeWidget
-        # self.fPhaseWidget
         self.parent = parent
         self.progressDialog = QtGui.QProgressDialog()
-        
+        self.sonicViewer = SonicViewer(parent=parent, controller=self)
+
         if parent is not None:
             self.setupActions()
             self.parent.sigSettingGUI.connect(self.modifyParentMenu)
-            self.connectActions()
 
+        
     def loadFileDialog(self):
         '''
         shows file dialog and calls loadData upon selecting
@@ -56,6 +52,9 @@ class SonicInterpreter:
             self.loadData(filenames)
             self.addSonicTab()
             self.bindData()
+            self.sonicViewer.plot()
+            self.connectActions()
+            self.setYParameters(self.parent.keys)
 
     def addSonicTab(self):
         '''
@@ -128,7 +127,11 @@ class SonicInterpreter:
                                            checkable=True)
         self.waveFormAction.setActionGroup(self.modeGroup)
         self.contourAction.setActionGroup(self.modeGroup)
-        self.contourAction.setChecked(True)
+        if self.sonicViewer.mode == 'Contours':
+            self.contourAction.setChecked(True)
+        else:
+            self.waveFormAction.setChecked(True)
+
         self.pickArrivalsAction = QtGui.QAction('Pick arrivals', self.parent)
         self.handPickArrivalsAction = QtGui.QAction('Hand pick', self.parent,
                                                     checkable=True)
@@ -143,14 +146,26 @@ class SonicInterpreter:
         self.filteringAction = QtGui.QAction('Frequency filtering',
                                              self.parent,
                                              checkable=True)
+        # active wave types
+        self.pWaveAction = QtGui.QAction('P wave', self.parent, checkable=True)
+        self.sxWaveAction = QtGui.QAction('Sx wave', self.parent, checkable=True)
+        self.syWaveAction = QtGui.QAction('Sy wave', self.parent, checkable=True)
+        self.pWaveAction.setChecked(True)
+        self.sxWaveAction.setChecked(True)
+        self.syWaveAction.setChecked(True)
 
         # dict to store actions for y Axis
         self.yAxisActions = {}
         self.yAxisGroup = QtGui.QActionGroup(self.parent)
-        self.yAxisActions['Track #'] = QtGui.QAction('Track #', self.parent,
-                                                     checkable=True)
-        self.yAxisActions['Track #'].setActionGroup(self.yAxisGroup)
-        self.yAxisActions['Track #'].setChecked(True)
+        self.yAxisActions[TRACK_NUMBER_LABEL] = QtGui.QAction(
+            TRACK_NUMBER_LABEL, self.parent, checkable=True)
+        self.yAxisActions[TRACK_NUMBER_LABEL].setActionGroup(self.yAxisGroup)
+        self.yAxisActions[TRACK_NUMBER_LABEL].setChecked(True)
+
+    def yLabel(self):
+        for label in self.yAxisActions.keys():
+            if self.yAxisActions[label].isChecked():
+                return label
         
     def modifyParentMenu(self):
         # setting up the menu bar
@@ -159,24 +174,29 @@ class SonicInterpreter:
         self.parent.fileMenu.insertAction(self.parent.saveButton,
                                           self.loadSonicDataAction)
         
-        
         # menubar entry corresponding to sonic widget
         self.menu = menuBar.addMenu('Sonic')
-        self.viewMenu = self.menu.addMenu('View')
-        self.modeMenu = self.menu.addMenu('Mode')
+        viewMenu = self.parent.viewMenu
+        viewMenu.addSeparator()
+        separatorGroupTitleAction = QtGui.QAction('Sonic', self.parent)
+        viewMenu.addAction(separatorGroupTitleAction)
+        separatorGroupTitleAction.setDisabled(True)
+
+        self.modeMenu = viewMenu.addMenu('Mode')
         self.transformMenu = self.menu.addMenu('Transform')
         self.intMenu = self.menu.addMenu('Interpretation')
+        self.activeWaveMenu = viewMenu.addMenu('Show waves')
  
         # VIEW MENU
-        self.viewMenu.addAction(self.autoScaleAction)
-        self.viewMenu.addAction(self.showArrivalsAction)
-        self.viewMenu.addAction(self.showTableAction)
-        self.viewMenu.addAction(self.editGradientsAction)
-        self.viewMenu.addAction(self.invertYAction)
+        viewMenu.addAction(self.autoScaleAction)
+        viewMenu.addAction(self.showArrivalsAction)
+        viewMenu.addAction(self.showTableAction)
+        viewMenu.addAction(self.editGradientsAction)
+        viewMenu.addAction(self.invertYAction)
 
         # y axis menu
-        self.yAxisMenu = self.viewMenu.addMenu('y axis')
-        self.yAxisMenu.addAction(self.yAxisActions['Track #'])
+        self.yAxisMenu = viewMenu.addMenu('y axis')
+        self.yAxisMenu.addAction(self.yAxisActions[TRACK_NUMBER_LABEL])
 
         # MODE MENU
         self.modeMenu.addAction(self.waveFormAction)
@@ -191,7 +211,14 @@ class SonicInterpreter:
         self.transformMenu.addAction(self.showForrierMagnitudeAction)
         self.transformMenu.addAction(self.showForrierPhasesAction)
         self.transformMenu.addAction(self.filteringAction)
+
+        # Show waves menu
+        self.activeWaveMenu.addAction(self.pWaveAction)
+        self.activeWaveMenu.addAction(self.sxWaveAction)
+        self.activeWaveMenu.addAction(self.syWaveAction)
         
+        viewMenu.addSeparator()
+
     def bindData(self):
         '''
         bind wave tracks to the time of experiment the were measured.
@@ -201,34 +228,105 @@ class SonicInterpreter:
         - find times for non-empty comments
         - throw out repeated comments (take last occurrence)
         - compare comments with sonic file names
+        Result:
+        times - when waves were recorded
+        geo_indices - indices of times in geomechanical dataset
+        indices - indices of wave forms to be truncated
         '''
-        record_times = {}
+        print('Binding sonic data')
+        # times are when sonic waves were recorded
+        self.times = {}
+        self.indices = {}   #
+        self.geo_indices = {}
+
         comments = self.parent.comments
-        times = self.parent.findData(self.parent.timeParam)
+        geo_times = self.parent.findData(self.parent.timeParam)
         
         # filter out empty comments
         non_empty = [i for i, c in enumerate(comments) if c != b'' and c!='']
-        comments = comments[non_empty]
-        times = times[non_empty]
+        comments = comments[non_empty] 
+        filtered_times = geo_times[non_empty]
 
         # check if there are any duplicates
         comments, ind = remove_duplicates(comments)
-        times = times[ind]
+        filtered_times = filtered_times[ind]
 
         # find same strings in sonic file names
-        for wave in WAVE_TYPES[0]:
+        for wave in WAVE_TYPES:
             wave_files = list(self.sonicViewer.data[wave].keys())
             indices = compare_arrays(comments, wave_files)
             # which items wave_keys are not in comments
             spurious_entries = array_diff(wave_files, comments)
             for e in spurious_entries:
                 del self.sonicViewer.data[wave][wave_files[e]]
-            record_times[wave] = times[indices]
             
+            # this is what we really need
+            self.times[wave] = filtered_times[indices]
+            self.indices[wave] = np.arange(len(filtered_times[indices]))
+            self.geo_indices[wave] = compare_arrays(geo_times, self.times[wave])
+
         # rebuild sonic table
-        self.sonicViewer.createTable()
-           
-           
-           
+        if spurious_entries != []:
+            self.sonicViewer.createTable()
+
+        self.sonicViewer.setIndices(self.indices, self.geo_indices)
+
+    def truncateData(self):
+        interval = self.parent.slider.interval()       
+        indices = {}
+        geo_indices = {}
+        for wave in WAVE_TYPES:
+            times = self.times[wave]
+            mask = ((times >= interval[0]) & (times <= interval[1]))
+            indices[wave] = self.indices[wave][mask]
+            geo_indices[wave] = self.geo_indices[wave][mask]
+        self.sonicViewer.setIndices(indices, geo_indices)
+        self.sonicViewer.plot()
+
+    def activeWaves(self):
+        active = []
+        if self.pWaveAction.isChecked():
+            active.append('P')
+        if self.sxWaveAction.isChecked():
+            active.append('Sx')
+        if self.syWaveAction.isChecked():
+            active.append('Sy')
+        return active
+
+    def connectActions(self):
+        self.parent.slider.sigRangeChanged.connect(self.truncateData)
+        self.modeGroup.triggered.connect(self.setViewerMode)
+
+    def setViewerMode(self):
+        if self.waveFormAction.isChecked():
+            mode = 'WaveForms'
+            self.setYAxisParameters(self.allParameters)
+        else:
+            mode = 'Contours'
+        self.sonicViewer.setMode(mode)
+
+    def setYParameters(self, parameters):
+        # we use setLimits because of weird implementation
+        # in pyqtgraph
+        self.allParameters = parameters
+        self.yAxisMenu.clear()
+        self.yAxisButtons = {}
+        self.yAxisActions[TRACK_NUMBER_LABEL] = QtGui.QAction(TRACK_NUMBER_LABEL, self.parent,
+                                                     checkable=True)
+        self.yAxisActions[TRACK_NUMBER_LABEL].setActionGroup(self.yAxisGroup)
+        self.yAxisMenu.addAction(self.yAxisActions[TRACK_NUMBER_LABEL])
+        time_param = self.parent.timeParam
+
+        for p in parameters:
+            if self.sonicViewer.mode == 'Contours' and p != time_param:
+                continue
+            self.yAxisActions[p] = QtGui.QAction(p, self.parent, checkable=True)
+            self.yAxisActions[p].setActionGroup(self.yAxisGroup)
+            self.yAxisMenu.addAction(self.yAxisActions[p])
+        try: 
+            print ('Setting y axis to: Time')
+            self.yAxisActions[time_param].setChecked(True)
+            self.yAxis = time_param
+        except: print ('setting was not successful')
 
 

@@ -20,8 +20,7 @@ class SliderWidget(pg.GraphicsLayout):
     def __init__(self):
         super(SliderWidget,self).__init__(None)
         self.setupGUI()
-        self.slider.sigGradientChanged.connect(
-                self.emitRangeChangedSig)
+        self.slider.sigGradientChanged.connect(self.emitRangeChangedSig)
 
     def emitRangeChangedSig(self):
         self.sigRangeChanged.emit(self)
@@ -47,8 +46,8 @@ class SliderWidget(pg.GraphicsLayout):
         self.axis.setStyle(tickTextOffset=TickOffset)
         self.axis.tickFont = TickFont
 
-    def setRange(self,min,max):
-        self.axis.setRange(min,max)
+    def setRange(self, min, max):
+        self.axis.setRange(min, max)
         
     def axisRange(self):
         return self.axis.range
@@ -62,12 +61,13 @@ class SliderWidget(pg.GraphicsLayout):
         interval = np.array(sorted(interval))*scale
         return interval
     
-    def setInterval(self,interval):
-        # for tick in self.slider.ticks:
-        i = 0
-        for tick in self.slider.ticks:
+    def setInterval(self, interval):
+        '''
+        interval list [min, max]
+        min and max are floats >0 and < 1
+        '''
+        for i, tick in enumerate(self.slider.ticks):
             self.slider.setTickValue(tick, interval[i])
-            i += 1
 
             
 if __name__ == '__main__':

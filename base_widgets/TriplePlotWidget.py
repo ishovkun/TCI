@@ -50,7 +50,7 @@ class TriplePlotWidget(QtGui.QWidget):
 			# self.plots[wave] = self.sublayout.addPlot()
 			self.plots[wave] = PlotItem()
 			self.sublayout.addItem(self.plots[wave])
-			self.sublayout.nextRow()
+			# self.sublayout.nextRow()
 			setup_plot(self.plots[wave])
 		self.plots['P'].setXLink(self.plots['Sx'])
 		self.plots['P'].setYLink(self.plots['Sx'])
@@ -63,7 +63,6 @@ class TriplePlotWidget(QtGui.QWidget):
 			region = self.regions[wave]
 			region.setZValue(10)
 			plt.addItem(self.regions[wave],ignoreBounds=True)
-
 
 	def moveRegions(self):
 		sender = self.sender()
@@ -101,7 +100,7 @@ if __name__ == '__main__':
 	win.addRegions()
 	for wave in WaveTypes:
 		plt = win.plots[wave]
-		plt.plot(x,y[i],pen='g')
+		plt.plot(x, y[i], pen='g')
 		plt.enableAutoRange()
 		i+=1
 
