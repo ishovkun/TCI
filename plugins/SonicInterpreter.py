@@ -15,13 +15,14 @@ from TCI.lib.functions import *
 
 BadBindingMessage = '''
 Duplicates found in the comments column.
-This is bad. I will do my best to 
+This is bad. I will do my best to
 square things away, but don't rely on me.
 '''
 
 FILE_DIALOG_TITLE = 'Open files'
 WAVE_TYPES = ['P','Sx','Sy']
 TRACK_NUMBER_LABEL = "Track #"
+VIEW_MODES = ['Contours', 'WaveForms']
 
 class SonicInterpreter:
     '''
@@ -37,7 +38,7 @@ class SonicInterpreter:
             self.setupActions()
             self.parent.sigSettingGUI.connect(self.modifyParentMenu)
 
-        
+
     def loadFileDialog(self):
         '''
         shows file dialog and calls loadData upon selecting
@@ -47,14 +48,15 @@ class SonicInterpreter:
         filter_mask = "Sonic data files (*.TRC *.txt)"
         filenames = QtGui.QFileDialog.getOpenFileNames(None,
             FILE_DIALOG_TITLE, "%s"%(lastdir), filter_mask)[0]
-        
+
         if filenames != []:
             self.loadData(filenames)
             self.addSonicTab()
             self.bindData()
             self.sonicViewer.plot()
             self.connectActions()
-            self.setYParameters(self.parent.keys)
+            self.createYActions()
+            self.setYParameters()
 
     def addSonicTab(self):
         '''
@@ -87,7 +89,7 @@ class SonicInterpreter:
                     if wave_name  in fname:
                         raw_data[wave_name][fname] = waves
                         wave_type_inferred = True
-                        
+
                 if not wave_type_inferred:
                     print("Could not infer wave type for %s"%(fname))
             else:
@@ -108,7 +110,7 @@ class SonicInterpreter:
         self.loadSonicDataAction = QtGui.QAction('Load sonic',
                                                  self.parent)
         self.parent.loadSonicDataAction = self.loadSonicDataAction
-        
+
         self.autoScaleAction = QtGui.QAction('Auto scale', self.parent,
                                              checkable=True,
                                              shortcut='Ctrl+S')
@@ -166,14 +168,14 @@ class SonicInterpreter:
         for label in self.yAxisActions.keys():
             if self.yAxisActions[label].isChecked():
                 return label
-        
+
     def modifyParentMenu(self):
         # setting up the menu bar
         menuBar = self.parent.menuBar
 
         self.parent.fileMenu.insertAction(self.parent.saveButton,
                                           self.loadSonicDataAction)
-        
+
         # menubar entry corresponding to sonic widget
         self.menu = menuBar.addMenu('Sonic')
         viewMenu = self.parent.viewMenu
@@ -186,7 +188,7 @@ class SonicInterpreter:
         self.transformMenu = self.menu.addMenu('Transform')
         self.intMenu = self.menu.addMenu('Interpretation')
         self.activeWaveMenu = viewMenu.addMenu('Show waves')
- 
+
         # VIEW MENU
         viewMenu.addAction(self.autoScaleAction)
         viewMenu.addAction(self.showArrivalsAction)
@@ -206,7 +208,7 @@ class SonicInterpreter:
         self.intMenu.addAction(self.pickArrivalsAction)
         self.intMenu.addAction(self.handPickArrivalsAction)
         self.intMenu.addAction(self.moduliAction)
-        
+
         # TRANSFORM MENU
         self.transformMenu.addAction(self.showForrierMagnitudeAction)
         self.transformMenu.addAction(self.showForrierPhasesAction)
@@ -216,7 +218,7 @@ class SonicInterpreter:
         self.activeWaveMenu.addAction(self.pWaveAction)
         self.activeWaveMenu.addAction(self.sxWaveAction)
         self.activeWaveMenu.addAction(self.syWaveAction)
-        
+
         viewMenu.addSeparator()
 
     def bindData(self):
@@ -241,10 +243,10 @@ class SonicInterpreter:
 
         comments = self.parent.comments
         geo_times = self.parent.findData(self.parent.timeParam)
-        
+
         # filter out empty comments
         non_empty = [i for i, c in enumerate(comments) if c != b'' and c!='']
-        comments = comments[non_empty] 
+        comments = comments[non_empty]
         filtered_times = geo_times[non_empty]
 
         # check if there are any duplicates
@@ -259,7 +261,7 @@ class SonicInterpreter:
             spurious_entries = array_diff(wave_files, comments)
             for e in spurious_entries:
                 del self.sonicViewer.data[wave][wave_files[e]]
-            
+
             # this is what we really need
             self.times[wave] = filtered_times[indices]
             self.indices[wave] = np.arange(len(filtered_times[indices]))
@@ -272,7 +274,7 @@ class SonicInterpreter:
         self.sonicViewer.setIndices(self.indices, self.geo_indices)
 
     def truncateData(self):
-        interval = self.parent.slider.interval()       
+        interval = self.parent.slider.interval()
         indices = {}
         geo_indices = {}
         for wave in WAVE_TYPES:
@@ -299,34 +301,41 @@ class SonicInterpreter:
 
     def setViewerMode(self):
         if self.waveFormAction.isChecked():
-            mode = 'WaveForms'
-            self.setYAxisParameters(self.allParameters)
-        else:
-            mode = 'Contours'
+            mode = VIEW_MODES[1]
+        elif self.contourAction.isChecked():
+            mode = VIEW_MODES[0]
+
         self.sonicViewer.setMode(mode)
+        self.setYParameters()
+        self.sonicViewer.plot()
 
-    def setYParameters(self, parameters):
-        # we use setLimits because of weird implementation
-        # in pyqtgraph
-        self.allParameters = parameters
-        self.yAxisMenu.clear()
-        self.yAxisButtons = {}
-        self.yAxisActions[TRACK_NUMBER_LABEL] = QtGui.QAction(TRACK_NUMBER_LABEL, self.parent,
-                                                     checkable=True)
+    def createYActions(self):
+        self.yAxisActions[TRACK_NUMBER_LABEL] = QtGui.QAction(
+            TRACK_NUMBER_LABEL, self.parent,
+            checkable=True)
         self.yAxisActions[TRACK_NUMBER_LABEL].setActionGroup(self.yAxisGroup)
-        self.yAxisMenu.addAction(self.yAxisActions[TRACK_NUMBER_LABEL])
-        time_param = self.parent.timeParam
-
-        for p in parameters:
-            if self.sonicViewer.mode == 'Contours' and p != time_param:
-                continue
+        for p in self.parent.keys:
             self.yAxisActions[p] = QtGui.QAction(p, self.parent, checkable=True)
             self.yAxisActions[p].setActionGroup(self.yAxisGroup)
-            self.yAxisMenu.addAction(self.yAxisActions[p])
-        try: 
-            print ('Setting y axis to: Time')
-            self.yAxisActions[time_param].setChecked(True)
-            self.yAxis = time_param
-        except: print ('setting was not successful')
+        self.connectYAxisActions()
 
+    def setYParameters(self):
+        mode = self.sonicViewer.mode
+        assert mode in VIEW_MODES
+        self.yAxisMenu.clear()
+        if mode == VIEW_MODES[0]:    # wave forms
+            assert self.parent.timeParam in self.yAxisActions.keys()
+            self.yAxisMenu.addAction(self.yAxisActions[self.parent.timeParam])
+            self.yAxisMenu.addAction(self.yAxisActions[TRACK_NUMBER_LABEL])
 
+        elif mode == VIEW_MODES[1]:  # Contours
+            for key, action in self.yAxisActions.items():
+                self.yAxisMenu.addAction(action)
+            try:
+                print ('Setting y axis to: Time')
+                self.yAxisActions[self.parent.timeParam].setChecked(True)
+            except: print ('setting was not successful')
+
+    def connectYAxisActions(self):
+        for key, action in self.yAxisActions.items():
+            action.triggered.connect(self.sonicViewer.plot)

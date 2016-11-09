@@ -109,10 +109,10 @@ class DataViewer(QtGui.QWidget):
         get plugin list and create instances of plugins
         set dataviewer as parent, and store them
         '''
-        plugin_classes = get_plugin_list() 
+        plugin_classes = get_plugin_list()
         for plugin_class in plugin_classes:
             self.plugins.append(plugin_class(parent=self))
-    
+
     def toggleCrossHair(self):
         ch_mode = self.crossHairButton.isChecked()
         self.plt.setCrossHairMode(ch_mode)
@@ -264,7 +264,7 @@ class DataViewer(QtGui.QWidget):
         self.dataSetMenu.addAction(dataSetButton)
         self.dataSetButtons[dataSetName] = dataSetButton
         dataSetButton.triggered.connect(lambda: self.setCurrentDataSet(dataSetName))
-        
+
         self.sigNewDataSet.emit(self)
 
     def setCurrentDataSet(self, dataSetName):
@@ -553,7 +553,7 @@ class DataViewer(QtGui.QWidget):
         pg.setConfigOption('background', (255, 255, 255))
         pg.setConfigOption('foreground',(0, 0, 0))
         self.setWindowIcon(QtGui.QIcon('images/Logo.png'))
-        
+
         # Global widget where we place our layout
         self.layout = QtGui.QVBoxLayout()
         self.layout.setContentsMargins(0, 0, 0, 0)
@@ -612,11 +612,11 @@ class DataViewer(QtGui.QWidget):
         self.treesplitter.setStretchFactor(1, 0.9)
 
         self.splitter.addWidget(self.treesplitter)
-        
+
         rightWidget = QtGui.QWidget()
         self.sublayout = QtGui.QVBoxLayout()
         rightWidget.setLayout(self.sublayout)
-        
+
         self.plotContainer = pg.GraphicsLayoutWidget()
         self.sliderContainer = pg.GraphicsLayoutWidget()
         self.sliderContainer.setFixedHeight(80)
@@ -624,7 +624,7 @@ class DataViewer(QtGui.QWidget):
 
         self.sublayout.addWidget(self.plotContainer)
         self.layout.addWidget(self.sliderContainer)
-        
+
         self.splitter.addWidget(rightWidget)
         self.splitter.setSizes([int(self.width()*0.4), int(self.width()*0.6)])
         self.splitter.setStretchFactor(0, 0)
@@ -645,7 +645,7 @@ class DataViewer(QtGui.QWidget):
         self.plt.setLabel('left', 'Y Axis', **AxisLabelStyle)
         self.plt.enableAutoRange(enable=True)
         self.autoScaleButton.triggered.connect(self.plt.enableAutoRange)
-        
+
         self.slider = SliderWidget()
         self.sliderContainer.addItem(self.slider)
 
@@ -706,33 +706,14 @@ if __name__ == '__main__':
     # win.showMaximized()
     win.show()
     # win.showFullScreen()
-    
+
     filename = ["/home/ishovkun/Dropbox/Experiments/TO_BE_ANALYZED/1500psi/" + \
         "_Training_Pc=1500 psi Sonic endcaps_Berea Mechanical Testing _2015-04-27_001.clf",
         u'*.clf']
     win.load(filename)
     win.tree.boxes["Sig1"].setChecked(True)
 
-    # sonic widget testing
-    # win.loadSonicDataAction.trigger()
-    directory = "/home/ishovkun/Dropbox/Experiments/TO_BE_ANALYZED/1500psi/1500pc"
-    files = os.listdir(directory)
-    for i in range(len(files)):
-        files[i] = os.path.join(directory, files[i])
-    # print(win.plugins[-1])
-    sonic_plugin = win.plugins[-1]
-    # sonic_plugin.loadData(files[:30])
-    sonic_plugin.loadData(files)
-    sonic_plugin.addSonicTab()
-    sonic_plugin.bindData()
-    sonic_plugin.sonicViewer.plot()
-    sonic_plugin.connectActions()
-    win.slider.setInterval([0.1, 0.5])
-    sonic_plugin.setYParameters(win.keys)
-    # win.slider.setInterval([1, 5])
-    
-    # win.close()
-    
+
     # Mohr circle actions
     # win.mcPlugin.addPointAction.trigger()
     # win.mcPlugin.addPointAction.trigger()
@@ -748,4 +729,29 @@ if __name__ == '__main__':
     # win.comboList.activateAction.trigger()
     # win.comboList.plotButton.click()
     # win.com
+
+    # SONIC WIDGET TESTING
+    # win.loadSonicDataAction.trigger()
+    directory = "/home/ishovkun/Dropbox/Experiments/TO_BE_ANALYZED/1500psi/1500pc"
+    files = os.listdir(directory)
+    for i in range(len(files)):
+        files[i] = os.path.join(directory, files[i])
+    # print(win.plugins[-1])
+    sonic_plugin = win.plugins[-1]
+    # sonic_plugin.loadData(files[:30])
+    sonic_plugin.loadData(files)
+    sonic_plugin.addSonicTab()
+    sonic_plugin.bindData()
+    sonic_plugin.sonicViewer.plot()
+    sonic_plugin.connectActions()
+    win.slider.setInterval([0.1, 0.5])
+    sonic_plugin.createYActions()
+    sonic_plugin.setYParameters()
+
+    sonic_plugin.yAxisActions['Ev'].setChecked(True)
+    # for testL assert not raises exception for this line
+    # win.slider.setInterval([1, 5])
+
+    # win.close()
+
     App.exec_()

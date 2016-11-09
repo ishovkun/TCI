@@ -1,11 +1,4 @@
 * Dataviewer part
-** Make plugins work
-*** DONE Calculator
-CLOSED: [2016-05-19 Thu 23:26]
-*** DONE Mohr Circles
-CLOSED: [2016-09-13 Tue 17:15] DEADLINE: <2016-05-25 Wed>
-*** DONE Combo Plot
-CLOSED: [2016-05-20 Fri 00:07]
 ** DONE [#B] Finish porting
 CLOSED: [2016-09-13 Tue 17:15]
 ** [#B] Finish InputReader
@@ -13,33 +6,11 @@ CLOSED: [2016-09-13 Tue 17:15]
 *** TODO Add exception handling
 *** TODO Add reading sample length and other params (mass, density, porosity?)
 ** TODO [#B] Save state of the slider
-** DONE Add cross-hair option
 ** TODO [#C] Crosshair color (to stylesheet)
-** Plugin setup
-*** signals
-**** DONE after updating plot
-CLOSED: [2016-05-19 Thu 23:25]
-plugin plots itself if visible.
-when show plugin button is pressed, plugin can update plot in inself.
-so we don't have to draw everything each time.
-**** DONE after setting GU
-CLOSED: [2016-05-19 Thu 23:25]
-each plugin adds entries to dataviewer menus
-**** DONE when saving data???
-CLOSED: [2016-09-13 Tue 17:16]
-maybe need to make a separate process for those plugins
-or block event until all the plugins are done saving files
-*** Plugin list file
-**** DONE Way to load plugins
-CLOSED: [2016-09-13 Tue 17:39]
-dataviewer init method will read the file and initialize the plugins
-**** TODO [#C] Types of plugins (need blocking of main class?)
 * Sonic part
-** DONE [#A] Start porting to Python3
-CLOSED: [2016-09-13 Tue 17:16] SCHEDULED: <2016-05-28 Sat>
 ** TODO [#A] Finish porting to Python3
 DEADLINE: <2016-06-04 Sat>
-** TODO [#A] Make it a plugin (no need for GEOTRAVIS class)
+** DONE [#A] Make it a plugin (no need for GEOTRAVIS class)
 ** TODO [#A] dt can be different in each sonic file
 ** TODO [#B] Shifting to the transmitter signal for each track
    May be different start-recording times and scaling
@@ -50,23 +21,12 @@ DEADLINE: <2016-06-04 Sat>
 ** TODO [#C] Better hand arrival picking
 ** TODO [#B] Computation of attenuation
 ** TODO [#A] Arrival-time algorithm widget appears after asking for arrival times
-** TODO [#A] Sonic part as a separate plugin
+** TODO Account for strain when computing arrival times
 * General
-** DONE Make sure works on Win
-CLOSED: [2016-05-21 Sat 19:30]
-** TODO Make sure runs on other Linux computers
-DEADLINE: <2016-08-31 Wed>
-   Send to Vadya/Vasya, ask to run
-** DONE Learn how to handle relative paths
-CLOSED: [2016-05-21 Sat 19:43]
 ** TODO Make Windows executable
-** DONE Add .gitignore
-** DONE Add Readme.md
+** TODO Write tutorial + methodology section
 ** TODO [#B] Make more elaborated README
    Add Images, usage tips and other stuff
-** TODO [#B] Add folder with an example experiment to git
-** DONE Submit to GitHub
-** DONE Add a license file
 ** TODO [#C] Add license info to Readme
 ** TODO [#A] Add unit testing
         Also, figure out how to do it properly...
@@ -77,8 +37,3 @@ CLOSED: [2016-05-21 Sat 19:43]
    and put all the stylystic things in there
    (such as LabelStyle in the dataviewer class)
 ** TODO [#A] ComboList styles in styles file
-** DONE put plugins into a folder plugins
-CLOSED: [2016-10-05 Wed 18:42]
-
-
-

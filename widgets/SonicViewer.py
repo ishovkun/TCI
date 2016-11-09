@@ -44,19 +44,19 @@ class SonicViewer(QtGui.QWidget):
     Shift - shift the data along x axis
     Amplify
     '''
-    mode = 'Contours'
-    # mode = 'WaveForms'
+    # mode = 'Contours'
+    mode = 'WaveForms'
     autoShift = {'P':True,'Sx':True,'Sy':True} # flag to match 0 and transmission time
     arrivalsPicked = False
-    updateQTable = True # don't need 
+    updateQTable = True # don't need
     skipPlottingFAmpFlag = False
     skipPlottingFPhaseFlag = False
-    
+
     def __init__(self, parent=None, controller=None):
         super(SonicViewer, self).__init__()
         self.parent = parent
         self.controller = controller
-        
+
         self.setupGUI()
         # self.fWidget = TriplePlotWidget()
         # self.phWidget = TriplePlotWidget()
@@ -98,11 +98,11 @@ class SonicViewer(QtGui.QWidget):
         #   self.params[wave].param('Arrival times').param('ATA').sigValueChanged.connect(self.recomputeArrivals)
         #   self.params[wave].param('Arrival times').param('DTA').sigValueChanged.connect(self.recomputeArrivals)
         #   self.plots[wave].vb.sigAltClick.connect(self.handPick)
-        
+
     def handPick(self,sender,pos):
         if not self.handPickArrivalsButton.isChecked():
             return
-        else: 
+        else:
             # first find sender
             for wave in self.getActivePlots():
                 if self.plots[wave].vb == sender:
@@ -112,11 +112,11 @@ class SonicViewer(QtGui.QWidget):
             closest = abs(self.y[wave] - pos.y()).argmin()
             self.aTimes[wave][closest] = pos.x()
             self.parent.plotSonicData()
-        
+
     def plotFilteredData(self):
         self.skipPlottingFAmpFlag = True
         self.parent.plotSonicData()
-        
+
     def runBindingWidget(self):
         testconf = self.isWidget.testconf
         capsconf = self.isWidget.capsconf
@@ -126,7 +126,7 @@ class SonicViewer(QtGui.QWidget):
         atime = self.isWidget.atime
         self.bWidget.setConfig(testconf, capsconf, dens, length, atime)
         self.bWidget.run()
-        
+
     def setData(self, data):
         '''
         data is a dictionary with keys: P,Sx,Sy
@@ -141,7 +141,7 @@ class SonicViewer(QtGui.QWidget):
         '''
         ind - indices for specific wave tracks
         geo_indices - for geomechanical dataset
-        also 
+        also
         '''
         self.indices = ind
         self.geo_indices = geo_ind
@@ -294,7 +294,7 @@ class SonicViewer(QtGui.QWidget):
             else: self.plots[wave].invertY(False)
 
             # y array of geomechanical data
-            ind = self.indices[wave] 
+            ind = self.indices[wave]
             if ylabel == "Track #":
                 y = ind
             else:
@@ -365,7 +365,7 @@ class SonicViewer(QtGui.QWidget):
 
     def plotArrivals(self,indices=None,yarray=None,yindices=None,
         amplify=None,yAxisName='Track #'):
-        try: 
+        try:
             self.QTable.cellChanged.disconnect(self.editArrivals)
         except:
             pass
@@ -376,7 +376,7 @@ class SonicViewer(QtGui.QWidget):
             if yarray is None:
                 x = self.aTimes[wave]
                 y = np.arange(self.aTimes[wave].shape[0])
-            else: 
+            else:
                 ind = yindices[wave]
                 sind = indices[wave]
                 y = yarray[ind]
@@ -406,7 +406,7 @@ class SonicViewer(QtGui.QWidget):
             self.yAxisButtons[p].setActionGroup(self.yAxisGroup)
             self.yAxisMenu.addAction(self.yAxisButtons[p])
             pass
-        try: 
+        try:
             print ('Setting y axis to: Time')
             self.yAxisButtons['Time'].setChecked(True)
             self.yAxis = 'Time'
@@ -426,7 +426,7 @@ class SonicViewer(QtGui.QWidget):
 
     def setupGUI(self):
         self.setWindowTitle("Sonic Viewer")
- 
+
         # setup layout
         self.layout = QtGui.QVBoxLayout()
         # pg.setConfigOption('foreground',(0,0,0))
@@ -434,16 +434,16 @@ class SonicViewer(QtGui.QWidget):
         self.layout.setContentsMargins(0,0,0,0)
         self.layout.setSpacing(0)
         self.setLayout(self.layout)
- 
+
         # splitter gonna contain plot widget and side widgets if necessary
         self.splitter = QtGui.QSplitter(QtCore.Qt.Horizontal)
         # self.splitter.setOrientation(QtCore.Qt.Horizontal)
         self.layout.addWidget(self.splitter)
-        
+
         self.plotWidget = TriplePlotWidget()
         self.plots = self.plotWidget.plots
         self.splitter.addWidget(self.plotWidget)
-        
+
         # # split main widget into plotting area and parameters area
         # # split parameter area into 3 for each wave
         # self.treeSplitter = QtGui.QSplitter()
@@ -488,7 +488,7 @@ class SonicViewer(QtGui.QWidget):
         # self.splitter.setStretchFactor(0, 0)
         # self.splitter.setStretchFactor(1, 1)
         # self.splitter.setStretchFactor(2, 0)
-        
+
 
     def setupArrivalsSettingsWidgets(self):
         pass
@@ -503,7 +503,7 @@ class SonicViewer(QtGui.QWidget):
         x = self.table[wave][0,:,:]
         y = self.table[wave][1,:,:]
         h = x[0,1] - x[0,0]
-        r = multi_window(y,win) 
+        r = multi_window(y,win)
         rx = np.arange(r.shape[1])*h + x[0,win[0]]
         mind = abs(rx-mpoint).argmin() #index of middle point
         sInd = r[:,:mind].argmax(axis=1) # sender indices
@@ -552,7 +552,7 @@ class SonicViewer(QtGui.QWidget):
         amplify=None,yAxisName='Track #'):
         '''
         indices - number of sonic tracks to plot
-        yarray - y values 
+        yarray - y values
         yindices - indices of yarray to plot
         '''
         # print 1
@@ -562,7 +562,7 @@ class SonicViewer(QtGui.QWidget):
             phplot = self.phWidget.plots[wave]
             plot.clear();
             if self.skipPlottingFAmpFlag: pass
-            else: 
+            else:
                 fplot.clear()
                 fplot.getAxis('left').setLabel(yAxisName,**LabelStyle)
                 fplot.getAxis('bottom').setLabel(fXAxisName,**LabelStyle)
@@ -570,7 +570,7 @@ class SonicViewer(QtGui.QWidget):
                     fplot.enableAutoRange(enable=True)
                 else: fplot.disableAutoRange()
             if self.skipPlottingFPhaseFlag: pass
-            else: 
+            else:
                 phplot.clear()
                 phplot.getAxis('left').setLabel(yAxisName,**LabelStyle)
                 phplot.getAxis('bottom').setLabel(fXAxisName,**LabelStyle)
@@ -639,4 +639,3 @@ class SonicViewer(QtGui.QWidget):
         # print 6
         self.skipPlottingFAmpFlag = False
         self.skipPlottingFPhaseFlag = False
-        
