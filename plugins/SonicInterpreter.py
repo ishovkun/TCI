@@ -54,7 +54,6 @@ class SonicInterpreter:
             self.addSonicTab()
             self.bindData()
             self.sonicViewer.plot()
-            self.connectActions()
             self.createYActions()
             self.setYParameters()
 
@@ -101,15 +100,13 @@ class SonicInterpreter:
         # organize data
         self.sonicViewer.setData(raw_data)
 
-
-    def connectActions(self):
-        self.loadSonicDataAction.triggered.connect(self.loadFileDialog)
-
     def setupActions(self):
         # add entry to load sonic files
         self.loadSonicDataAction = QtGui.QAction('Load sonic',
                                                  self.parent)
         self.parent.loadSonicDataAction = self.loadSonicDataAction
+        self.loadSonicDataAction.triggered.connect(self.loadFileDialog)
+
 
         self.autoScaleAction = QtGui.QAction('Auto scale', self.parent,
                                              checkable=True,
@@ -252,10 +249,15 @@ class SonicInterpreter:
         # check if there are any duplicates
         comments, ind = remove_duplicates(comments)
         filtered_times = filtered_times[ind]
+        # idk why but these values are not sorted yet
+        # but they should be
+        filtered_times.sort()
 
         # find same strings in sonic file names
         for wave in WAVE_TYPES:
             wave_files = list(self.sonicViewer.data[wave].keys())
+            # natural keys is a function from lib.functions
+            # wave_files.sort(key=natural_keys)
             indices = compare_arrays(comments, wave_files)
             # which items wave_keys are not in comments
             spurious_entries = array_diff(wave_files, comments)
@@ -282,6 +284,8 @@ class SonicInterpreter:
             mask = ((times >= interval[0]) & (times <= interval[1]))
             indices[wave] = self.indices[wave][mask]
             geo_indices[wave] = self.geo_indices[wave][mask]
+            tt = self.parent.findData(self.parent.timeParam)
+
         self.sonicViewer.setIndices(indices, geo_indices)
         self.sonicViewer.plot()
 
@@ -297,7 +301,11 @@ class SonicInterpreter:
 
     def connectActions(self):
         self.parent.slider.sigRangeChanged.connect(self.truncateData)
-        self.modeGroup.triggered.connect(self.setViewerMode)
+        self.contourAction.triggered.connect(self.setViewerMode)
+        self.waveFormAction.triggered.connect(self.setViewerMode)
+        self.pWaveAction.triggered.connect(self.sonicViewer.showHidePlots)
+        self.sxWaveAction.triggered.connect(self.sonicViewer.showHidePlots)
+        self.syWaveAction.triggered.connect(self.sonicViewer.showHidePlots)
 
     def setViewerMode(self):
         if self.waveFormAction.isChecked():
@@ -320,21 +328,26 @@ class SonicInterpreter:
         self.connectYAxisActions()
 
     def setYParameters(self):
+        default_active_action = self.parent.timeParam
         mode = self.sonicViewer.mode
         assert mode in VIEW_MODES
+        last_active_action = self.yAxisGroup.checkedAction()
         self.yAxisMenu.clear()
-        if mode == VIEW_MODES[0]:    # wave forms
+        if mode == VIEW_MODES[0]:    # contours
             assert self.parent.timeParam in self.yAxisActions.keys()
             self.yAxisMenu.addAction(self.yAxisActions[self.parent.timeParam])
             self.yAxisMenu.addAction(self.yAxisActions[TRACK_NUMBER_LABEL])
 
-        elif mode == VIEW_MODES[1]:  # Contours
+        elif mode == VIEW_MODES[1]:  # wave forms
             for key, action in self.yAxisActions.items():
                 self.yAxisMenu.addAction(action)
-            try:
-                print ('Setting y axis to: Time')
-                self.yAxisActions[self.parent.timeParam].setChecked(True)
-            except: print ('setting was not successful')
+            if last_active_action is not None:
+                default_active_action = last_active_action.text()
+
+        try:
+            print ('Setting y axis to: %s'%(default_active_action))
+            self.yAxisActions[default_active_action].setChecked(True)
+        except: print ('setting was not successful')
 
     def connectYAxisActions(self):
         for key, action in self.yAxisActions.items():

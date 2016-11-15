@@ -151,6 +151,7 @@ class DataViewer(QtGui.QWidget):
         self.load(filename)
 
     def findData(self, key):
+        assert key in self.keys, "%s not found"%(key)
         i = self.keys.index(key)
         return self.data[:, i]
 
@@ -743,14 +744,18 @@ if __name__ == '__main__':
     sonic_plugin.addSonicTab()
     sonic_plugin.bindData()
     sonic_plugin.sonicViewer.plot()
-    sonic_plugin.connectActions()
-    win.slider.setInterval([0.1, 0.5])
     sonic_plugin.createYActions()
     sonic_plugin.setYParameters()
+    sonic_plugin.connectActions()
+    win.slider.setInterval([0.1, 0.5])
 
-    sonic_plugin.yAxisActions['Ev'].setChecked(True)
-    # for testL assert not raises exception for this line
+    sonic_plugin.waveFormAction.trigger()
+    sonic_plugin.yAxisActions['Ev'].trigger()
+    sonic_plugin.contourAction.trigger()
+    # for test assert not raises exception for this line
     # win.slider.setInterval([1, 5])
+    # sonic_plugin.pWaveAction.trigger()
+    sonic_plugin.syWaveAction.trigger()
 
     # win.close()
 

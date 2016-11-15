@@ -35,7 +35,7 @@ class TriplePlotWidget(QtGui.QWidget):
 			self.regions[wave] = Region(brush=brush)
 			self.regions[wave].sigRegionChanged.connect(self.moveRegions)
 		self.setupGUI()
-		
+
 	def setupGUI(self):
 		# self.setWindowTitle("Fourrier Transforms")
 		pg.setConfigOption('background', (255,255,255))
@@ -44,7 +44,7 @@ class TriplePlotWidget(QtGui.QWidget):
 		self.sublayout = pg.GraphicsLayoutWidget()
 		self.setLayout(self.layout)
 		self.layout.addWidget(self.sublayout)
-		self.layout.setContentsMargins(0,0,0,0)
+		self.layout.setContentsMargins(0, 0, 0, 0)
 		self.plots = {}
 		for wave in WaveTypes:
 			# self.plots[wave] = self.sublayout.addPlot()
@@ -94,7 +94,7 @@ if __name__ == '__main__':
 	y[0] = x*2 + np.sin(x)
 	y[1] = x*3 + np.sin(2*x)
 	y[2] = x*3 + np.cos(2*x)
-		
+
 	win = TriplePlotWidget()
 	i=0
 	win.addRegions()

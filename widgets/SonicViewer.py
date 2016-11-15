@@ -209,20 +209,24 @@ class SonicViewer(QtGui.QWidget):
         for wave in WaveTypes:
             self.params[wave].param('Show').sigValueChanged.connect(self.changeLayout)
 
-    def changeLayout(self):
+    def showHidePlots(self):
         print ('changing layout')
         for wave in WaveTypes:
             try:
-                self.sublayout.removeItem(self.plots[wave])
-                self.fWidget.sublayout.removeItem(self.fWidget.plots[wave])
+                # self.sublayout.removeItem(self.plots[wave])
+                self.plotWidget.sublayout.removeItem(self.plots[wave])
+                # self.fWidget.sublayout.removeItem(self.fWidget.plots[wave])
             except:
                 pass
+
         for wave in self.getActivePlots():
             if wave:
-                self.sublayout.addItem(self.plots[wave])
-                self.fWidget.sublayout.addItem(self.fWidget.plots[wave])
-                self.sublayout.nextRow()
-                self.fWidget.sublayout.nextRow()
+                self.plotWidget.sublayout.addItem(self.plots[wave])
+                # self.fWidget.sublayout.addItem(self.fWidget.plots[wave])
+                # self.sublayout.nextRow()
+                # self.fWidget.sublayout.nextRow()
+
+        self.plot()
 
     def autoScalePlots(self):
         if self.autoScaleButton.isChecked():
@@ -299,9 +303,11 @@ class SonicViewer(QtGui.QWidget):
                 y = ind
             else:
                 y = self.parent.findData(ylabel)[self.geo_indices[wave]]
+                # print("sonic plot range")
+                # print(y.min(), y.max())
 
             data = self.table[wave][:, ind,:]
-            if data.shape[1] == 0: continue
+            if data.shape[1] == 0: continue  # skip empty plot
 
             if self.mode == 'WaveForms':
                 self.plotWaveForms(data, self.plots[wave], y)
@@ -331,7 +337,7 @@ class SonicViewer(QtGui.QWidget):
         y = amplify*data[1,:,:] + y_array.reshape(n_lines, 1)
 
         # convert array to a graphical path
-        graphic_path = MultiLine(data[0,:,:], y)
+        graphic_path = MultiLine(data[0, :, :], y)
         try: plot_widget.addItem(graphic_path)
         except: pass
 
@@ -423,6 +429,8 @@ class SonicViewer(QtGui.QWidget):
         elif mode == 'Contours':
             print ('Setting mode to Contours')
             # self.modeMenu.setDefaultAction(self.contourButton)
+        else:
+            raise ValueError("This mode is not available: %s"%(mode))
 
     def setupGUI(self):
         self.setWindowTitle("Sonic Viewer")
@@ -602,8 +610,8 @@ class SonicViewer(QtGui.QWidget):
             if self.mode == 'WaveForms':
                 self.plotWaveForms(indices,amplify,yAxisName)
             elif self.mode == 'Contours':
-                self.plotContours(indices,yarray,yindices,
-                amplify,yAxisName)
+                self.plotContours(indices, yarray, yindices,
+                amplify, yAxisName)
 
         # Plot fourrier transform amplitude data
         if not self.skipPlottingFAmpFlag:
