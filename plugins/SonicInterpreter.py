@@ -114,11 +114,13 @@ class SonicInterpreter:
         self.autoScaleAction.setChecked(True)
         self.showArrivalsAction = QtGui.QAction('Arrivals', self.parent,
                                                 checkable=True)
+        # view menu
         self.showArrivalsAction.setDisabled(True)
         self.showTableAction = QtGui.QAction('Table', self.parent)
         self.editGradientsAction = QtGui.QAction('Edit Gradients', self.parent)
         self.invertYAction = QtGui.QAction('Invert y axis', self.parent,
                                            checkable=True)
+        # mode menu
         self.modeGroup = QtGui.QActionGroup(self.parent)
         self.waveFormAction = QtGui.QAction('Wave Forms', self.parent,
                                             checkable=True)
@@ -131,12 +133,16 @@ class SonicInterpreter:
         else:
             self.waveFormAction.setChecked(True)
 
+        # interpretation menu
         self.pickArrivalsAction = QtGui.QAction('Pick arrivals', self.parent)
         self.handPickArrivalsAction = QtGui.QAction('Hand pick', self.parent,
                                                     checkable=True)
-        self.moduliAction = QtGui.QAction('Elastic moduli', self.parent)
-        self.moduliAction.setDisabled(True)
         self.handPickArrivalsAction.setDisabled(True)
+        self.pickArrivalsAction.setDisabled(True)
+        self.shapeArrivalsAction = QtGui.QAction('Shape pick', self.parent)
+        self.moduliAction = QtGui.QAction('Elastic moduli', self.parent)
+        # self.moduliAction.setDisabled(True)
+        # self.handPickArrivalsAction.setDisabled(True)
 
         self.showForrierMagnitudeAction = QtGui.QAction('Fourrier magnitude',
                                                         self.parent)
@@ -202,8 +208,9 @@ class SonicInterpreter:
         self.modeMenu.addAction(self.contourAction)
 
         # INTERPRETATION MENU
-        self.intMenu.addAction(self.pickArrivalsAction)
-        self.intMenu.addAction(self.handPickArrivalsAction)
+        # self.intMenu.addAction(self.pickArrivalsAction)
+        # self.intMenu.addAction(self.handPickArrivalsAction)
+        self.intMenu.addAction(self.shapeArrivalsAction)
         self.intMenu.addAction(self.moduliAction)
 
         # TRANSFORM MENU
