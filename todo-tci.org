@@ -10,7 +10,6 @@ CLOSED: [2016-09-13 Tue 17:15]
 * Sonic part
 ** TODO [#A] Finish porting to Python3
 DEADLINE: <2016-06-04 Sat>
-** DONE [#A] Make it a plugin (no need for GEOTRAVIS class)
 ** TODO [#A] dt can be different in each sonic file
 ** TODO [#B] Shifting to the transmitter signal for each track
    May be different start-recording times and scaling
@@ -19,9 +18,12 @@ DEADLINE: <2016-06-04 Sat>
    transform), make the user pick the line that corresponds
    to the arrivals and another that corresponds to transmitting.
 ** TODO [#C] Better hand arrival picking
+   I will use ROI things from pyqtgraph. should be enough
 ** TODO [#B] Computation of attenuation
 ** TODO [#A] Arrival-time algorithm widget appears after asking for arrival times
 ** TODO Account for strain when computing arrival times
+** TODO Save sonic dataset when switching
+   saving only sonic table, times, and indices. no need for data[wave][filename]
 * General
 ** TODO Make Windows executable
 ** TODO Write tutorial + methodology section
@@ -37,3 +39,4 @@ DEADLINE: <2016-06-04 Sat>
    and put all the stylystic things in there
    (such as LabelStyle in the dataviewer class)
 ** TODO [#A] ComboList styles in styles file
+** TODO Each menu action activates the correct tab!!!!!

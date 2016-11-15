@@ -275,7 +275,13 @@ class SonicInterpreter:
 
         self.sonicViewer.setIndices(self.indices, self.geo_indices)
 
+        # we don't need those anymore
+        self.sonicViewer.data = None
+
     def truncateData(self):
+        '''
+        When slider is moved, truncate sonic data
+        '''
         interval = self.parent.slider.interval()
         indices = {}
         geo_indices = {}
@@ -290,6 +296,10 @@ class SonicInterpreter:
         self.sonicViewer.plot()
 
     def activeWaves(self):
+        '''
+        wave plots that are currently shown in the widget
+        return which buttons are checked
+        '''
         active = []
         if self.pWaveAction.isChecked():
             active.append('P')
