@@ -17,6 +17,11 @@ class ShapeControlWidget(QtGui.QWidget):
         if self.parent is not None:
             self.setParent(self.parent)
 
-    def setParent(parent):
+    def setParent(self, parent):
         self.parent = parent
         self.parent.layout.insertWidget(0, self)
+
+    def closeEvent(self, event):
+        if self.parent is not None:
+            self.hide()
+        super(ShapeControlWidget, self).closeEvent(event)
