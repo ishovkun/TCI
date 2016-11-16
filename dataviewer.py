@@ -47,7 +47,7 @@ ModifyingParameters = [
     ]},
 ]
 
-TrendPen = pg.mkPen(color=(72,209,204), width=3)
+TrendPen = pg.mkPen(color=(72, 209, 204), width=3)
 MAXNROWS = 1e4  # if data is longer, we slice data
 
 class DataViewer(QtGui.QWidget):
@@ -756,6 +756,9 @@ if __name__ == '__main__':
     # win.slider.setInterval([1, 5])
     # sonic_plugin.pWaveAction.trigger()
     sonic_plugin.syWaveAction.trigger()
+
+    # shape arrival picking
+    sonic_plugin.shapeArrivalsAction.trigger()
 
     # win.close()
 

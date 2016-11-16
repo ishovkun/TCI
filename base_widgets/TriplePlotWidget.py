@@ -45,16 +45,14 @@ class TriplePlotWidget(QtGui.QWidget):
         for wave in WAVE_TYPES:
             self.rois[wave] = pg.PolyLineROI([
                     [0, 0],
-                    [0.5, 0.5],
                     [1, 1],
             ], closed=False, pen=ROI_PEN)
         # use cool method parentBounds()
 
-    def showROIs(self, roi_names=None):
-        if roi_names is None:
-            roi_names = WAVE_TYPES
+    def showROIs(self, roi_names=WAVE_TYPES):
         for wave in roi_names:
             self.plots[wave].addItem(self.rois[wave])
+            bounds = self.rois[wave].parentBounds()
 
     def setupGUI(self):
         pg.setConfigOption('background', (255,255,255))

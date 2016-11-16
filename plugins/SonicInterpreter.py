@@ -323,6 +323,23 @@ class SonicInterpreter:
         self.pWaveAction.triggered.connect(self.sonicViewer.showHidePlots)
         self.sxWaveAction.triggered.connect(self.sonicViewer.showHidePlots)
         self.syWaveAction.triggered.connect(self.sonicViewer.showHidePlots)
+        self.shapeArrivalsAction.triggered.connect(self.activateShapePicking)
+
+    def activateShapePicking(self):
+        active_waves = self.activeWaves()
+        self.sonicViewer.plotWidget.showROIs(active_waves)
+        for wave in active_waves:
+            plt = self.sonicViewer.plots[wave]
+            roi = self.sonicViewer.plotWidget.rois[wave]
+            n_points = len(roi.getState()['points'])
+            if n_points == 2:   # scale initially
+                view_range = plt.viewRange()
+                x = (view_range[0][0] + view_range[0][1])/2
+                range_y = [view_range[1][0], view_range[1][1]]
+                roi.setPoints([(x, range_y[0]), (x, range_y[1])])
+
+        # add super cool widget to layout
+        self.sonicViewer.layout
 
     def setViewerMode(self):
         if self.waveFormAction.isChecked():
