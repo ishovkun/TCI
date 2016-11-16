@@ -12,6 +12,7 @@ class AboutWidget(QtGui.QWidget):
 		# QtCore.Qt.WindowStaysOnTopHint)
 			)
 		self.setupGUI()
+
 	def setupGUI(self):
 		self.setWindowTitle("About GeoTravis")
 		self.setWindowIcon(QtGui.QIcon('images/Logo.png'))
@@ -20,9 +21,9 @@ class AboutWidget(QtGui.QWidget):
 		self.setLayout(self.layout)
 		self.image = QtGui.QPixmap()
 		self.image.load('./images/Logo.png')
-		self.image = self.image.scaled(200, 200, 
-			QtCore.Qt.KeepAspectRatio) 
-		# self.image.scaled(100, 200, QtCore.Qt.IgnoreAspectRatio) 
+		self.image = self.image.scaled(200, 200,
+			QtCore.Qt.KeepAspectRatio)
+		# self.image.scaled(100, 200, QtCore.Qt.IgnoreAspectRatio)
 		self.imgLabel = QtGui.QLabel(self)
 		# self.imgLabel.setScaledContents(True)
 		self.imgLabel.resize(110,102)
