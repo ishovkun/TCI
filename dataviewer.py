@@ -747,13 +747,13 @@ if __name__ == '__main__':
     sonic_plugin.createYActions()
     sonic_plugin.setYParameters()
     sonic_plugin.connectActions()
+    # for test assert not raises exception for this line
+    win.slider.setInterval([1, 5])
     win.slider.setInterval([0.1, 0.5])
 
     sonic_plugin.waveFormAction.trigger()
     sonic_plugin.yAxisActions['Ev'].trigger()
     sonic_plugin.contourAction.trigger()
-    # for test assert not raises exception for this line
-    # win.slider.setInterval([1, 5])
     # sonic_plugin.pWaveAction.trigger()
     sonic_plugin.syWaveAction.trigger()
 
@@ -761,7 +761,9 @@ if __name__ == '__main__':
     sonic_plugin.shapeArrivalsAction.trigger()
     sonic_plugin.shapeControlWidget.cancelButton.click()
     sonic_plugin.shapeArrivalsAction.trigger()
+    sonic_plugin.shapeControlWidget.okButton.click()
 
     # win.close()
+    # print(sonic_plugin.sonicViewer.arrival_times)
 
     App.exec_()

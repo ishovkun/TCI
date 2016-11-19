@@ -276,6 +276,17 @@ class SonicViewer(QtGui.QWidget):
             ifft[wave] = np.array((x,ift.real))
         return ifft
 
+    def getYArray(self, wave):
+        '''
+        get y values that are plotted
+        '''
+        if self.controller is None: y = None
+        else:
+            ylabel = self.controller.yLabel()
+            if ylabel == "Track #": y = ind
+            else: y = self.parent.findData(ylabel)[self.geo_indices[wave]]
+            return y
+
     def plot(self):
         for k, wave in enumerate(self.getActivePlots()):
             # prepare plot
@@ -368,6 +379,12 @@ class SonicViewer(QtGui.QWidget):
         # set Colors
         if lut is not None:
             image.setLookupTable(lut, update=True)
+
+    def setArrivalTimes(self, arrival_times):
+        '''
+        arrival_times is a dict:[wave] = np.array(arrival_times)
+        '''
+        self.arrival_times = arrival_times
 
     def plotArrivals(self,indices=None,yarray=None,yindices=None,
         amplify=None,yAxisName='Track #'):

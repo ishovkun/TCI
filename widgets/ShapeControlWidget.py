@@ -1,5 +1,6 @@
 import pyqtgraph as pg
 from PySide import QtCore, QtGui
+from scipy import interpolate
 
 
 class ShapeControlWidget(QtGui.QWidget):
@@ -8,6 +9,7 @@ class ShapeControlWidget(QtGui.QWidget):
         self.parent = parent
         self.setupGUI()
         self.cancelButton.pressed.connect(self.cancel)
+        self.okButton.pressed.connect(self.interpolateShapes)
 
     def setupGUI(self):
         self.layout = QtGui.QHBoxLayout()
@@ -34,12 +36,30 @@ class ShapeControlWidget(QtGui.QWidget):
                 plot = self.parent.plots[wave]
                 roi = self.parent.plotWidget.rois[wave]
                 plot.removeItem(roi)
-            # print(self.parent.plotWidget.rois)
 
-    # def closeEvent(self, event):
-    #     if self.parent is not None:
-    #         self.hide()
-    #     super(ShapeControlWidget, self).closeEvent(event)
+    def interpolateShapes(self):
+        '''
+        interpolate y = y(x) from ROIs
+        Get parent y array.
+        then calculate y = y(x) for each wave
+        '''
+        if self.parent is None:
+            self.cancel()
+            return 0
+        else:
+            arrival_times = {}
+            rois = self.parent.plotWidget.rois
+            waves = self.parent.getActivePlots()
+            for wave in waves:
+                # get y = y(x) from ROIs
+                points_x, points_y = rois[wave].getPoints()
+                f = interpolate.interp1d(points_y, points_x)
+                # get parent y array
+                y = self.parent.getYArray(wave)
+                # interpolate to get x == arrival times
+                arrival_times[wave] = f(y)
+            self.cancel()
+            self.parent.setArrivalTimes(arrival_times)
 
     def computeArrivalTimes(self, x, y):
         for wave in self.parent.getActivePlots():

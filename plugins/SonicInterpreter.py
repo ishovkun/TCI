@@ -341,6 +341,7 @@ class SonicInterpreter:
                 roi.setPoints([(x, range_y[0]), (x, range_y[1])])
 
         self.shapeControlWidget = ShapeControlWidget(parent=self.sonicViewer)
+        self.shapeControlWidget.okButton.clicked.connect(self.sonicViewer.plot)
 
     def setViewerMode(self):
         if self.waveFormAction.isChecked():

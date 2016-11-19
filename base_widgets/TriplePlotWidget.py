@@ -24,6 +24,20 @@ class Region(pg.LinearRegionItem):
     def hoverEvent(self, ev):
         pass
 
+class MultiLineROI(pg.PolyLineROI):
+    def getPoints(self):
+        '''
+        returns numpy arrays x, y corresponding to handle coordinates
+        '''
+        points = self.getState()['points']
+        x = []
+        y = []
+        for point in points:
+            x.append(point.x())
+            y.append(point.y())
+        x = np.array(x)
+        y = np.array(y)
+        return x, y
 
 class TriplePlotWidget(QtGui.QWidget):
     sigRegionChanged = QtCore.Signal(object)
@@ -43,7 +57,8 @@ class TriplePlotWidget(QtGui.QWidget):
     def setupROIs(self):
         self.rois = {}
         for wave in WAVE_TYPES:
-            self.rois[wave] = pg.PolyLineROI([
+            # self.rois[wave] = pg.PolyLineROI([
+            self.rois[wave] = MultiLineROI([
                     [0, 0],
                     [1, 1],
             ], closed=False, pen=ROI_PEN)
