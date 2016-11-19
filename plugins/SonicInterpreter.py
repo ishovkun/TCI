@@ -12,6 +12,7 @@ import pickle
 from TCI.widgets.SonicViewer import SonicViewer
 from TCI.lib.readtrc import read_TRC
 from TCI.lib.functions import *
+
 from TCI.widgets.ShapeControlWidget import ShapeControlWidget
 
 BadBindingMessage = '''
@@ -339,9 +340,7 @@ class SonicInterpreter:
                 range_y = [view_range[1][0], view_range[1][1]]
                 roi.setPoints([(x, range_y[0]), (x, range_y[1])])
 
-        shapeControlWidget = ShapeControlWidget(parent=self.sonicViewer)
-        # add super cool widget to layout
-        # self.sonicViewer.layout.addWidget
+        self.shapeControlWidget = ShapeControlWidget(parent=self.sonicViewer)
 
     def setViewerMode(self):
         if self.waveFormAction.isChecked():

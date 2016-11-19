@@ -684,7 +684,7 @@ class DataViewer(QtGui.QWidget):
         self.trendSlope.setValue(self.slope)
         self.trendIntersection.setValue(self.intersection)
 
-    def closeEvent(self,event):
+    def closeEvent(self, event):
         '''
         When pressing X button, show quit dialog.
         if yes, closes the window and ends the process
@@ -758,6 +758,8 @@ if __name__ == '__main__':
     sonic_plugin.syWaveAction.trigger()
 
     # shape arrival picking
+    sonic_plugin.shapeArrivalsAction.trigger()
+    sonic_plugin.shapeControlWidget.cancelButton.click()
     sonic_plugin.shapeArrivalsAction.trigger()
 
     # win.close()
