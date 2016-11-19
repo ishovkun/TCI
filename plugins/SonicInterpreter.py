@@ -161,6 +161,10 @@ class SonicInterpreter:
         self.sxWaveAction.setChecked(True)
         self.syWaveAction.setChecked(True)
 
+        # export arrival times in file menu
+        self.exportArrivalsAction = QtGui.QAction(
+            'Export Arrival Times', self.parent)
+
         # dict to store actions for y Axis
         self.yAxisActions = {}
         self.yAxisGroup = QtGui.QActionGroup(self.parent)
@@ -178,9 +182,14 @@ class SonicInterpreter:
         # setting up the menu bar
         menuBar = self.parent.menuBar
 
+
+        # FILE MENU
         self.parent.fileMenu.insertAction(self.parent.saveButton,
                                           self.loadSonicDataAction)
+        self.parent.fileMenu.insertAction(self.parent.exitButton,
+                                          self.exportArrivalsAction)
 
+        # raiseExportArrivalDialog
         # menubar entry corresponding to sonic widget
         self.menu = menuBar.addMenu('Sonic')
         viewMenu = self.parent.viewMenu
@@ -200,6 +209,7 @@ class SonicInterpreter:
         viewMenu.addAction(self.showTableAction)
         viewMenu.addAction(self.editGradientsAction)
         viewMenu.addAction(self.invertYAction)
+
 
         # y axis menu
         self.yAxisMenu = viewMenu.addMenu('y axis')
@@ -327,6 +337,13 @@ class SonicInterpreter:
         self.syWaveAction.triggered.connect(self.sonicViewer.showHidePlots)
         self.shapeArrivalsAction.triggered.connect(self.activateShapePicking)
         self.showArrivalsAction.triggered.connect(self.sonicViewer.plot)
+        self.exportArrivalsAction.triggered.connect(self.raiseExportArrivalDialog)
+
+    def raiseExportArrivalDialog(self):
+        pass
+
+    def exportArrivals(self):
+        pass
 
     def activateShapePicking(self):
         active_waves = self.activeWaves()
