@@ -53,14 +53,14 @@ class ShapeControlWidget(QtGui.QWidget):
             for wave in waves:
                 # get y = y(x) from ROIs
                 points_x, points_y = rois[wave].getPoints()
-                f = interpolate.interp1d(points_y, points_x)
+                print(points_x, points_y)
+                f = interpolate.interp1d(points_y, points_x,
+                                         bounds_error=False)
                 # get parent y array
-                y = self.parent.getYArray(wave)
+                y = self.parent.getFullYArray(wave)
                 # interpolate to get x == arrival times
                 arrival_times[wave] = f(y)
             self.cancel()
             self.parent.setArrivalTimes(arrival_times)
-
-    def computeArrivalTimes(self, x, y):
-        for wave in self.parent.getActivePlots():
-            print(wave)
+            self.parent.plot_arrival_times_flag = True
+            self.parent.controller.showArrivalsAction.trigger()

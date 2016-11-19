@@ -36,6 +36,7 @@ Parameters = [
 WaveTypes = ['P','Sx','Sy']
 LabelStyle = {'color': '#000000', 'font-size': '14pt','font':'Times'}
 
+ARRIVALS_PEN = pg.mkPen(color=(72, 209, 204), width=2)
 
 class SonicViewer(QtGui.QWidget):
     '''
@@ -51,6 +52,8 @@ class SonicViewer(QtGui.QWidget):
     updateQTable = True # don't need
     skipPlottingFAmpFlag = False
     skipPlottingFPhaseFlag = False
+
+    plot_arrival_times_flag = False
 
     def __init__(self, parent=None, controller=None):
         super(SonicViewer, self).__init__()
@@ -283,8 +286,22 @@ class SonicViewer(QtGui.QWidget):
         if self.controller is None: y = None
         else:
             ylabel = self.controller.yLabel()
-            if ylabel == "Track #": y = ind
+            if ylabel == "Track #": y = self.indices[wave]
             else: y = self.parent.findData(ylabel)[self.geo_indices[wave]]
+            return y
+
+    def getFullYArray(self, wave):
+        '''
+        get y values that are plotted
+        something's wrong
+        '''
+        if self.controller is None: y = None
+        else:
+            ylabel = self.controller.yLabel()
+            if ylabel == "Track #":
+                data = self.table[wave][:, ind,:]
+                y = np.arrange[0:data.shape[1]]
+            else: y = self.parent.findData(ylabel)
             return y
 
     def plot(self):
@@ -310,25 +327,24 @@ class SonicViewer(QtGui.QWidget):
 
             # y array of geomechanical data
             ind = self.indices[wave]
-            if ylabel == "Track #":
-                y = ind
-            else:
-                y = self.parent.findData(ylabel)[self.geo_indices[wave]]
-                # print("sonic plot range")
-                # print(y.min(), y.max())
+            y = self.getYArray(wave)
 
             data = self.table[wave][:, ind,:]
             if data.shape[1] == 0: continue  # skip empty plot
 
             if self.mode == 'WaveForms':
                 self.plotWaveForms(data, self.plots[wave], y)
-
             elif self.mode == 'Contours':
                 if k == 0: # get only one color lookup table
                     gradient_widget = self.gradEditor.sgw
                     lut = gradient_widget.getLookupTable(N_COLORS, alpha=None)
 
                 self.plotContours(data, self.plots[wave], y, lut)
+
+            # if plot arrival times
+            if self.plot_arrival_times_flag:
+                x = self.arrival_times[wave][self.indices[wave]]
+                self.plots[wave].plot(x, y, pen=ARRIVALS_PEN)
 
 
     def plotWaveForms(self, data, plot_widget, y_array, amplify=None):
@@ -384,9 +400,10 @@ class SonicViewer(QtGui.QWidget):
         '''
         arrival_times is a dict:[wave] = np.array(arrival_times)
         '''
+        print('new arrival times:', arrival_times)
         self.arrival_times = arrival_times
 
-    def plotArrivals(self,indices=None,yarray=None,yindices=None,
+    def plotArrivals_old(self, indices=None, yarray=None, yindices=None,
         amplify=None,yAxisName='Track #'):
         try:
             self.QTable.cellChanged.disconnect(self.editArrivals)
@@ -409,7 +426,7 @@ class SonicViewer(QtGui.QWidget):
                 self.QTable.setColumn(x,k+3)
             else: self.QTable.close() # otherwise it stalls
             plt = self.plots[wave]
-            pen = pg.mkPen(color=(72,209,204), width=2)
+            pen = pg.mkPen(color=(72, 209, 204), width=2)
             plt.plot(x,y,pen=pen)
         self.updateQTable = True
         self.QTable.cellChanged.connect(self.editArrivals)

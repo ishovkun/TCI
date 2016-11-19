@@ -326,6 +326,7 @@ class SonicInterpreter:
         self.sxWaveAction.triggered.connect(self.sonicViewer.showHidePlots)
         self.syWaveAction.triggered.connect(self.sonicViewer.showHidePlots)
         self.shapeArrivalsAction.triggered.connect(self.activateShapePicking)
+        self.showArrivalsAction.triggered.connect(self.sonicViewer.plot)
 
     def activateShapePicking(self):
         active_waves = self.activeWaves()
@@ -341,7 +342,7 @@ class SonicInterpreter:
                 roi.setPoints([(x, range_y[0]), (x, range_y[1])])
 
         self.shapeControlWidget = ShapeControlWidget(parent=self.sonicViewer)
-        self.shapeControlWidget.okButton.clicked.connect(self.sonicViewer.plot)
+        # self.shapeControlWidget.okButton.clicked.connect(self.sonicViewer.plot)
 
     def setViewerMode(self):
         if self.waveFormAction.isChecked():

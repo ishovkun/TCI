@@ -761,9 +761,8 @@ if __name__ == '__main__':
     sonic_plugin.shapeArrivalsAction.trigger()
     sonic_plugin.shapeControlWidget.cancelButton.click()
     sonic_plugin.shapeArrivalsAction.trigger()
-    sonic_plugin.shapeControlWidget.okButton.click()
+    # sonic_plugin.shapeControlWidget.okButton.click()
 
     # win.close()
-    # print(sonic_plugin.sonicViewer.arrival_times)
 
     App.exec_()
