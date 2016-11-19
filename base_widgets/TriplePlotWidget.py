@@ -21,6 +21,7 @@ class Region(pg.LinearRegionItem):
     '''
     def init(self,*args,**kwargs):
         super(Region, self).__init__(self,*args,**kwargs)
+
     def hoverEvent(self, ev):
         pass
 
@@ -38,6 +39,11 @@ class MultiLineROI(pg.PolyLineROI):
         x = np.array(x)
         y = np.array(y)
         return x, y
+
+    # def setPoints(self, points, closed=None):
+    #     super(MultiLineROI, self).setPoints(points, closed)
+    #     if self.parent is not None:
+    #         self.parent.removeItem(self)
 
 class TriplePlotWidget(QtGui.QWidget):
     sigRegionChanged = QtCore.Signal(object)

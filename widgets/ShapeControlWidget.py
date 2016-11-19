@@ -43,6 +43,7 @@ class ShapeControlWidget(QtGui.QWidget):
         Get parent y array.
         then calculate y = y(x) for each wave
         '''
+        print('picking arrivals')
         if self.parent is None:
             self.cancel()
             return 0
@@ -55,7 +56,6 @@ class ShapeControlWidget(QtGui.QWidget):
                 points_x, points_y = rois[wave].getPoints()
                 # assert x is a function of y!!!!!!!
                 # .....
-                print(points_x, points_y)
                 f = interpolate.interp1d(points_y, points_x,
                                          bounds_error=False,
                                          fill_value='extrapolate')
@@ -63,6 +63,11 @@ class ShapeControlWidget(QtGui.QWidget):
                 y = self.parent.getFullYArray(wave)
                 # interpolate to get x == arrival times
                 arrival_times[wave] = f(y)
+                # print('interp points x', f(y))
+                # print('points xy', points_x, points_y)
+                # print('points', points_y)
+                # print(y)
+                # print('points', points_x)
             self.cancel()
             self.parent.setArrivalTimes(arrival_times)
             self.parent.plot_arrival_times_flag = True

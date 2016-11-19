@@ -287,7 +287,8 @@ class SonicViewer(QtGui.QWidget):
         else:
             ylabel = self.controller.yLabel()
             if ylabel == "Track #": y = self.indices[wave]
-            else: y = self.parent.findData(ylabel)[self.geo_indices[wave]]
+            # else: y = self.parent.findData(ylabel)[self.geo_indices[wave]]
+            else: y = self.getFullYArray(wave)[self.indices[wave]]
             return y
 
     def getFullYArray(self, wave):
@@ -299,9 +300,11 @@ class SonicViewer(QtGui.QWidget):
         else:
             ylabel = self.controller.yLabel()
             if ylabel == "Track #":
-                data = self.table[wave][:, ind,:]
-                y = np.arrange[0:data.shape[1]]
-            else: y = self.parent.findData(ylabel)
+                # print('its number wierd')
+                data = self.table[wave]
+                y = np.arrange[0: data.shape[1]]
+            else:
+                y = self.parent.findData(ylabel)[self.controller.geo_indices[wave]]
             return y
 
     def plot(self):
@@ -400,7 +403,6 @@ class SonicViewer(QtGui.QWidget):
         '''
         arrival_times is a dict:[wave] = np.array(arrival_times)
         '''
-        print('new arrival times:', arrival_times)
         self.arrival_times = arrival_times
 
     def plotArrivals_old(self, indices=None, yarray=None, yindices=None,

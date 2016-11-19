@@ -762,6 +762,15 @@ if __name__ == '__main__':
     sonic_plugin.shapeControlWidget.cancelButton.click()
     sonic_plugin.shapeArrivalsAction.trigger()
     # sonic_plugin.shapeControlWidget.okButton.click()
+    x = [40, 23, 5]
+    y = [0, 1000, 2200]
+    sonic_plugin.sonicViewer.plotWidget.rois['P'].setPoints((
+        (x[0], y[0]),
+        (x[1], y[1]),
+        (x[2], y[2])
+    ))
+    sonic_plugin.shapeControlWidget.okButton.click()
+
 
     # win.close()
 
