@@ -24,6 +24,7 @@ DEADLINE: <2016-06-04 Sat>
 ** TODO Account for strain when computing arrival times
 ** TODO Save sonic dataset when switching
    saving only sonic table, times, and indices. no need for data[wave][filename]
+** TODO For shapes Assert x = f(y)
 * General
 ** TODO Make Windows executable
 ** TODO Write tutorial + methodology section

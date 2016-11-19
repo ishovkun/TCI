@@ -53,9 +53,12 @@ class ShapeControlWidget(QtGui.QWidget):
             for wave in waves:
                 # get y = y(x) from ROIs
                 points_x, points_y = rois[wave].getPoints()
+                # assert x is a function of y!!!!!!!
+                # .....
                 print(points_x, points_y)
                 f = interpolate.interp1d(points_y, points_x,
-                                         bounds_error=False)
+                                         bounds_error=False,
+                                         fill_value='extrapolate')
                 # get parent y array
                 y = self.parent.getFullYArray(wave)
                 # interpolate to get x == arrival times
