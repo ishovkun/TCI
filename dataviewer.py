@@ -187,7 +187,7 @@ class DataViewer(QtGui.QWidget):
         self.data = sliced_data
         self.comments = sliced_comments
 
-    def load(self,filename):
+    def load(self, filename):
         '''
         opens file manager, reads data from file,
         calls generateList to put into GUI
@@ -269,6 +269,10 @@ class DataViewer(QtGui.QWidget):
         self.sigNewDataSet.emit(self)
 
     def setCurrentDataSet(self, dataSetName):
+        '''
+        Store old data in the dictionary.
+        Load new data from the dictionary.
+        '''
         print('New data set is chosen')
         self.sigSaveDataSet.emit(dataSetName)
         # if we switch to a different data set (if it's not the first),
@@ -289,14 +293,13 @@ class DataViewer(QtGui.QWidget):
         self.dataSetMenu.setDefaultAction(self.dataSetButtons[dataSetName])
 
         self.sigLoadDataSet.emit(dataSetName)
-        # self.sigLoadDataSet.emit(self)
 
-        # self.cursors = self.allCursors[dataSetName]
         self.comments = self.allComments[dataSetName]
 
         # fill the data tree widget with data keys
         self.setTreeParameters()
         self.connectParameters()
+        self.updatePlot()
 
     def setTreeParameters(self):
         print( 'Modifying GUI: adding parameters to plot')
