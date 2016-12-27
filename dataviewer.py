@@ -3,7 +3,7 @@
 # from pyqtgraph import setConfigOption
 # setConfigOption('useOpenGL', False)
 ###############
-import sys,os
+import sys, os
 # sys.path.append('dataviewer_lib') # comment this line on build and put files from the lib directly to the same folder
 import numpy as np
 import PySide
@@ -98,7 +98,7 @@ class DataViewer(QtGui.QWidget):
         self.allSampleLengths = {}      # ????
         self.allUnits = {}
         self.settings.okButton.pressed.connect(self.settings.hide)
-        self.exitButton.triggered.connect(sys.exit)
+        self.exitAction.triggered.connect(sys.exit)
         self.settingsButton.triggered.connect(self.settings.show)
         self.loadButton.triggered.connect(self.requestLoad)
         self.crossHairButton.triggered.connect(self.toggleCrossHair)
@@ -289,9 +289,10 @@ class DataViewer(QtGui.QWidget):
         self.dataSetMenu.setDefaultAction(self.dataSetButtons[dataSetName])
 
         self.sigLoadDataSet.emit(dataSetName)
+        # self.sigLoadDataSet.emit(self)
+
         # self.cursors = self.allCursors[dataSetName]
         self.comments = self.allComments[dataSetName]
-        self.sigLoadDataSet.emit(self)
 
         # fill the data tree widget with data keys
         self.setTreeParameters()
@@ -574,14 +575,14 @@ class DataViewer(QtGui.QWidget):
         # create submenu items
         self.loadButton = QtGui.QAction('Load',self)
         self.saveButton = QtGui.QAction('Save',self)
-        self.exitButton = QtGui.QAction('Exit',self,shortcut="Alt+F4")
+        self.exitAction = QtGui.QAction('Exit',self,shortcut="Alt+F4")
         self.autoScaleButton = QtGui.QAction('Auto scale',self)
         self.crossHairButton = QtGui.QAction('Cross-hair',self, checkable=True)
         self.settingsButton = QtGui.QAction('Settings',self)
         # Add buttons to submenus
         self.fileMenu.addAction(self.loadButton)
         self.fileMenu.addAction(self.saveButton)
-        self.fileMenu.addAction(self.exitButton)
+        self.fileMenu.addAction(self.exitAction)
         self.viewMenu.addAction(self.autoScaleButton)
         self.viewMenu.addAction(self.crossHairButton)
         self.prefMenu.addAction(self.settingsButton)
@@ -751,6 +752,7 @@ if __name__ == '__main__':
     win.slider.setInterval([1, 5])
     win.slider.setInterval([0.1, 0.5])
 
+    # play with modes
     sonic_plugin.waveFormAction.trigger()
     sonic_plugin.yAxisActions['Ev'].trigger()
     sonic_plugin.contourAction.trigger()
@@ -762,6 +764,8 @@ if __name__ == '__main__':
     sonic_plugin.shapeControlWidget.cancelButton.click()
     sonic_plugin.shapeArrivalsAction.trigger()
     # sonic_plugin.shapeControlWidget.okButton.click()
+
+    # assign some arbitrary arrival times
     x = [40, 23, 5]
     y = [0, 1000, 2200]
     sonic_plugin.sonicViewer.plotWidget.rois['P'].setPoints((
@@ -769,8 +773,16 @@ if __name__ == '__main__':
         (x[1], y[1]),
         (x[2], y[2])
     ))
+    # finish arrival picking and show arrivals
     sonic_plugin.shapeControlWidget.okButton.click()
 
+    # load new data_set (testing stability)
+    filename = [
+        "/home/ishovkun/Dropbox/Experiments/" + \
+        "TO_BE_ANALYZED/Hydrostatic w sonic/" + \
+        "_Training_Hydrostatic with Sonic endcaps_Berea Mechanical Testing _2015-04-24_001.clf",
+        u'*.clf']
+    win.load(filename)
 
     # win.close()
 

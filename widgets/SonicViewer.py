@@ -52,6 +52,7 @@ class SonicViewer(QtGui.QWidget):
     updateQTable = True # don't need
     skipPlottingFAmpFlag = False
     skipPlottingFPhaseFlag = False
+    enabled = True
 
     plot_arrival_times_flag = False
 
@@ -102,6 +103,13 @@ class SonicViewer(QtGui.QWidget):
         #   self.params[wave].param('Arrival times').param('DTA').sigValueChanged.connect(self.recomputeArrivals)
         #   self.plots[wave].vb.sigAltClick.connect(self.handPick)
 
+    def setEnabled(self, state=True):
+        '''
+        When disabled this widget doesn't do anything
+        (plotting)
+        '''
+        self.enabled = state
+
     def handPick(self,sender,pos):
         if not self.handPickArrivalsButton.isChecked():
             return
@@ -130,7 +138,7 @@ class SonicViewer(QtGui.QWidget):
         self.bWidget.setConfig(testconf, capsconf, dens, length, atime)
         self.bWidget.run()
 
-    def setData(self, data):
+    def setRawData(self, data):
         '''
         data is a dictionary with keys: P,Sx,Sy
         '''
@@ -139,6 +147,17 @@ class SonicViewer(QtGui.QWidget):
         self.createTable()
         # self.getFourrierTransforms()
         self.arrivalsPicked = False
+
+    def setSonicTable(self, table, y=None):
+        '''
+        set already processed sonic data
+        '''
+        self.table = table
+        if y is None:
+            for wave in WaveTypes:
+                self.y[wave] = np.arange(self.table[wave].shape[1])
+        else:
+            self.y = y
 
     def setIndices(self, ind, geo_ind=None):
         '''
@@ -308,6 +327,8 @@ class SonicViewer(QtGui.QWidget):
             return y
 
     def plot(self):
+        if not self.enabled: return 0
+        # print('plotting sonics')
         for k, wave in enumerate(self.getActivePlots()):
             # prepare plot
             plot = self.plots[wave]
@@ -344,8 +365,9 @@ class SonicViewer(QtGui.QWidget):
 
                 self.plotContours(data, self.plots[wave], y, lut)
 
-            # if plot arrival times
-            if self.plot_arrival_times_flag:
+            # plot arrival times
+            if (self.plot_arrival_times_flag and
+                wave in self.arrival_times.keys()):
                 x = self.arrival_times[wave][self.indices[wave]]
                 self.plots[wave].plot(x, y, pen=ARRIVALS_PEN)
 

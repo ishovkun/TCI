@@ -39,7 +39,16 @@ class SonicInterpreter:
         if parent is not None:
             self.setupActions()
             self.parent.sigSettingGUI.connect(self.modifyParentMenu)
+            self.parent.sigNewDataSet.connect(self.blockSelf)
+            # self.parent.sigLoadDataSet.connect(setDataSet)
 
+    def setDataSet(self, name):
+        '''
+        Save previous data to the older data set name
+        Then load data from the existing global data dictionary
+        '''
+        # self.sonicViewer.setSonicTable(table[name])
+        pass
 
     def loadFileDialog(self):
         '''
@@ -55,6 +64,7 @@ class SonicInterpreter:
             self.loadData(filenames)
             self.addSonicTab()
             self.bindData()
+            self.sonicViewer.setEnabled()
             self.sonicViewer.plot()
             self.createYActions()
             self.setYParameters()
@@ -100,7 +110,7 @@ class SonicInterpreter:
         self.progressDialog.hide()
 
         # organize data
-        self.sonicViewer.setData(raw_data)
+        self.sonicViewer.setRawData(raw_data)
 
     def setupActions(self):
         # add entry to load sonic files
@@ -182,11 +192,10 @@ class SonicInterpreter:
         # setting up the menu bar
         menuBar = self.parent.menuBar
 
-
         # FILE MENU
         self.parent.fileMenu.insertAction(self.parent.saveButton,
                                           self.loadSonicDataAction)
-        self.parent.fileMenu.insertAction(self.parent.exitButton,
+        self.parent.fileMenu.insertAction(self.parent.exitAction,
                                           self.exportArrivalsAction)
 
         # raiseExportArrivalDialog
@@ -406,3 +415,12 @@ class SonicInterpreter:
     def connectYAxisActions(self):
         for key, action in self.yAxisActions.items():
             action.triggered.connect(self.sonicViewer.plot)
+
+    def blockSelf(self):
+        '''
+        Block the tab corresponding to the sonic plugin
+        and disable sonic viewer from doing anything
+        '''
+        tab_index = self.parent.tabWidget.indexOf(self.sonicViewer)
+        self.parent.tabWidget.setTabEnabled(tab_index, False)
+        self.sonicViewer.setEnabled(False)

@@ -9,4 +9,4 @@ This software is written in Python 3.5 and needs several libraries to run:
 - scipy
 - PySide
 - pyqtgraph
-
+- configobj
