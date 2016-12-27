@@ -738,9 +738,8 @@ if __name__ == '__main__':
     files = os.listdir(directory)
     for i in range(len(files)):
         files[i] = os.path.join(directory, files[i])
-    # print(win.plugins[-1])
+
     sonic_plugin = win.plugins[-1]
-    # sonic_plugin.loadData(files[:30])
     sonic_plugin.loadData(files)
     sonic_plugin.addSonicTab()
     sonic_plugin.bindData()
@@ -792,6 +791,15 @@ if __name__ == '__main__':
         files[i] = os.path.join(directory, files[i])
     # print(win.plugins[-1])
     sonic_plugin.loadData(files)
+    sonic_plugin.bindData()
+    win.slider.setInterval([0.1, 0.9])
+
+    # now activate old dataset
+    data_set = "_Training_Pc=1500 psi Sonic endcaps_Berea Mechanical Testing _2015-04-27_001"
+    win.setCurrentDataSet(data_set)
+    data_set = "_Training_Hydrostatic with Sonic endcaps_Berea Mechanical Testing _2015-04-24_001"
+    win.setCurrentDataSet(data_set)
+
 
     # win.close()
 

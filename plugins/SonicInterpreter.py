@@ -37,6 +37,8 @@ class SonicInterpreter:
         self.sonicViewer = SonicViewer(parent=parent, controller=self)
         self.current_data_set = None
         self.all_tables = {}
+        self.all_geo_indices = {}
+        self.all_indices = {}
 
         if parent is not None:
             self.setupActions()
@@ -50,14 +52,24 @@ class SonicInterpreter:
         Then load data from the existing global data dictionary
         '''
         # First save data with the old data set key
-        print('Saving old sonic data')
+        print('Saving data set %s'%(self.current_data_set))
         if self.current_data_set is not None:
             self.all_tables[self.current_data_set] = self.sonicViewer.table
+            self.all_geo_indices[self.current_data_set] = self.geo_indices
+            self.all_indices[self.current_data_set] = self.indices
+            self.sonicViewer.plot_arrival_times_flag = False
 
         # get sonic table for the current data set
         if data_set in self.all_tables.keys():
-            self.sonicViewer.setSonicTable(self.all_tabled[data_set])
+            print("found data: %s"%(data_set))
+            self.current_data_set = data_set
+            self.sonicViewer.setSonicTable(self.all_tables[data_set])
+            self.geo_indices = self.all_geo_indices[data_set]
+            self.indices = self.all_indices[data_set]
+            self.sonicViewer.setIndices(self.indices, self.geo_indices)
+            # self.sonicViewer.plot_arrival_times_flag = False
             self.setEnabled()
+            self.sonicViewer.plot()
 
     def loadFileDialog(self):
         '''
@@ -120,6 +132,9 @@ class SonicInterpreter:
 
         # organize data
         self.sonicViewer.setRawData(raw_data)
+        self.setEnabled()
+        # self.parent.tabWidget.setCurrentWidget(self.sonicViewer)
+
 
     def setupActions(self):
         # add entry to load sonic files
@@ -311,6 +326,9 @@ class SonicInterpreter:
         if spurious_entries != []:
             self.sonicViewer.createTable()
 
+        # print('\nsizes')
+        # print(self.sonicViewer.table['Sx'].shape)
+        # print(self.indices['Sx'].shape)
         self.sonicViewer.setIndices(self.indices, self.geo_indices)
 
         # we don't need those anymore
@@ -434,3 +452,5 @@ class SonicInterpreter:
         tab_index = self.parent.tabWidget.indexOf(self.sonicViewer)
         self.parent.tabWidget.setTabEnabled(tab_index, enabled)
         self.sonicViewer.setEnabled(enabled)
+        if enabled:
+            self.parent.tabWidget.setCurrentWidget(self.sonicViewer)

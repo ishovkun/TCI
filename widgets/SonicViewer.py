@@ -166,6 +166,7 @@ class SonicViewer(QtGui.QWidget):
         geo_indices - for geomechanical dataset
         also
         '''
+        # print('setting indices for: %s'%(self.controller.current_data_set))
         self.indices = ind
         self.geo_indices = geo_ind
 
@@ -306,9 +307,11 @@ class SonicViewer(QtGui.QWidget):
         if self.controller is None: y = None
         else:
             ylabel = self.controller.yLabel()
-            if ylabel == "Track #": y = self.indices[wave]
-            # else: y = self.parent.findData(ylabel)[self.geo_indices[wave]]
-            else: y = self.getFullYArray(wave)[self.indices[wave]]
+            if ylabel == "Track #":
+                y = self.indices[wave]
+            else:
+                y = self.getFullYArray(wave)[self.indices[wave]]
+
             return y
 
     def getFullYArray(self, wave):
@@ -320,7 +323,6 @@ class SonicViewer(QtGui.QWidget):
         else:
             ylabel = self.controller.yLabel()
             if ylabel == "Track #":
-                # print('its number wierd')
                 data = self.table[wave]
                 y = np.arrange[0: data.shape[1]]
             else:
