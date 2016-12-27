@@ -113,7 +113,7 @@ class SonicInterpreter:
                 if not wave_type_inferred:
                     print("Could not infer wave type for %s"%(fname))
             else:
-                print('unknown extension')
+                print('unknown extension in %s'%(fname))
             i += 1
             self.progressDialog.setValue(i/n_files*100)
         self.progressDialog.hide()
@@ -314,7 +314,7 @@ class SonicInterpreter:
         self.sonicViewer.setIndices(self.indices, self.geo_indices)
 
         # we don't need those anymore
-        self.sonicViewer.data = None
+        self.sonicViewer.data = {}
 
     def truncateData(self):
         '''

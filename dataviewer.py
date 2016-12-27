@@ -784,6 +784,15 @@ if __name__ == '__main__':
         u'*.clf']
     win.load(filename)
 
+    # now load new sonic data
+    directory = "/home/ishovkun/Dropbox/Experiments/" + \
+                "TO_BE_ANALYZED/Hydrostatic w sonic/"
+    files = os.listdir(directory)
+    for i in range(len(files)):
+        files[i] = os.path.join(directory, files[i])
+    # print(win.plugins[-1])
+    sonic_plugin.loadData(files)
+
     # win.close()
 
     App.exec_()

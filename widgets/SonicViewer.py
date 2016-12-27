@@ -142,6 +142,7 @@ class SonicViewer(QtGui.QWidget):
         '''
         data is a dictionary with keys: P,Sx,Sy
         '''
+        print(data.keys())
         for wave in WaveTypes:
             self.data[wave] = data[wave]
         self.createTable()
