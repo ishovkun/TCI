@@ -35,20 +35,29 @@ class SonicInterpreter:
         self.parent = parent
         self.progressDialog = QtGui.QProgressDialog()
         self.sonicViewer = SonicViewer(parent=parent, controller=self)
+        self.current_data_set = None
+        self.all_tables = {}
 
         if parent is not None:
             self.setupActions()
             self.parent.sigSettingGUI.connect(self.modifyParentMenu)
-            self.parent.sigNewDataSet.connect(self.blockSelf)
-            # self.parent.sigLoadDataSet.connect(setDataSet)
+            self.parent.sigNewDataSet.connect(lambda: self.setEnabled(False))
+            self.parent.sigLoadDataSet.connect(self.setDataSet)
 
-    def setDataSet(self, name):
+    def setDataSet(self, data_set):
         '''
         Save previous data to the older data set name
         Then load data from the existing global data dictionary
         '''
-        # self.sonicViewer.setSonicTable(table[name])
-        pass
+        # First save data with the old data set key
+        print('Saving old sonic data')
+        if self.current_data_set is not None:
+            self.all_tables[self.current_data_set] = self.sonicViewer.table
+
+        # get sonic table for the current data set
+        if data_set in self.all_tables.keys():
+            self.sonicViewer.setSonicTable(self.all_tabled[data_set])
+            self.setEnabled()
 
     def loadFileDialog(self):
         '''
@@ -261,6 +270,7 @@ class SonicInterpreter:
         indices - indices of wave forms to be truncated
         '''
         print('Binding sonic data')
+        self.current_data_set = self.parent.currentDataSetName
         # times are when sonic waves were recorded
         self.times = {}
         self.indices = {}   #
@@ -416,11 +426,11 @@ class SonicInterpreter:
         for key, action in self.yAxisActions.items():
             action.triggered.connect(self.sonicViewer.plot)
 
-    def blockSelf(self):
+    def setEnabled(self, enabled=True):
         '''
         Block the tab corresponding to the sonic plugin
         and disable sonic viewer from doing anything
         '''
         tab_index = self.parent.tabWidget.indexOf(self.sonicViewer)
-        self.parent.tabWidget.setTabEnabled(tab_index, False)
-        self.sonicViewer.setEnabled(False)
+        self.parent.tabWidget.setTabEnabled(tab_index, enabled)
+        self.sonicViewer.setEnabled(enabled)
