@@ -23,7 +23,7 @@ from TCI.base_widgets.Slider import SliderWidget
 from TCI.base_classes.InputReader import InputReader
 
 # Plugins
-from plugin_list import get_plugin_list
+from TCI.plugin_list import get_plugin_list
 # from TCI.plugins.ComboList import ComboList
 # from TCI.plugins.CalculatorPlot import CalculatorPlot
 # from TCI.plugins.MohrCircles import MohrCircles
@@ -718,22 +718,6 @@ if __name__ == '__main__':
     win.load(filename)
     win.tree.boxes["Sig1"].setChecked(True)
 
-
-    # Mohr circle actions
-    # win.mcPlugin.addPointAction.trigger()
-    # win.mcPlugin.addPointAction.trigger()
-    # win.mcPlugin.activateAction.trigger()
-    # win.settingsButton.trigger()
-    # win.tree.boxes["Sig1"].setChecked(True)
-    # win.mcPlugin.activateAction.trigger()
-    # autoscale bug case
-    # win.tree.boxes["Sig1"].setChecked(False)
-
-    # Combolist check
-    # win.comboList.addSceneAction.trigger()
-    # win.comboList.activateAction.trigger()
-    # win.comboList.plotButton.click()
-    # win.com
 
     # SONIC WIDGET TESTING
     # win.loadSonicDataAction.trigger()
