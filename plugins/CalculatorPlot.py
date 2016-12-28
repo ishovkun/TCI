@@ -3,9 +3,12 @@ import numpy as np
 import re
 import pyqtgraph as pg
 from PySide import QtGui, QtCore
+
+# custom modules
 from ..lib.setup_plot import setup_plot
 from ..base_widgets.ColorButton import ColorButton
 from ..base_widgets.CheckBox import CheckBox
+from TCI.lib.logger import logger
 
 LabelStyle = {'color': '#000000', 'font-size': '14pt','font':'Times'}
 rand = lambda: np.random.rand()
@@ -33,7 +36,7 @@ class CalculatorPlot(QtGui.QWidget):
         self.applyButton.pressed.connect(self.getData)
         self.addPlotButton.pressed.connect(self.addItem)
         self.enterAction.triggered.connect(self.applyButton.pressed)
-        
+
         if parent is not None:
             self.parent.sigSettingGUI.connect(self.modifyParentMenu)
             self.parent.sigUpdatingPlot.connect(self.plot)
@@ -44,7 +47,7 @@ class CalculatorPlot(QtGui.QWidget):
         self.activateAction.setDisabled(False)
 
     def modifyParentMenu(self):
-        print("adding Calculator to menu")
+        logger.info("adding Calculator to menu")
         self.activateAction = QtGui.QAction('Calculator',self.parent)
         self.activateAction.setDisabled(True)
         self.parent.viewMenu.addAction(self.activateAction)
@@ -193,7 +196,7 @@ class CalculatorPlot(QtGui.QWidget):
         '''
         data is a dictionary with np array values
         '''
-        print('Calculator: Setting data')
+        logger.info('Calculator: Setting data')
         self.data = data
         self.keys = keys
         someKey = keys[0]
@@ -207,8 +210,7 @@ class CalculatorPlot(QtGui.QWidget):
         self.getData()
 
     def getData(self):
-        # print np.random.rand()
-        print('Calculator: interpreting input')
+        logger.info('Calculator: interpreting input')
         for key in self.names:
             # interpret x
             xText = self.xTextBoxes[key].text()
@@ -238,7 +240,6 @@ class CalculatorPlot(QtGui.QWidget):
         try:
             return eval(expr)
         except:
-            # print self.data.keys()
             return 0
 
     def validItems(self):

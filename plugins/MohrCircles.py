@@ -13,11 +13,13 @@ import pyqtgraph as pg
 import numpy as np
 import sys
 
+# custom modules
 from TCI.base_widgets.CursorItem import CursorItem
 from TCI.plugins.lib.MohrCirclesWidget import MohrCirclesWidget
 # we need to store the parameters for effective stresses in settings,
 # add this widget to settings tab
 from TCI.plugins.lib.EffectiveStressSettingsWidget import EffectiveStressSettingsWidget
+from TCI.lib.logger import logger
 
 parentMenuString = 'Mohr\' Circles'
 addPointActionString = 'Add point'
@@ -36,13 +38,13 @@ class MohrCircles:
     def modifyParentGUI(self):
         self.parentMenu = self.parent.menuBar.addMenu(parentMenuString)
         # self.parentMenu.setEnabled(False)
-        
+
         # add EffectiveStressSettingsWidget to parent settings menu
         self.effectiveStressWidget = EffectiveStressSettingsWidget()
         self.parent.settings.addWidget(self.effectiveStressWidget,
                                        config_header="effective_stress",
                                        label="Effective stress")
-        
+
         self.addPointAction = QtGui.QAction(addPointActionString,
                                             self.parent, shortcut='Ctrl+Q')
         self.removePointAction = QtGui.QAction(removePointActionString,
@@ -52,7 +54,7 @@ class MohrCircles:
         self.parentMenu.addAction(self.addPointAction)
         self.parentMenu.addAction(self.removePointAction)
         self.parentMenu.addAction(self.activateAction)
-        
+
         self.addPointAction.setEnabled(True)
         self.removePointAction.setEnabled(True)
         self.activateAction.setEnabled(True)
@@ -72,15 +74,15 @@ class MohrCircles:
 
     @Slot(str)
     def loadDataSet(self, dataSetName):
-        self.cursors = self.allCursors[dataSetName] 
+        self.cursors = self.allCursors[dataSetName]
 
     def newDataSet(self):
         self.allCursors[self.parent.currentDataSetName] = []
 
     def addCursor(self):
-        print('adding a Cursor')
+        logger.info('adding a Cursor')
         viewrange = self.parent.plt.viewRange()
-        
+
         # this is a weird way to scale a new cursor initially
         rangeX = [viewrange[0][0], viewrange[0][1]]
         rangeY = [viewrange[1][0], viewrange[1][1]]
@@ -90,7 +92,7 @@ class MohrCircles:
         cursor = CursorItem(pos, [xSize,ySize], pen=(4, 9))
         self.cursors.append(cursor)
         self.allCursors[self.parent.currentDataSetName] = self.cursors
-        
+
         # bind cursor if there is something to plot
         if len(self.parent.activeEntries()) > 0:
             self.bindCursors()
@@ -114,11 +116,11 @@ class MohrCircles:
         size = np.array([xSize,ySize])
         for cursor in self.cursors:
             # workaround to force the cursor stay on the same place
-            oldSize = cursor.getSize() 
+            oldSize = cursor.getSize()
             cursor.translate(oldSize/2,snap=None)
             cursor.setSize(size)
             cursor.translate(-size/2,snap=None)
-        
+
     def bindCursors(self):
         '''
         make cursor slide along data
@@ -148,7 +150,7 @@ class MohrCircles:
         if len(self.parent.activeEntries()) > 0:
             for cursor in self.cursors:
                 self.parent.plt.addItem(cursor)
-            
+
     def enableParentMenu(self):
         pass
         # self.parentMenu.setEnabled(True)
@@ -161,7 +163,7 @@ class MohrCircles:
         # parent.settings.mcWidget.parameters()
         # self.mcWidget.show()
         for dataset in self.allCursors.keys():
-            print(dataset)
+            logger.debug(dataset)
             cursors = self.allCursors[dataset]
             ncircles = 0
             if cursors == []: continue    # skip dataset
@@ -171,7 +173,7 @@ class MohrCircles:
                     index = cursor.index
                     indices.append(index)
                     ncircles += 1
-                    
+
                     # find axial stress
                     all_ax_stress = self.parent.findDatainAllDatasets(dataset,
                                                                   key=config[0])
@@ -202,4 +204,3 @@ class MohrCircles:
                     self.mcWidget.run()
                     self.mcWidget.show()
                     self.mcWidget.activateWindow()
-

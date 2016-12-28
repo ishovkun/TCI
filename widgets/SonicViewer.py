@@ -8,6 +8,8 @@ from pyqtgraph.parametertree import Parameter, ParameterTree
 from pyqtgraph.parametertree import types as pTypes
 from pyqtgraph.Point import Point
 import numpy as np
+
+# custom modules
 from TCI.base_classes.MultiLine import MultiLine
 from TCI.lib.functions import *
 from TCI.lib.Gradients import Gradients
@@ -18,6 +20,7 @@ from TCI.base_widgets.TriplePlotWidget import TriplePlotWidget
 from TCI.base_widgets.GradientEditorWidget import GradientEditorWidget
 from TCI.widgets.BindingWidget import BindingWidget
 from TCI.widgets.InterpretationSettingsWidget import InterpretationSettingsWidget
+from TCI.lib.logger import logger
 
 X_LABEL = 'Oscilloscope time (μs)'
 fXAxisName = 'Frequency (MHz)'
@@ -142,7 +145,6 @@ class SonicViewer(QtGui.QWidget):
         '''
         data is a dictionary with keys: P,Sx,Sy
         '''
-        print(data.keys())
         for wave in WaveTypes:
             self.data[wave] = data[wave]
         self.createTable()
@@ -166,7 +168,6 @@ class SonicViewer(QtGui.QWidget):
         geo_indices - for geomechanical dataset
         also
         '''
-        # print('setting indices for: %s'%(self.controller.current_data_set))
         self.indices = ind
         self.geo_indices = geo_ind
 
@@ -186,7 +187,7 @@ class SonicViewer(QtGui.QWidget):
         3rd dimension - datapoints
         '''
         if not self.hasData(): return 0 # if no data pass
-        print('Building sonic matrix')
+        logger.info('Building sonic matrix')
         ### add some function that checks for constant dt
         # if dt is not uniform, interpolate data and add some points
         self.table = {}
@@ -206,7 +207,7 @@ class SonicViewer(QtGui.QWidget):
 
     def getFourrierTransforms(self):
         if not self.hasData(): return 0 # if no data pass
-        print ('Building Fourrier matrix')
+        logger.info('Building Fourrier matrix')
         self.fft = {} # power
         self.fftamp = {} # power
         self.fftph = {} # phase
@@ -236,7 +237,7 @@ class SonicViewer(QtGui.QWidget):
             self.params[wave].param('Show').sigValueChanged.connect(self.changeLayout)
 
     def showHidePlots(self):
-        print ('changing layout')
+        logger.info('changing layout')
         for wave in WaveTypes:
             try:
                 # self.sublayout.removeItem(self.plots[wave])
@@ -333,7 +334,6 @@ class SonicViewer(QtGui.QWidget):
 
     def plot(self):
         if not self.enabled: return 0
-        # print('plotting sonics')
         for k, wave in enumerate(self.getActivePlots()):
             # prepare plot
             plot = self.plots[wave]
@@ -476,10 +476,10 @@ class SonicViewer(QtGui.QWidget):
             self.yAxisMenu.addAction(self.yAxisButtons[p])
             pass
         try:
-            print ('Setting y axis to: Time')
+            logger.info('Setting y axis to: Time')
             self.yAxisButtons['Time'].setChecked(True)
             self.yAxis = 'Time'
-        except: print ('setting was not successful')
+        except: logger.warning('setting was not successful')
 
     def setMode(self, mode):
         '''
@@ -487,10 +487,10 @@ class SonicViewer(QtGui.QWidget):
         '''
         self.mode = mode
         if mode == 'WaveForms':
-            print ('Setting mode to Wave Forms')
+            logger.info('Setting mode to Wave Forms')
             # self.modeMenu.setDefaultAction(self.waveFormButton)
         elif mode == 'Contours':
-            print ('Setting mode to Contours')
+            logger.info('Setting mode to Contours')
             # self.modeMenu.setDefaultAction(self.contourButton)
         else:
             raise ValueError("This mode is not available: %s"%(mode))
@@ -565,7 +565,7 @@ class SonicViewer(QtGui.QWidget):
         pass
 
     def pickArrivals(self,wave):
-        print ('Computing arrival times for %s wave'%(wave))
+        logger.info('Computing arrival times for %s wave'%(wave))
         win = [0,0,0]
         mpoint = self.params[wave].param('Arrival times').param('Mpoint').value()
         win[0] = self.params[wave].param('Arrival times').param('BTA').value()
@@ -626,7 +626,6 @@ class SonicViewer(QtGui.QWidget):
         yarray - y values
         yindices - indices of yarray to plot
         '''
-        # print 1
         for wave in self.getActivePlots():
             plot = self.plots[wave]
             fplot = self.fWidget.plots[wave]
@@ -707,6 +706,5 @@ class SonicViewer(QtGui.QWidget):
             self.plotArrivals(indices,yarray,yindices,
             amplify,yAxisName)
 
-        # print 6
         self.skipPlottingFAmpFlag = False
         self.skipPlottingFPhaseFlag = False

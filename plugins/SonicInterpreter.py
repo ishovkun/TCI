@@ -6,14 +6,14 @@ from pyqtgraph.parametertree import Parameter, ParameterTree
 from pyqtgraph.parametertree import types as pTypes
 from pyqtgraph.Point import Point
 import numpy as np
-
 import pickle
 
+# custom modules
 from TCI.widgets.SonicViewer import SonicViewer
 from TCI.lib.readtrc import read_TRC
 from TCI.lib.functions import *
-
 from TCI.widgets.ShapeControlWidget import ShapeControlWidget
+from TCI.lib.logger import logger
 
 BadBindingMessage = '''
 Duplicates found in the comments column.
@@ -53,7 +53,7 @@ class SonicInterpreter:
         Then load data from the existing global data dictionary
         '''
         # First save data with the old data set key
-        print('Saving data set %s'%(self.current_data_set))
+        logger.info('Saving data set %s'%(self.current_data_set))
         if self.current_data_set is not None:
             self.all_tables[self.current_data_set] = self.sonicViewer.table
             self.all_geo_indices[self.current_data_set] = self.geo_indices
@@ -63,7 +63,7 @@ class SonicInterpreter:
 
         # get sonic table for the current data set
         if data_set in self.all_tables.keys():
-            print("found data: %s"%(data_set))
+            logger.info("found data: %s"%(data_set))
             self.current_data_set = data_set
             self.sonicViewer.setSonicTable(self.all_tables[data_set])
             self.geo_indices = self.all_geo_indices[data_set]
@@ -124,11 +124,10 @@ class SonicInterpreter:
                     if wave_name  in fname:
                         raw_data[wave_name][fname] = waves
                         wave_type_inferred = True
-
                 if not wave_type_inferred:
-                    print("Could not infer wave type for %s"%(fname))
+                    logger.error("Could not infer wave type for %s"%(fname))
             else:
-                print('unknown extension in %s'%(fname))
+                logger.error('unknown extension in %s'%(fname))
             i += 1
             self.progressDialog.setValue(i/n_files*100)
         self.progressDialog.hide()
@@ -287,7 +286,7 @@ class SonicInterpreter:
         geo_indices - indices of times in geomechanical dataset
         indices - indices of wave forms to be truncated
         '''
-        print('Binding sonic data')
+        logger.info('Binding sonic data')
         self.current_data_set = self.parent.currentDataSetName
         # times are when sonic waves were recorded
         self.times = {}
@@ -436,9 +435,9 @@ class SonicInterpreter:
                 default_active_action = last_active_action.text()
 
         try:
-            print ('Setting y axis to: %s'%(default_active_action))
+            logger.info('Setting y axis to: %s'%(default_active_action))
             self.yAxisActions[default_active_action].setChecked(True)
-        except: print ('setting was not successful')
+        except: logger.warning('setting was not successful')
 
     def connectYAxisActions(self):
         for key, action in self.yAxisActions.items():

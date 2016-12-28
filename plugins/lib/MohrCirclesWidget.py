@@ -178,7 +178,7 @@ class MohrCirclesWidget(QtGui.QWidget):
             step1 = 1
             step2 = 1
         else:
-            print(etype)
+            # print(etype)
             return 0
         item.addChild(colorItem)
         item.addChild(item1)
