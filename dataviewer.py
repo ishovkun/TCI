@@ -12,6 +12,8 @@ from PySide import QtGui, QtCore
 from pyqtgraph.parametertree import Parameter, ParameterTree
 # from pyqtgraph.parametertree import types as pTypes
 from pyqtgraph.Point import Point
+
+# Custom modules
 # from TCI.base_widgets.CursorItem import CursorItem
 from TCI.widgets.SettingsWidget import SettingsWidget
 from TCI.widgets.CParameterTree import CParameterTree
@@ -21,6 +23,7 @@ from TCI.gui_settings.Colors import DataViewerTreeColors
 from TCI.gui_settings.LabelStyles import *
 from TCI.base_widgets.Slider import SliderWidget
 from TCI.base_classes.InputReader import InputReader
+from TCI.lib.logger import logger
 
 # Plugins
 from TCI.plugin_list import get_plugin_list
@@ -102,7 +105,6 @@ class DataViewer(QtGui.QWidget):
         self.settingsButton.triggered.connect(self.settings.show)
         self.loadButton.triggered.connect(self.requestLoad)
         self.crossHairButton.triggered.connect(self.toggleCrossHair)
-        self.setStatus('Ready')
 
     def loadPlugins(self):
         '''
@@ -258,7 +260,7 @@ class DataViewer(QtGui.QWidget):
         add it to the list of all buttons, connect the menu entry to
         an action
         '''
-        print('Modifying GUI: adding data set button')
+        logger.debug('Modifying GUI: adding data set button')
         dataSetButton = QtGui.QAction(dataSetName, self, checkable=True)
         dataSetButton.setActionGroup(self.dataSetGroup)
         dataSetButton.setChecked(True)
@@ -273,17 +275,17 @@ class DataViewer(QtGui.QWidget):
         Store old data in the dictionary.
         Load new data from the dictionary.
         '''
-        print('New data set is chosen')
+        logger.info('New data set is chosen')
         self.sigSaveDataSet.emit(dataSetName)
         # if we switch to a different data set (if it's not the first),
         # remember cursors for the old one
         if self.currentDataSetName:
-            print('Saving old data')
+            logger.debug('Saving old data')
             self.allIndices[self.currentDataSetName] = self.indices
             # self.allCursors[self.currentDataSetName] = self.cursors
             self.allComments[self.currentDataSetName] = self.comments
 
-        print('Setting new data')
+        logger.debug('Setting new data')
         # set current data dictionaries to new values
         self.currentDataSetName = dataSetName
         self.data = self.allData[dataSetName]
@@ -302,7 +304,7 @@ class DataViewer(QtGui.QWidget):
         self.updatePlot()
 
     def setTreeParameters(self):
-        print( 'Modifying GUI: adding parameters to plot')
+        logger.info( 'Modifying GUI: adding parameters to plot')
         # Modify parameter tree (i.r. plotting trend etc.)
         self.modparamlist = ModifyingParameters
         self.modparamlist[1]['values'] = self.keys      # Parameter
@@ -407,7 +409,6 @@ class DataViewer(QtGui.QWidget):
         values = [float(self.modparams.param('min').value())/scale,
                   float(self.modparams.param('max').value())/scale
                  ]
-        # print(values)
         self.slider.setInterval(values)
         self.updatePlot()
 
@@ -661,11 +662,6 @@ class DataViewer(QtGui.QWidget):
         #                              QtGui.QSizePolicy.Fixed)
         self.setGeometry(80, 30, 1000, 700)
         self.sigSettingGUI.emit(self)
-
-    def setStatus(self,message):
-        pass
-        # self.statusBar.showMessage(message)
-        # print(message)
 
     def computeTrend(self):
         '''

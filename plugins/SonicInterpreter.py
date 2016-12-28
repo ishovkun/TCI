@@ -329,9 +329,6 @@ class SonicInterpreter:
         if spurious_entries != []:
             self.sonicViewer.createTable()
 
-        # print('\nsizes')
-        # print(self.sonicViewer.table['Sx'].shape)
-        # print(self.indices['Sx'].shape)
         self.sonicViewer.setIndices(self.indices, self.geo_indices)
 
         # we don't need those anymore

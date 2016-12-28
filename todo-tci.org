@@ -1,11 +1,8 @@
 * Dataviewer part
-** DONE [#B] Finish porting
-CLOSED: [2016-09-13 Tue 17:15]
 ** [#B] Finish InputReader
 *** TODO Add better handling of comment section
 *** TODO Add exception handling
 *** TODO Add reading sample length and other params (mass, density, porosity?)
-** TODO [#B] Save state of the slider
 ** TODO [#C] Crosshair color (to stylesheet)
 * Sonic part
 ** TODO Account for strain when computing arrival times
@@ -17,9 +14,6 @@ CLOSED: [2016-09-13 Tue 17:15]
    idea: create lines base on color gradients (maybe Hough
    transform), make the user pick the line that corresponds
    to the arrivals and another that corresponds to transmitting.
-** DONE [#C] Better hand arrival picking
-** TODO Save sonic dataset when switching
-   saving only sonic table, times, and indices. no need for data[wave][filename]
 * General
 ** TODO Make Windows executable
 ** TODO Write tutorial + methodology section
@@ -30,9 +24,9 @@ CLOSED: [2016-09-13 Tue 17:15]
         Also, figure out how to do it properly...
         1. make sure it doesn't break
         2. make sure arrival values are correct
-
 ** TODO [#A] Rename Colors.py into Styles.py
    and put all the stylystic things in there
    (such as LabelStyle in the dataviewer class)
 ** TODO [#A] ComboList styles in styles file
 ** TODO Each menu action activates the correct tab!!!!!
+** TODO Logging instead of print commands

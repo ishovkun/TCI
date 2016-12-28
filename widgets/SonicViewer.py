@@ -187,6 +187,8 @@ class SonicViewer(QtGui.QWidget):
         '''
         if not self.hasData(): return 0 # if no data pass
         print('Building sonic matrix')
+        ### add some function that checks for constant dt
+        # if dt is not uniform, interpolate data and add some points
         self.table = {}
         for wave in WaveTypes:
             self.table[wave] = get_table(self.data[wave])
