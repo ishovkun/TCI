@@ -75,9 +75,14 @@ sonic_plugin.bindData()
 win.slider.setInterval([0.1, 0.9])
 
 # now activate old dataset
-data_set = "_Training_Pc=1500 psi Sonic endcaps_Berea Mechanical Testing _2015-04-27_001"
-win.setCurrentDataSet(data_set)
-data_set = "_Training_Hydrostatic with Sonic endcaps_Berea Mechanical Testing _2015-04-24_001"
-win.setCurrentDataSet(data_set)
+data_set1 = "_Training_Pc=1500 psi Sonic endcaps_Berea Mechanical Testing _2015-04-27_001"
+win.setCurrentDataSet(data_set1)
+win.slider.setInterval([0.2, 0.3])
+data_set2 = "_Training_Hydrostatic with Sonic endcaps_Berea Mechanical Testing _2015-04-24_001"
+win.setCurrentDataSet(data_set2)
+win.slider.setInterval([0.1, 0.9])
+win.setCurrentDataSet(data_set1)
+win.slider.setInterval([0.5, 0.7])
 
-win.close()
+# win.close()
+App.exec_()

@@ -39,6 +39,7 @@ class SonicInterpreter:
         self.all_tables = {}
         self.all_geo_indices = {}
         self.all_indices = {}
+        self.all_times = {}
 
         if parent is not None:
             self.setupActions()
@@ -58,6 +59,7 @@ class SonicInterpreter:
             self.all_geo_indices[self.current_data_set] = self.geo_indices
             self.all_indices[self.current_data_set] = self.indices
             self.sonicViewer.plot_arrival_times_flag = False
+            self.all_times[self.current_data_set] = self.times
 
         # get sonic table for the current data set
         if data_set in self.all_tables.keys():
@@ -66,6 +68,7 @@ class SonicInterpreter:
             self.sonicViewer.setSonicTable(self.all_tables[data_set])
             self.geo_indices = self.all_geo_indices[data_set]
             self.indices = self.all_indices[data_set]
+            self.times = self.all_times[data_set]
             self.sonicViewer.setIndices(self.indices, self.geo_indices)
             # self.sonicViewer.plot_arrival_times_flag = False
             self.setEnabled()
