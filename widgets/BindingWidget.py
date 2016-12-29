@@ -20,28 +20,29 @@ class BindingWidget(QtGui.QWidget):
     for variables pointed in configuration
     and all moduli from sonic data
     '''
-    def __init__(self,parents=[None,None]):
+    def __init__(self, parents=[None, None]):
         super(BindingWidget, self).__init__(None)
         	# QtCore.Qt.WindowStaysOnTopHint)
         self.setupGUI()
-        self.smoduli = {} # static moduli
-        self.dmoduli = {} # dynamic moduli
-        self.gv = parents[0] # Geomechanics viewer
-        self.sv = parents[1] # Sonic viewer
+        self.static_moduli = {} # static moduli
+        self.dynamic_moduli = {} # dynamic moduli
+        self.parent = parents[0] # main widget
+        self.controller = parents[1] # Sonic interpreter
         try:
-            self.gv.slider.sigRangeChanged.connect(self.plot)
+            self.parent.slider.sigRangeChanged.connect(self.plot)
         except: pass
         self.autoScaleAction.triggered.connect(self.plot)
         self.plotVsXAction.triggered.connect(self.plot)
         self.plotVsYAction.triggered.connect(self.plot)
-    def setConfig(self,testconf,capsconf,
-        dens,length,atime,time='Time'):
+
+    def setConfig(self, testconf, capsconf, dens, length, atime, time='Time'):
         self.config = testconf
         self.capsconf = capsconf
         self.interval = atime
         self.sampLength = length*inch
         self.density = dens*1000.
-        self.time = self.gv.data[time]
+        self.time = self.parent.findData(time)
+
     def run(self):
         self.dmoduli = {}
         self.smoduli = {}
@@ -49,7 +50,7 @@ class BindingWidget(QtGui.QWidget):
         self.getSonicTimes()
         self.interpolateGData()
         self.getSlopes()
-        self.getDynamic()
+        self.getDynamicModuli()
         self.setupTree()
         self.setupMenu()
         self.tree.sigStateChanged.connect(self.plot)
@@ -58,9 +59,10 @@ class BindingWidget(QtGui.QWidget):
     def interpolateGData(self):
         self.gdata = {}
         print ('Interpolating geomechanical data')
-        for key in self.gv.data.keys():
-            interp = interp1d(self.gv.data['Time'],self.gv.data[key],
-                bounds_error=False)
+        for key in self.parent.keys:
+            interp = interp1d(self.parent.findData('Time'),
+                              self.parent.findData(key),
+                              bounds_error=False)
             self.gdata[key] = interp(self.itimes)
 
     def setupMenu(self):
@@ -70,7 +72,7 @@ class BindingWidget(QtGui.QWidget):
             self.parameterGroup.removeAction(action)
         self.parameterActions = {}
         # assign new actions
-        for key in self.gv.data.keys():
+        for key in self.parent.keys:
             action = QtGui.QAction(key,self,checkable=True)
             action.setActionGroup(self.parameterGroup)
             self.parMenu.addAction(action)
@@ -93,17 +95,17 @@ class BindingWidget(QtGui.QWidget):
         print ('Computing times for output')
         l = []
         for wave in WaveTypes:
-            l.append(len(self.gv.sTimes[wave]))
+            l.append(len(self.controller.times[wave]))
         l = min(l)
         gtimes = np.zeros(l)
         for wave in WaveTypes:
-            gtimes += self.gv.sTimes[wave][:l]
+            gtimes += self.controller.times[wave][:l]
         gtimes /= 3
         self.itimes = gtimes
 
     def getSlopes(self):
         '''
-        Get moduli from geomechanical data 
+        Get moduli from geomechanical data
         '''
         N = len(self.itimes)
         config = self.config
@@ -111,27 +113,55 @@ class BindingWidget(QtGui.QWidget):
             self.smoduli[mod] = np.zeros(N)
             xarr = self.parseExpression(config['moduli'][mod]['x'])
             yarr = self.parseExpression(config['moduli'][mod]['y'])
-            for i in xrange(N):
-                ind = abs(self.time-self.itimes[i])<self.interval/2
+            for i in range(N):
+                ind = abs(self.time-self.itimes[i]) < self.interval/2
                 x = xarr[ind]
                 y = yarr[ind]
                 A = np.array([x, np.ones(len(y))]).T
-                slope,intersection = np.linalg.lstsq(A,y)[0]
+                slope,intersection = np.linalg.lstsq(A, y)[0]
                 self.smoduli[mod][i] = slope
 
-    def getDynamic(self):
-        ispeeds = {}
+    def computeVelocities(self):
+        '''
+        compute speed of sound base on
+        - arrival times/sample length
+        - changes in sample length due to strain
+        - sonic cap correction
+        Algorithm:
+        get arrival times from somic viewer
+        substrac sonic cap correction
+        correct sample length for strain
+        get velocity
+        '''
+        velocities = {}
         for wave in WaveTypes:
+            arrival_times = self.controller.sonicViewer.arrival_times[wave]
             ### correct for end-caps
             corr = float(self.capsconf[wave])
-            # IF OSCILLOSCOPE TIME UNITS == mus
-            times = (self.sv.aTimes[wave] - corr)*1e-6
-            speed = self.sampLength/times
-            interp = interp1d(self.gv.sTimes[wave],speed,bounds_error=False)
-            ispeeds[wave] = interp(self.itimes)
-        Ctx = ispeeds['Sx'] 
-        Cty = ispeeds['Sy'] 
-        Cl = ispeeds['P'] 
+            arrival_times -= corr
+            # convert to seconds
+            arrival_times *= 1e-6
+            # interpolate arrival times
+            interpolator = interp1d(self.controller.times[wave], arrival_times,
+                                    bounds_error=False)
+            interpolated_arrival_times =  interpolator(self.itimes)
+
+            # get sanoke length base on strains
+            axial_strain = self.parent.findData('Ex')[self.controller.geo_indices[wave]]
+            interpolator = interp1d(self.controller.times[wave], (1-axial_strain),
+                                    bounds_error=False)
+            interpolated_lengths = self.sampLength*interpolator(self.itimes)
+
+            # compute velocities
+            velocities[wave] = interpolated_lengths/interpolated_arrival_times
+
+        return velocities
+
+    def getDynamicModuli(self):
+        velocities = self.computeVelocities()
+        Ctx = velocities['Sx']
+        Cty = velocities['Sy']
+        Cl = velocities['P']
         rho = self.density
         Gx = Ctx**2*rho
         Gy = Cty**2*rho
@@ -169,19 +199,19 @@ class BindingWidget(QtGui.QWidget):
         if not self.isVisible(): return 0
         self.plt.clear()
         self.plt.showGrid(x=True, y=True)
-        interval_parameter = self.gv.sliderParam
-        interval = self.gv.slider.interval()
+        interval_parameter = self.parent.sliderParam
+        interval = self.parent.slider.interval()
         ind = (self.itimes>=interval[0]) & (self.itimes<=interval[1])
         active = self.tree.activeItems()
         par = self.parameter()
         if self.plotVsXAction.isChecked():
             x = self.gdata[par][ind]
             xName = par
-            xUnits = self.gv.units[par]
+            xUnits = self.parent.findUnits(par)
         elif self.plotVsYAction.isChecked():
             y = self.gdata[par][ind]
             yName = par
-            yUnits = self.gv.units[par]
+            yUnits = self.parent.findUnits(par)
         for group in active.keys():
             for key in active[group]:
                 color = self.tree.groups[group]['colors'][key].getColor()
@@ -226,19 +256,17 @@ class BindingWidget(QtGui.QWidget):
         '''
         computes array corresponding to expression
         '''
-        if expr=='': 
+        if expr=='':
             return 0
         if 'import' in expr: return 0
         if 'sys' in expr: return 0
         if 'os' in expr: return 0
-        for key in self.gv.data.keys():
-            exec('%s=self.gv.data[\'%s\']'%(key,key))
-            # print key
-        try: 
+        for key in self.parent.keys:
+            exec('%s=self.parent.findData(\'%s\')'%(key,key))
+        try:
             return eval(expr)
-        except: 
-            # print self.data.keys()
-            return 0 
+        except:
+            return 0
 
     def setupGUI(self):
         pg.setConfigOption('background', (255,255,255))
@@ -271,7 +299,7 @@ class BindingWidget(QtGui.QWidget):
         self.tree = CParameterTree(name='Elastic moduli')
 
         self.sublayout = pg.GraphicsLayoutWidget()
-        # 
+        #
         self.layout.addWidget(splitter)
         splitter.addWidget(self.tree)
         splitter.addWidget(self.sublayout)

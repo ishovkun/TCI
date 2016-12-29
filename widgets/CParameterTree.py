@@ -8,21 +8,21 @@ class CheckBox(QtGui.QCheckBox):
     def __init__(self):
         super(CheckBox,self).__init__()
         self.name = None
-        
+
     def value(self):
         if self.checkState() == QtCore.Qt.CheckState.Unchecked:
             return False
         elif self.checkState() == QtCore.Qt.CheckState.Checked:
             return True
-    
+
     def setName(self,name):
         self.name = name
 
-        
+
 class ColorButton(pg.ColorButton):
     def __init__(self):
         super(ColorButton,self).__init__()
-        
+
     def getColor(self):
         col = self.color(mode='float')
         color = [0,0,0]
@@ -36,11 +36,11 @@ class GroupedTreeItem(pg.TreeWidgetItem):
     def __init__(self,  *args, **kwargs):
         super(GroupedTreeItem,self).__init__(*args, **kwargs)
         self.group = None
-        
+
     def setGroup(self,group):
         self.group = group
 
-        
+
 class CParameterTree(pg.TreeWidget):
     '''
     Tree with 3 columns:
@@ -78,7 +78,7 @@ class CParameterTree(pg.TreeWidget):
         self.groups = {} # just empty items
         if items: self.addItems(items,colors)
         # self.sigStateChanged.connect(self.stuff)
-                
+
     def setupHeader(self):
         self.header = pg.TreeWidgetItem([self.name])
         self.setIndentation(0)
@@ -141,12 +141,12 @@ class CParameterTree(pg.TreeWidget):
             colorButton.sigColorChanged.connect(self.emitStateChangedSignal)
             box.stateChanged.connect(self.emitStateChangedSignal)
             self.header.setExpanded(True)
-            
+
     def emitStateChangedSignal(self):
         self.sigStateChanged.emit(self)
         # key = self.names[0]
         # print self.colors[key].getColor()
-            
+
     def clear(self):
         print('Clearing Tree')
         super(CParameterTree,self).clear()
@@ -158,23 +158,23 @@ class CParameterTree(pg.TreeWidget):
         self.groups = {}
 
     def activeItems(self):
-        activeItems = {}
+        active_items = {}
         if self.groups == {}:
-                pass
+            pass
         else:
             for group in self.groups.keys():
-                activeItems[group] = []
+                active_items[group] = []
                 g = self.groups[group]
                 for key in g['items'].keys():
                     if g['boxes'][key].value():
-                        activeItems[group].append(key)
-                    if activeItems[group] == []:
-                        del activeItems[group]
-                        
-        return activeItems
+                        active_items[group].append(key)
+                if active_items[group] == []:
+                    del active_items[group]
+
+        return active_items
 
         def stuff(self):
-                print(self.activeItems())
+            print(self.activeItems())
 
 if __name__ == '__main__':
     names = ['chlen1','chlen2','chlen3']

@@ -14,6 +14,8 @@ from TCI.lib.readtrc import read_TRC
 from TCI.lib.functions import *
 from TCI.widgets.ShapeControlWidget import ShapeControlWidget
 from TCI.lib.logger import logger
+from TCI.widgets.InterpretationSettingsWidget import InterpretationSettingsWidget
+from TCI.widgets.BindingWidget import BindingWidget
 
 BadBindingMessage = '''
 Duplicates found in the comments column.
@@ -35,6 +37,8 @@ class SonicInterpreter:
         self.parent = parent
         self.progressDialog = QtGui.QProgressDialog()
         self.sonicViewer = SonicViewer(parent=parent, controller=self)
+        self.interpretationSettings = InterpretationSettingsWidget()
+        self.moduliWidget = BindingWidget(parents=[parent, self])
         self.current_data_set = None
         self.all_tables = {}
         self.all_geo_indices = {}
@@ -46,6 +50,7 @@ class SonicInterpreter:
             self.parent.sigSettingGUI.connect(self.modifyParentMenu)
             self.parent.sigNewDataSet.connect(lambda: self.setEnabled(False))
             self.parent.sigLoadDataSet.connect(self.setDataSet)
+            self.interpretationSettings.okButton.pressed.connect(self.runModuliWidget)
 
     def setDataSet(self, data_set):
         '''
@@ -375,6 +380,8 @@ class SonicInterpreter:
         self.showArrivalsAction.triggered.connect(self.sonicViewer.plot)
         self.exportArrivalsAction.triggered.connect(self.raiseExportArrivalDialog)
 
+        self.moduliAction.triggered.connect(self.interpretationSettings.show)
+
     def raiseExportArrivalDialog(self):
         pass
 
@@ -453,3 +460,25 @@ class SonicInterpreter:
         self.sonicViewer.setEnabled(enabled)
         if enabled:
             self.parent.tabWidget.setCurrentWidget(self.sonicViewer)
+
+    def runModuliWidget(self):
+        '''
+        Add moduli widget as a tab.
+        Run widget that computes static and dynamic moduli and plots them
+        together
+        '''
+        # first add the widget as a tab
+        tab_index = self.parent.tabWidget.indexOf(self.moduliWidget)
+        if tab_index == -1:
+            self.parent.tabWidget.addTab(self.moduliWidget, "Moduli")
+        self.parent.tabWidget.setCurrentWidget(self.moduliWidget)
+        # now set config
+        testconf = self.interpretationSettings.testconf
+        capsconf = self.interpretationSettings.capsconf
+        if testconf == None: return 0
+        dens = self.interpretationSettings.dens
+        length = self.interpretationSettings.length
+        atime = self.interpretationSettings.atime
+        self.moduliWidget.setConfig(testconf, capsconf, dens, length, atime)
+        # finally run the widget
+        self.moduliWidget.run()

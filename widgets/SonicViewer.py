@@ -18,8 +18,6 @@ from TCI.base_widgets.ViewBox import ViewBox
 from TCI.base_widgets.TableWidget import TableWidget
 from TCI.base_widgets.TriplePlotWidget import TriplePlotWidget
 from TCI.base_widgets.GradientEditorWidget import GradientEditorWidget
-from TCI.widgets.BindingWidget import BindingWidget
-from TCI.widgets.InterpretationSettingsWidget import InterpretationSettingsWidget
 from TCI.lib.logger import logger
 
 X_LABEL = 'Oscilloscope time (μs)'
@@ -327,7 +325,7 @@ class SonicViewer(QtGui.QWidget):
             ylabel = self.controller.yLabel()
             if ylabel == "Track #":
                 data = self.table[wave]
-                y = np.arrange[0: data.shape[1]]
+                y = np.r_[0: data.shape[1]]
             else:
                 y = self.parent.findData(ylabel)[self.controller.geo_indices[wave]]
             return y

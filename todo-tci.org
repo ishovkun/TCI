@@ -29,4 +29,4 @@
    (such as LabelStyle in the dataviewer class)
 ** TODO [#A] ComboList styles in styles file
 ** TODO Each menu action activates the correct tab!!!!!
-** TODO Logging instead of print commands
+** DONE Logging instead of print commands
