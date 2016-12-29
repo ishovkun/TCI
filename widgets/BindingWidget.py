@@ -20,6 +20,7 @@ class BindingWidget(QtGui.QWidget):
     for variables pointed in configuration
     and all moduli from sonic data
     '''
+    enabled = False
     def __init__(self, parents=[None, None]):
         super(BindingWidget, self).__init__(None)
         	# QtCore.Qt.WindowStaysOnTopHint)
@@ -196,6 +197,7 @@ class BindingWidget(QtGui.QWidget):
             self.dmoduli['Poisson_y'] = nuy
 
     def plot(self):
+        if not self.enabled: return 0
         if not self.isVisible(): return 0
         self.plt.clear()
         self.plt.showGrid(x=True, y=True)
@@ -312,6 +314,9 @@ class BindingWidget(QtGui.QWidget):
             ])
         splitter.setStretchFactor(0, 0)
         splitter.setStretchFactor(1, 1)
+
+    def setEnabled(self, enabled=True):
+        self.enabled = enabled
 
 if __name__ == '__main__':
     App = QtGui.QApplication(sys.argv)

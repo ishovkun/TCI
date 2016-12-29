@@ -461,6 +461,15 @@ class SonicInterpreter:
         if enabled:
             self.parent.tabWidget.setCurrentWidget(self.sonicViewer)
 
+        # also disable  moduli widget (it's enabled only when ran)
+        if not enabled:
+            tab_index = self.parent.tabWidget.indexOf(self.moduliWidget)
+            # i think it should remove this widget
+            # but i don't have documentation on board
+            self.parent.tabWidget.setTabEnabled(tab_index, False)
+            self.sonicViewer.setEnabled(False)
+
+
     def runModuliWidget(self):
         '''
         Add moduli widget as a tab.
@@ -481,4 +490,5 @@ class SonicInterpreter:
         atime = self.interpretationSettings.atime
         self.moduliWidget.setConfig(testconf, capsconf, dens, length, atime)
         # finally run the widget
+        self.moduliWidget.setEnabled()
         self.moduliWidget.run()
