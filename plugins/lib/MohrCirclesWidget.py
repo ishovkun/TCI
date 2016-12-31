@@ -20,13 +20,15 @@ from TCI.styles.setup_plot import setup_plot
 from TCI.base_widgets import ColorButton, CheckBox
 from .EditEnvelopeWidget import EditEnvelopeWidget
 from TCI.lib.logger import logger
+from TCI.styles.LineColors import MOHR_CIRCLE_PEN
+
 
 EnvelopeParameters = [
     {'name':'Cohesion', 'type':'float', 'value':300.0,'step':10.0},
     {'name':'Friction Angle', 'type':'float', 'value':30.0,'step':1.0},
 ]
 LabelStyle = {'color': '#000000', 'font-size': '14pt','font':'Times'}
-CirclePen = pg.mkPen(color=(0,0,0), width=2)
+# CirclePen = pg.mkPen(color=(0,0,0), width=2)
 EnvelopePen = pg.mkPen(color=(255,0,0), width=2)
 rand = lambda: np.random.rand()
 get_color = lambda: (rand()*230,rand()*230,rand()*230)
@@ -50,6 +52,49 @@ def hoek_on_mohr_plane(s3,m,ucs):
     t = (s1-s3)*ds1ds3**0.5/(ds1ds3 + 1.)
     return sn,t
 
+class EnvelopeEntry:
+    def __init__(self, etype='Coulomb', name='Env', parent=None):
+        self.parent = parent
+        self.typeLabel = QtGui.QLabel(etype)
+        self.treeItem = pg.TreeWidgetItem([name])
+        self.treeItem.setWidget(2, self.typeLabel)
+        self.colorButton = ColorButton.ColorButton()
+        color = get_color()
+        self.colorButton.setColor(color)
+        self.treeItem.setExpanded(True)
+        self.colorItem = pg.TreeWidgetItem(['Color'])
+
+        if etype == 'Coulomb':
+            item1 = pg.TreeWidgetItem(['Friction Angle'])
+            item2 = pg.TreeWidgetItem(['Cohesion'])
+            step1 = 1
+            step2 = 50
+        elif etype == 'Brown':
+            item1 = pg.TreeWidgetItem(['m'])
+            item2 = pg.TreeWidgetItem(['UCS'])
+            step1 = 1
+            step2 = 1
+        else:
+            logger.error("Envelope type unknows: %s"%(etype))
+            # raise NotImplementedError("Envelope type unknows: %s"%(etype))
+            return 0
+
+        self.treeItem.addChild(self.colorItem)
+        self.treeItem.addChild(item1)
+        self.treeItem.addChild(item2)
+        self.frictionBox = pg.SpinBox(value=50, step=step1)
+        self.cohesionBox = pg.SpinBox(value=1e3, step=step2)
+
+        self.colorItem.setWidget(2, self.colorButton)
+        item1.setWidget(2, self.frictionBox)
+        item2.setWidget(2, self.cohesionBox)
+        self.removeItem = pg.TreeWidgetItem([''])
+        self.treeItem.addChild(self.removeItem)
+        self.removeButton = QtGui.QPushButton('Remove')
+        self.removeItem.setWidget(2, self.removeButton)
+        # self.removeButton.clicked.connect(lambda: self.parent.removeEnvelope(item))
+
+
 
 class MohrCirclesWidget(QtGui.QWidget):
     def __init__(self):
@@ -64,7 +109,7 @@ class MohrCirclesWidget(QtGui.QWidget):
         self.dCButtons = {}
         self.eCButtons = {}
         self.eBoxes = {}
-        self.dNames = [] # names of Datasets
+        self.datasets = [] # names of Datasets
         self.eNames = [] # envelope names
         self.eTypes = {} # envelope types
         self.fBoxes = {} # boxes with friction angle values
@@ -136,7 +181,7 @@ class MohrCirclesWidget(QtGui.QWidget):
         self.s1 = np.append(self.s1, s1)
         self.s3 = np.append(self.s3, s3)
         item = pg.TreeWidgetItem([name])
-        self.dNames.append(name)
+        self.datasets.append(name)
         self.fpoints.addChild(item)
         # self.tree.addTopLevelItem(item)
         color = (0, 0, 0)
@@ -157,6 +202,11 @@ class MohrCirclesWidget(QtGui.QWidget):
 
     def addEnvelope(self, etype='Coulomb', name='Env'):
         logger.info("Adding %s failure envelope: name %s"%(etype, name))
+        # envelope_item = EnvelopeEntry(etype, name, parent=self)
+        # self.tree.addTopLevelItem(envelope_item.treeItem)
+        # envelope_item.colorButton.sigColorChanged.connect(self.plot)
+        # envelope_item.frictionBox.sigValueChanged.connect(self.plot)
+        # envelope_item.cohesionBox.sigValueChanged.connect(self.plot)
         item = pg.TreeWidgetItem([name])
         self.envelopes.addChild(item)
         self.eNames.append(name)
@@ -198,7 +248,7 @@ class MohrCirclesWidget(QtGui.QWidget):
         item2.setWidget(2, cohesionBox)
         self.fBoxes[name] = frictionBox
         self.cBoxes[name] = cohesionBox
-        for dname in self.dNames:
+        for dname in self.datasets:
             child = pg.TreeWidgetItem([dname])
             item.addChild(child)
             box = CheckBox.CheckBox()
@@ -233,10 +283,10 @@ class MohrCirclesWidget(QtGui.QWidget):
         etype = self.eTypes[eName]
         s1 = []
         s3 = []
-        for dName in self.dNames:
-            val = self.eBoxes[eName][dName].value()
+        for dataset in self.datasets:
+            val = self.eBoxes[eName][dataset].value()
             if val:
-                index = self.dNames.index(dName)
+                index = self.datasets.index(dataset)
                 s1.append(self.s1[index])
                 s3.append(self.s3[index])
         if len(s1)==1:
@@ -270,25 +320,25 @@ class MohrCirclesWidget(QtGui.QWidget):
         self.x = {}
         self.y = {}
         self.env_x = {}
-        for i in range(len(self.dNames)):
+        for i in range(len(self.datasets)):
             R = self.radii[i]
             C = self.centers[i]
             x = np.linspace(self.s3[i],self.s1[i],npoints)
-            self.x[self.dNames[i]] = x
-            self.y[self.dNames[i]] = (R**2-(x-C)**2)**0.5
+            self.x[self.datasets[i]] = x
+            self.y[self.datasets[i]] = (R**2-(x-C)**2)**0.5
         minstess = min(np.minimum(self.s1,self.s3))
         maxstess = max(np.maximum(self.s1,self.s3))
-        self.env_x = np.linspace(min(0,minstess),maxstess,npoints)
+        self.env_x = np.linspace(min(0, minstess), maxstess, npoints)
 
     def plot(self):
         self.plt.clear()
         self.plt.showGrid(x=True, y=True)
         self.plt.setYRange(0,max(self.s1))
         self.plt.setXRange(self.env_x.min(),self.env_x.max())
-        for dName in self.dNames:
-            color = self.dCButtons[dName].color()
+        for dataset in self.datasets:
+            color = self.dCButtons[dataset].color()
             pen = pg.mkPen(color=color, width=2)
-            self.plt.plot(self.x[dName],self.y[dName],pen=pen)
+            self.plt.plot(self.x[dataset], self.y[dataset], pen=pen)
         for eName in self.eNames:
             color = self.eCButtons[eName].color()
             pen = pg.mkPen(color=color, width=2)

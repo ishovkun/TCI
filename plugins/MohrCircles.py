@@ -34,6 +34,7 @@ class MohrCircles:
         self.parent.sigSettingGUI.connect(self.modifyParentGUI)
         self.parent.sigConnectParameters.connect(self.enableParentMenu)
         self.mcWidget = MohrCirclesWidget()
+        self.dataSet = None
 
     def modifyParentGUI(self):
         self.parentMenu = self.parent.menuBar.addMenu(parentMenuString)
@@ -64,17 +65,20 @@ class MohrCircles:
         self.parent.plt.sigRangeChanged.connect(self.scaleCursors)
         self.parent.tree.sigStateChanged.connect(self.bindCursors)
         self.parent.sigNewDataSet.connect(self.newDataSet)
-        self.parent.sigSaveDataSet.connect(self.saveDataSet)
+        # self.parent.sigSaveDataSet.connect(self.saveDataSet)
+        self.parent.sigLoadDataSet.connect(self.loadDataSet)
         self.parent.sigUpdatingPlot.connect(self.drawCursors)
         self.activateAction.triggered.connect(self.runMCWidget)
 
     @Slot(str)
-    def saveDataSet(self, dataSetName):
-        self.allCursors[dataSetName] = self.cursors
-
-    @Slot(str)
     def loadDataSet(self, dataSetName):
-        self.cursors = self.allCursors[dataSetName]
+        if self.dataSet is not None:
+            print('mohr saving dataset: %s'%(dataSetName))
+            self.allCursors[dataSetName] = self.cursors
+
+        print('mohr loading dataset: %s'%(dataSetName))
+        if dataSetName in self.allCursors.keys():
+            self.cursors = self.allCursors[dataSetName]
 
     def newDataSet(self):
         self.allCursors[self.parent.currentDataSetName] = []
@@ -117,13 +121,13 @@ class MohrCircles:
         rangeY = [viewrange[1][0], viewrange[1][1]]
         xSize = (rangeX[1]-rangeX[0])*16/plt.width()
         ySize = (rangeY[1]-rangeY[0])*16/plt.height()
-        size = np.array([xSize,ySize])
+        size = np.array([xSize, ySize])
         for cursor in self.cursors:
             # workaround to force the cursor stay on the same place
             oldSize = cursor.getSize()
-            cursor.translate(oldSize/2,snap=None)
+            cursor.translate(oldSize/2, snap=None)
             cursor.setSize(size)
-            cursor.translate(-size/2,snap=None)
+            cursor.translate(-size/2, snap=None)
 
     def bindCursors(self):
         '''
@@ -205,6 +209,6 @@ class MohrCircles:
                     sigma3 = min(sigma_ax, sigma_conf)
                     self.mcWidget.addData(sigma1, sigma3,
                                           name=dataset + "_" + str(ncircles))
-                    self.mcWidget.run()
-                    self.mcWidget.show()
-                    self.mcWidget.activateWindow()
+        self.mcWidget.run()
+        self.mcWidget.show()
+        self.mcWidget.activateWindow()

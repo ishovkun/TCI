@@ -26,9 +26,9 @@ A built-in trend feature can be used to estimate static moduli.
 Mohr circle plugin can automatically match
 two types of failure criteria to the failure points.
 
-![Image for Mohr circle plugin]()
+![Image for Mohr circle plugin](screenshots/mohr_circles.png)
 
-### Sonic part
+### Acoustics
 Two view modes: wave forms and contours.
 ![Alt text](screenshots/sonic-contours.png)
 

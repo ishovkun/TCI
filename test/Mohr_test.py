@@ -19,11 +19,21 @@ mc.addPointAction.trigger()
 mc.cursors[0].translate(700, 0)
 mc.cursors[0].moveToNearest()
 
-mc.addPointAction.trigger()
-mc.activateAction.trigger()
+# load second dataset
+filename = [
+    "/home/ishovkun/Dropbox/Experiments/" + \
+    "TO_BE_ANALYZED/Unconfined/Unconfined/" + \
+    "_Training_Unconfined Sonic endcaps_Berea Mechanical Testing _2015-04-28_001.clf",
+    u'*.clf']
+
+win.load(filename)
 
 win.tree.boxes["Sig1"].setChecked(True)
-# mc.activateAction.trigger()
+mc.addPointAction.trigger()
+mc.cursors[0].translate(600, 0)
+mc.cursors[0].moveToNearest()
+mc.activateAction.trigger()
+
 # # autoscale bug case
 ### win.tree.boxes["Sig1"].setChecked(False)
 

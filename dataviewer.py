@@ -12,6 +12,7 @@ from PySide import QtGui, QtCore
 from pyqtgraph.parametertree import Parameter, ParameterTree
 # from pyqtgraph.parametertree import types as pTypes
 from pyqtgraph.Point import Point
+from copy import copy
 
 # Custom modules
 # from TCI.base_widgets.CursorItem import CursorItem
@@ -269,7 +270,7 @@ class DataViewer(QtGui.QWidget):
         Load new data from the dictionary.
         '''
         logger.info('New data set is chosen')
-        self.sigSaveDataSet.emit(dataSetName)
+        self.sigSaveDataSet.emit(copy(self.currentDataSetName))
         # if we switch to a different data set (if it's not the first),
         # remember cursors for the old one
         if self.currentDataSetName:
