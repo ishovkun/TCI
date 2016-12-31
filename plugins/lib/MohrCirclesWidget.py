@@ -128,11 +128,11 @@ class MohrCirclesWidget(QtGui.QWidget):
         self.addEnvelopeButton = QtGui.QPushButton('Add Envelope')
         addEnvelopeItem.setWidget(0,self.addEnvelopeButton)
 
-    def addData(self,s1,s3,name=None):
+    def addData(self, s1, s3, name=None):
         if name is None:
             name = 'Untitled_%d'%(self.nData)
-        self.s1.append(s1)
-        self.s3.append(s3)
+        self.s1 = np.append(self.s1, s1)
+        self.s3 = np.append(self.s3, s3)
         item = pg.TreeWidgetItem([name])
         self.dNames.append(name)
         self.fpoints.addChild(item)
