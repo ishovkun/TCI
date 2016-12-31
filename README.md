@@ -23,8 +23,8 @@ An interactive slider allows narrowing down to the specific time interval.
 A built-in trend feature can be used to estimate static moduli.
 ![Alt text](screenshots/geomechanic.png)
 
-Mohr circle plugin can automatically match
-two types of failure criteria to the failure points.
+Mohr circle plugin can automatically match two types of failure criteria to
+the failure points.
 
 ![Image for Mohr circle plugin](screenshots/mohr_circles.png)
 
