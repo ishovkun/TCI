@@ -1,8 +1,6 @@
 """
 Demonstrates some customized mouse interaction by drawing a crosshair that follows
 the mouse.
-
-
 """
 
 import numpy as np
@@ -10,10 +8,11 @@ import pyqtgraph as pg
 from pyqtgraph.Qt import QtGui, QtCore
 from pyqtgraph.Point import Point
 
+from TCI.styles.LineColors import CROSS_HAIR_PEN
 
 class CrossHairPlot(pg.PlotItem):
-    vLine = pg.InfiniteLine(angle=90, movable=False)
-    hLine = pg.InfiniteLine(angle=0, movable=False)
+    vLine = pg.InfiniteLine(angle=90, movable=False, pen=CROSS_HAIR_PEN)
+    hLine = pg.InfiniteLine(angle=0, movable=False, pen=CROSS_HAIR_PEN)
 
     def __init__(self):
         super(CrossHairPlot, self).__init__()
@@ -23,8 +22,8 @@ class CrossHairPlot(pg.PlotItem):
     def setCrossHairMode(self, setMode=False):
         if setMode:
             self.chMode = True
-            self.addItem(self.vLine, ignoreBounds = True)
-            self.addItem(self.hLine, ignoreBounds = True)
+            self.addItem(self.vLine, ignoreBounds=True)
+            self.addItem(self.hLine, ignoreBounds=True)
             proxy = pg.SignalProxy(self.scene().sigMouseMoved,
                                    rateLimit=60,
                                    slot=self.mouseMoved)
@@ -55,8 +54,8 @@ class CrossHairPlot(pg.PlotItem):
     def plot(self, *args, **kwargs):
         super(CrossHairPlot, self).plot(*args, **kwargs)
         if self.chMode:
-            self.addItem(self.vLine, ignoreBounds = True)
-            self.addItem(self.hLine, ignoreBounds = True)
+            self.addItem(self.vLine, ignoreBounds=True)
+            self.addItem(self.hLine, ignoreBounds=True)
 
 
 

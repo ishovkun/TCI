@@ -5,8 +5,6 @@
 *** TODO Add reading sample length and other params (mass, density, porosity?)
 ** TODO [#C] Crosshair color (to stylesheet)
 * Sonic part
-** TODO Account for strain when computing arrival times
-** DONE [#A] Finish porting to Python3
 ** TODO [#A] dt can be different in each sonic file
 ** TODO [#B] Shifting to the transmitter signal for each track
    May be different start-recording times and scaling
