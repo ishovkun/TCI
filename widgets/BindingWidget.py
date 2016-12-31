@@ -247,16 +247,16 @@ class BindingWidget(QtGui.QWidget):
         # for mod in self.dmoduli:
         print ('setting up binding widget tree')
         self.tree.clear()
-        self.tree.addItems(self.dmoduli.keys(),group='Dynamic',
+        self.tree.addItems(self.dmoduli.keys(), group='Dynamic',
                            colors=DYNAMIC_MODULI_COLORS)
-        self.tree.addItems(self.smoduli.keys(),group='Static',
+        self.tree.addItems(self.smoduli.keys(), group='Static',
                            colors=STATIC_MODULI_COLORS)
 
     def parameter(self):
         for key in self.parameterActions.keys():
             if self.parameterActions[key].isChecked(): return key
 
-    def parseExpression(self,expr):
+    def parseExpression(self, expr):
         '''
         computes array corresponding to expression
         '''
@@ -274,9 +274,9 @@ class BindingWidget(QtGui.QWidget):
 
     def setupGUI(self):
         pg.setConfigOption('background', (255,255,255))
-        pg.setConfigOption('foreground',(0,0,0))
+        pg.setConfigOption('foreground', (0, 0, 0))
         self.layout = QtGui.QVBoxLayout()
-        self.layout.setContentsMargins(0,0,0,0)
+        self.layout.setContentsMargins(0, 0, 0, 0)
         self.setLayout(self.layout)
         # menu
         self.menuBar = QtGui.QMenuBar()
@@ -285,15 +285,16 @@ class BindingWidget(QtGui.QWidget):
         self.viewMenu = self.menuBar.addMenu('View')
         self.parMenu = self.viewMenu.addMenu('Parameter')
         self.plotVsMenu = self.viewMenu.addMenu('Plot versus')
-        self.plotVsXAction = QtGui.QAction('x',self,checkable=True)
-        self.plotVsYAction = QtGui.QAction('y',self,checkable=True)
+        self.plotVsXAction = QtGui.QAction('x', self, checkable=True)
+        self.plotVsYAction = QtGui.QAction('y', self, checkable=True)
         self.plotVsGroup = QtGui.QActionGroup(self)
         self.plotVsXAction.setActionGroup(self.plotVsGroup)
         self.plotVsYAction.setActionGroup(self.plotVsGroup)
         self.plotVsMenu.addAction(self.plotVsXAction)
         self.plotVsMenu.addAction(self.plotVsYAction)
         self.plotVsXAction.setChecked(True)
-        self.autoScaleAction = QtGui.QAction('Auto scale',self,checkable=True)
+        self.autoScaleAction = QtGui.QAction('Auto scale', self,
+                                             checkable=True)
         self.autoScaleAction.setChecked(True)
         self.viewMenu.addAction(self.autoScaleAction)
         self.parameterGroup = QtGui.QActionGroup(self)
@@ -319,13 +320,3 @@ class BindingWidget(QtGui.QWidget):
 
     def setEnabled(self, enabled=True):
         self.enabled = enabled
-
-if __name__ == '__main__':
-    App = QtGui.QApplication(sys.argv)
-    win = BindingWidget()
-    win.setupTree()
-    win.setupTree()
-    # win.showMaximized()
-    # win.showFullScreen()
-    win.show()
-    App.exec_()

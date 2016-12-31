@@ -21,9 +21,10 @@ class InterpretationSettingsWidget(QtGui.QWidget):
 		self.atime = None
 		self.okButton.pressed.connect(self.ok)
 		self.cancelButton.pressed.connect(self.cancel)
+
 	def loadConfig(self):
 		config = ConfigObj('config.ini')
-		
+
 		# CONFIG FOR UNIAXIAL COMPRESSION
 		# config['Main parameters'] = {}
 		# config['Main parameters']['time'] = 'Time'

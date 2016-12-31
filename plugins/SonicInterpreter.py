@@ -58,8 +58,8 @@ class SonicInterpreter:
         Then load data from the existing global data dictionary
         '''
         # First save data with the old data set key
-        logger.info('Saving data set %s'%(self.current_data_set))
         if self.current_data_set is not None:
+            logger.info('Saving data set %s'%(self.current_data_set))
             self.all_tables[self.current_data_set] = self.sonicViewer.table
             self.all_geo_indices[self.current_data_set] = self.geo_indices
             self.all_indices[self.current_data_set] = self.indices
@@ -76,6 +76,8 @@ class SonicInterpreter:
             self.times = self.all_times[data_set]
             self.sonicViewer.setIndices(self.indices, self.geo_indices)
             # self.sonicViewer.plot_arrival_times_flag = False
+            length = self.parent.props['length']
+            self.interpretationSettings.lengthLine.setValue(length)
             self.setEnabled()
             self.sonicViewer.plot()
 
@@ -277,6 +279,7 @@ class SonicInterpreter:
 
         viewMenu.addSeparator()
 
+
     def bindData(self):
         '''
         bind wave tracks to the time of experiment the were measured.
@@ -338,6 +341,10 @@ class SonicInterpreter:
         # we don't need those anymore
         self.sonicViewer.data = {}
 
+        # set initial length for moduli calculation
+        length = float(self.parent.props['length'])
+        self.interpretationSettings.lengthLine.setValue(length)
+
     def truncateData(self):
         '''
         When slider is moved, truncate sonic data
@@ -371,6 +378,7 @@ class SonicInterpreter:
 
     def connectActions(self):
         self.parent.slider.sigRangeChanged.connect(self.truncateData)
+        self.parent.slider.sigRangeChanged.connect(self.moduliWidget.plot)
         self.contourAction.triggered.connect(self.setViewerMode)
         self.waveFormAction.triggered.connect(self.setViewerMode)
         self.pWaveAction.triggered.connect(self.sonicViewer.showHidePlots)
