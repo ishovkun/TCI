@@ -73,10 +73,10 @@ class MohrCircles:
     @Slot(str)
     def loadDataSet(self, dataSetName):
         if self.dataSet is not None:
-            print('mohr saving dataset: %s'%(dataSetName))
-            self.allCursors[dataSetName] = self.cursors
+            logger.debug('Saving dataset %s'%(self.currentDataSetName))
+            self.allCursors[currentDataSetName] = self.cursors
 
-        print('mohr loading dataset: %s'%(dataSetName))
+        logger.debug('Loading dataset %s'%(dataSetName))
         if dataSetName in self.allCursors.keys():
             self.cursors = self.allCursors[dataSetName]
 

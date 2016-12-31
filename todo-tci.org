@@ -3,7 +3,6 @@
 *** TODO Add better handling of comment section
 *** TODO Add exception handling
 *** TODO Add reading sample length and other params (mass, density, porosity?)
-** TODO [#C] Crosshair color (to stylesheet)
 * Sonic part
 ** TODO [#A] dt can be different in each sonic file
 ** TODO [#B] Shifting to the transmitter signal for each track
@@ -22,9 +21,4 @@
         Also, figure out how to do it properly...
         1. make sure it doesn't break
         2. make sure arrival values are correct
-** TODO [#A] Rename Colors.py into Styles.py
-   and put all the stylystic things in there
-   (such as LabelStyle in the dataviewer class)
 ** TODO [#A] ComboList styles in styles file
-** DONE Logging instead of print commands
-** TODO Mohr circles testing

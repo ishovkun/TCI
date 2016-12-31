@@ -171,7 +171,7 @@ class DataViewer(QtGui.QWidget):
         every_n = (datasize // nrows) + 1
         # counter that will be reset when we leave a row in the slice
         counter = 1
-        for i in xrange(datasize):
+        for i in range(datasize):
             if self.comments[i] != b'' or counter == every_n:
                 active_rows[i] = 1
                 counter = 0
