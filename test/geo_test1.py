@@ -14,5 +14,7 @@ filename = ["/home/ishovkun/Dropbox/Experiments/TO_BE_ANALYZED/1500psi/" + \
 win.load(filename)
 win.tree.boxes["Sig1"].setChecked(True)
 win.plt.setCrossHairMode(True)
+win.plt.setCrossHairMode(False)
+win.settings.show()
 # win.close()
 App.exec_()

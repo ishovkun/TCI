@@ -212,8 +212,9 @@ class DataViewer(QtGui.QWidget):
         self.data = clf_data[2]
         self.comments = clf_data[3]
 
-        if self.data.shape[0] > MAXNROWS:
-            self.sliceData(MAXNROWS)
+        max_points = self.settings.config()['Main parameters']['MaxDataPoints']
+        if self.data.shape[0] > max_points:
+            self.sliceData(max_points)
 
         # this should be in read_clf command
         comments = []

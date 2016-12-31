@@ -7,6 +7,7 @@ import re
 from configobj import ConfigObj
 # from LineWidget import LineWidget
 from ..base_widgets.LineWidget import LineWidget
+from TCI.lib.logger import logger
 
 class MainSettingsWidget(QtGui.QWidget):
     def __init__(self):
@@ -14,44 +15,50 @@ class MainSettingsWidget(QtGui.QWidget):
         self.setupGUI()
 
     def setupGUI(self):
-            # self.setWindowTitle("Igor")
-            self.setGeometry(500, 300, 350, 200)
-            self.layout = QtGui.QVBoxLayout()
-            self.setLayout(self.layout)
-            self.sliderLine = LineWidget(type='text',label='Slider parameter')
-            self.timeLine = LineWidget(type='text',label='Time parameter (Do not touch)')
-            self.fileHeaderLine = LineWidget(type='text',label='File header parameters')
-            self.sampleLengthLine = LineWidget(type='text',label='Sample length parameter')
-            self.layout.addWidget(self.sliderLine)
-            self.layout.addWidget(self.timeLine)
-            self.layout.addWidget(self.fileHeaderLine)
-            self.layout.addWidget(self.sampleLengthLine)
-            self.buttonsWidget = QtGui.QWidget()
-            self.layout.addWidget(self.buttonsWidget)
-            self.buttonsLayout = QtGui.QHBoxLayout()
-            self.buttonsWidget.setLayout(self.buttonsLayout)
+        # self.setWindowTitle("Igor")
+        self.setGeometry(500, 300, 350, 200)
+        self.layout = QtGui.QVBoxLayout()
+        self.setLayout(self.layout)
+        self.sliderLine = LineWidget(type='text',label='Slider parameter')
+        self.timeLine = LineWidget(type='text',label='Time parameter (Do not touch)')
+        self.fileHeaderLine = LineWidget(type='text',label='File header parameters')
+        self.sampleLengthLine = LineWidget(type='text',label='Sample length parameter')
+        self.maxPointsLine = LineWidget(type='int', label='Maximum points #')
+        self.layout.addWidget(self.sliderLine)
+        self.layout.addWidget(self.timeLine)
+        self.layout.addWidget(self.fileHeaderLine)
+        self.layout.addWidget(self.sampleLengthLine)
+        self.layout.addWidget(self.maxPointsLine)
+        self.maxPointsLine.box.setRange(1e2, 1e7)
+        self.buttonsWidget = QtGui.QWidget()
+        self.layout.addWidget(self.buttonsWidget)
+        self.buttonsLayout = QtGui.QHBoxLayout()
+        self.buttonsWidget.setLayout(self.buttonsLayout)
 
-            # self.okButton = QtGui.QPushButton('OK')
-            # self.cancelButton = QtGui.QPushButton('Cancel')
-            # self.buttonsLayout.addWidget(self.okButton)
-            # self.buttonsLayout.addWidget(self.cancelButton)
+        # self.okButton = QtGui.QPushButton('OK')
+        # self.cancelButton = QtGui.QPushButton('Cancel')
+        # self.buttonsLayout.addWidget(self.okButton)
+        # self.buttonsLayout.addWidget(self.cancelButton)
 
     def setConfig(self, config):
-            self.sliderLine.setValue(config['slider'])
-            self.timeLine.setValue(config['time'])
-            self.fileHeaderLine.setValue(config['fileheader'])
-            self.sampleLengthLine.setValue(config['SampleLengthParameter'])
-            self.conf = config
+        self.sliderLine.setValue(config['slider'])
+        self.timeLine.setValue(config['time'])
+        self.fileHeaderLine.setValue(config['fileheader'])
+        self.sampleLengthLine.setValue(config['SampleLengthParameter'])
+        self.maxPointsLine.setValue(int(config['MaxDataPoints']))
+        self.conf = config
 
     def config(self):
         time = self.timeLine.value()
         slider = self.sliderLine.value()
         fileHeaderText = self.fileHeaderLine.value()
         slengthpar = self.sampleLengthLine.value()
+        max_points = self.maxPointsLine.value()
         self.conf['slider'] = slider
         self.conf['time'] = time
         self.conf['fileheader'] = fileHeaderText
         self.conf['SampleLengthParameter'] = slengthpar
+        self.conf['MaxDataPoints'] = max_points
         return self.conf
 
     def getHeaderExpr(self,text=None):

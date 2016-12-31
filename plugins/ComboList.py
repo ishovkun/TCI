@@ -110,8 +110,8 @@ class ComboList(QtGui.QMainWindow):
         colorButton.setColor(color)
         removeButton = QtGui.QPushButton("Remove", self)
         self.removeButtons[name] = removeButton
-        item.setWidget(1,colorButton)
-        item.setWidget(2,removeButton)
+        item.setWidget(1, colorButton)
+        item.setWidget(2, removeButton)
         removeButton.clicked.connect(self.removeItem)
         self.xData[name] = xdata
         self.yData[name] = ydata
@@ -134,7 +134,7 @@ class ComboList(QtGui.QMainWindow):
             linestyle = pg.mkPen(color=color, width=3)
             x = self.xData[name]
             y = self.yData[name]
-            self.plt.plot(x,y,pen=linestyle, name=name)
+            self.plt.plot(x, y, pen=linestyle, name=name)
 
         self.plt.enableAutoRange(enable=True)
         self.plt.setLabel('left',self.props.yname,**self.labelStyle)
@@ -144,7 +144,7 @@ class ComboList(QtGui.QMainWindow):
 
     def setupPlotWindow(self):
         pg.setConfigOption('background', (255,255,255))
-        pg.setConfigOption('foreground',(0,0,0))
+        pg.setConfigOption('foreground', (0, 0, 0))
         pg.setConfigOptions(antialias=True)
         self.plotWindow = QtGui.QWidget()
         self.plotWindow.setWindowTitle("Combo Plot")

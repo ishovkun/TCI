@@ -26,13 +26,13 @@ class LineWidget(QtGui.QWidget):
             self.box = QtGui.QSpinBox(value=10)
         elif type == 'label':
             self.box = QtGui.QLabel()
-            
+
         self.layout.addWidget(self.label)
         self.layout.addWidget(self.box)
-        
+
     def setLabel(self,text):
         self.label.setText(text)
-        
+
     def setValues(self, values):
         '''
         if it's a list box, values is a list, otherwise idk
@@ -43,7 +43,7 @@ class LineWidget(QtGui.QWidget):
             self.box.addItems(values)
         elif self.type == 'value' or self.type == 'int':
             self.box.setValue(values)
-            
+
     def setValue(self, value):
         if self.type == 'text' or self.type == 'label':
             self.box.setText(value)
@@ -52,15 +52,15 @@ class LineWidget(QtGui.QWidget):
             self.box.setCurrentIndex(ind)
         elif self.type == 'value' or self.type == 'int':
             self.box.setValue(value)
-            
+
     def value(self):
         if self.type == 'text':
             return self.box.text()
         elif self.type == 'list':
             return self.box.currentText()
-        elif self.type == 'value':
+        elif self.type in ['value', 'int']:
             return self.box.value()
-    
+
     def addItem(self,item):
         '''
         meaningful only for list items
@@ -69,7 +69,7 @@ class LineWidget(QtGui.QWidget):
         elif self.type == 'list':
             self.box.addItem(item)
         elif self.type == 'value': return
-        
+
     def removeItem(self,item):
         '''
         meaningful only for list items
@@ -79,6 +79,6 @@ class LineWidget(QtGui.QWidget):
             ind = self.box.findText(str(item))
             self.box.removeItem(ind)
         elif self.type == 'value': return
-        
+
     def emitSigValueChanged(self):
         self.sigValueChanged.emit(self)
