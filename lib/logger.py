@@ -1,9 +1,16 @@
 import logging
 
 logger = logging.getLogger()
-handler = logging.StreamHandler()
 formatter = logging.Formatter(
         '%(levelname)-8s %(module)-20s %(funcName)-20s  %(message)s')
-handler.setFormatter(formatter)
-logger.addHandler(handler)
+
+console_handler = logging.StreamHandler()
+console_handler.setFormatter(formatter)
+logger.addHandler(console_handler)
+
+file_handler = logging.FileHandler('TCI.log')
+file_handler.setLevel(logging.INFO)
+file_handler.setFormatter(formatter)
+logger.addHandler(file_handler)
+
 logger.setLevel(logging.DEBUG)

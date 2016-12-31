@@ -1,9 +1,9 @@
 from PySide import QtGui
 import sys
-from TCI import dataviewer
+from TCI.widgets.DataViewer import DataViewer
 
 App = QtGui.QApplication(sys.argv)
-win = dataviewer.DataViewer()
+win = DataViewer()
 # win.showMaximized()
 win.show()
 # win.showFullScreen()

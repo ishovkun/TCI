@@ -1,9 +1,9 @@
+import sys, os
+from TCI.widgets.DataViewer import DataViewer
 from PySide import QtGui
-import sys
-from TCI import dataviewer
 
 App = QtGui.QApplication(sys.argv)
-win = dataviewer.DataViewer()
+win = DataViewer()
 win.show()
 
 filename = ["/home/ishovkun/Dropbox/Experiments/TO_BE_ANALYZED/1500psi/" + \
