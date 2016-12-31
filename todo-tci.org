@@ -1,8 +1,7 @@
 * Dataviewer part
 ** [#B] Finish InputReader
-*** TODO Add better handling of comment section
-*** TODO Add exception handling
 *** TODO Add reading sample length and other params (mass, density, porosity?)
+**** Make it a props dictionary
 * Sonic part
 ** TODO [#A] dt can be different in each sonic file
 ** TODO [#B] Shifting to the transmitter signal for each track

@@ -32,7 +32,6 @@ from TCI.plugin_list import get_plugin_list
 BadHeaderMessage = '''Couldn't locate the header.
 Go to Preferences->Main settings and adjust the header parameters'''
 
-
 ModifyingParameters = [
     {'name':'Plot vs.','type':'list','values':['x','y']},
     {'name':'Parameter', 'type':'list'},
@@ -47,8 +46,6 @@ ModifyingParameters = [
         {'name':'Intersection', 'type':'float', 'value':0.0,'dec':True}
     ]},
 ]
-
-MAXNROWS = 1e4  # if data is longer, we slice data
 
 class DataViewer(QtGui.QWidget):
     # to update plots in visible plugins
@@ -94,6 +91,8 @@ class DataViewer(QtGui.QWidget):
         self.allIndices = {}    # contains all truncated indices ???
         self.allSampleLengths = {}      # ????
         self.allUnits = {}
+        self.props = {}         # for extra data sa sample length, density, poro
+        self.allProps = {}
         self.settings.okButton.pressed.connect(self.settings.hide)
         self.exitAction.triggered.connect(sys.exit)
         self.settingsButton.triggered.connect(self.settings.show)
@@ -223,11 +222,15 @@ class DataViewer(QtGui.QWidget):
         self.comments = np.array(comments)
         # end
 
-        # this is to remember this name when we wanna save file
+        # remember this name when we wanna save file
         self.makeLastDir(filename[0]) # extract filename from absolute path
         self.filename = os.path.basename(filename[0])
 
-        # # remove extension from name
+        # read additional properties
+        length_par = self.settings.config()['Main parameters']['SampleLengthParameter']
+        self.props['length'] = self.iReader.findProperty(length_par)
+
+        # remove extension from name
         dataSetName = os.path.splitext(self.filename)[0]
         self.currentDataSetName = dataSetName
         self.addDataSet(dataSetName)
@@ -279,12 +282,14 @@ class DataViewer(QtGui.QWidget):
             self.allIndices[self.currentDataSetName] = self.indices
             # self.allCursors[self.currentDataSetName] = self.cursors
             self.allComments[self.currentDataSetName] = self.comments
+            self.allProps[self.currentDataSetName] = self.props
 
         logger.debug('Setting new data')
         # set current data dictionaries to new values
         self.currentDataSetName = dataSetName
         self.data = self.allData[dataSetName]
         self.units = self.allUnits[dataSetName]
+        self.props = self.allProps[dataSetName]
         # self.sampleLength = self.allSampleLengths[dataSetName]
         self.indices = self.allIndices[dataSetName]
         self.dataSetMenu.setDefaultAction(self.dataSetButtons[dataSetName])

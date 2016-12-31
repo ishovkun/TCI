@@ -2,6 +2,7 @@ import numpy as np
 import io
 import re
 import warnings
+from TCI.lib.logger import logger
 
 class InputReader:
     max_n_rows = 1e5
@@ -10,19 +11,28 @@ class InputReader:
 
     def read_clf(self, fname, headerexpr="Time.*Sig1[^\n]+",
                  compression=None):
-        
+
         with io.open(fname, 'r', errors='replace') as f:
             text = f.read()
+        self.text = text
         headerpos = self.findHeader(text, expr=headerexpr)
         if headerpos is None:
             return "No header", None
-        
+
         header = text[headerpos[0]:headerpos[1]]
         names, units = self.parseHeader(header)
 
         raw_table_text = text[headerpos[1]:]
         values, comments = self.readUnstructuredTable(raw_table_text)
         return names, units, values, comments
+
+    def findProperty(self, expr):
+        position = self.findHeader(self.text, expr)
+        text = self.text[position[1]:]
+        expr = "[^\n]+"
+        match = re.search(expr, text)
+        param = text[match.start(): match.end()]
+        return param
 
     def readUnstructuredTable(self, text):
         '''
@@ -36,7 +46,7 @@ class InputReader:
         raw_data = np.genfromtxt(data_bytes, delimiter="\t",
                                  dtype=None)
         types = self._checkForConsistency(raw_data)
-        
+
         # get types of the data in the table
         n_float_columns = 0
         n_string_columns = 0
@@ -50,7 +60,7 @@ class InputReader:
 
         n_rows = raw_data.shape[0]
         n_columns = len(raw_data[0])
-        
+
         number_data = np.zeros([n_rows, n_float_columns])
         if (n_string_columns > 0):
             string_data = np.empty([n_rows, n_string_columns],
@@ -71,14 +81,14 @@ class InputReader:
                       n_string_columns > 0):
                     string_data[i, sj] = row[j]
                     sj += 1
-                    
+
         return number_data, string_data
 
     def _checkForConsistency(self, table):
         '''
         checks whether each element of columns
         have particulare types
-        Returns: 
+        Returns:
             type: list
                 list of type of all columns
         Raises:
@@ -111,9 +121,9 @@ class InputReader:
 
     def parseHeader(self, header):
         '''
-	Parces header of data
-	returns lists of names and units
-	'''
+	    Parces header of data
+	    returns lists of names and units
+	    '''
         entries = header.split("\t")
         names = []
         units = []
