@@ -2,7 +2,7 @@ from PySide import QtGui
 
 
 
-def setup_plot(plot,tickFontSize=12,tickOffset=8,axisWidth=70):
+def setup_plot(plot, tickFontSize=12, tickOffset=8, axisWidth=90):
 	'''
 	input - pyqtgraph plot
 	sets decent fonts for the plot
