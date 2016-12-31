@@ -12,9 +12,12 @@ filename = ["/home/ishovkun/Dropbox/Experiments/TO_BE_ANALYZED/1500psi/" + \
 win.load(filename)
 win.tree.boxes["Sig1"].setChecked(True)
 
+combo = win.plugins[2]
 # Combolist check
-win.comboList.addSceneAction.trigger()
-win.comboList.activateAction.trigger()
-win.comboList.plotButton.click()
+combo.addSceneAction.trigger()
+combo.activateAction.trigger()
+combo.plotButton.click()
 
-win.close()
+# win.close()
+
+App.exec_()

@@ -18,18 +18,15 @@ from pyqtgraph.Point import Point
 from TCI.widgets.SettingsWidget import SettingsWidget
 from TCI.widgets.CParameterTree import CParameterTree
 from TCI.widgets.CrossHairPlot import CrossHairPlot
-from TCI.gui_settings.setup_plot import setup_plot
-from TCI.gui_settings.Colors import DataViewerTreeColors
-from TCI.gui_settings.LabelStyles import *
+from TCI.styles.setup_plot import setup_plot
+from TCI.styles.LineColors import DATA_VIEWER_TREE_COLORS
+from TCI.styles.LabelStyles import *
 from TCI.base_widgets.Slider import SliderWidget
 from TCI.base_classes.InputReader import InputReader
 from TCI.lib.logger import logger
 
 # Plugins
 from TCI.plugin_list import get_plugin_list
-# from TCI.plugins.ComboList import ComboList
-# from TCI.plugins.CalculatorPlot import CalculatorPlot
-# from TCI.plugins.MohrCircles import MohrCircles
 
 BadHeaderMessage = '''Couldn't locate the header.
 Go to Preferences->Main settings and adjust the header parameters'''
@@ -50,7 +47,6 @@ ModifyingParameters = [
     ]},
 ]
 
-TrendPen = pg.mkPen(color=(72, 209, 204), width=3)
 MAXNROWS = 1e4  # if data is longer, we slice data
 
 class DataViewer(QtGui.QWidget):
@@ -74,9 +70,6 @@ class DataViewer(QtGui.QWidget):
         self.plugins = []   # list to store plugin items
         self.loadPlugins()
         self.setupGUI()
-        # self.comboList = ComboList(parent=self)
-        # self.calcPlot = CalculatorPlot(parent=self)
-        # self.mcPlugin = MohrCircles(parent=self)
         # default plots will be drawn with multiple y and single x
         self.mainAxis = 'x'
         self.sliderParam = self.settings.config()['Main parameters']['slider']
@@ -316,7 +309,7 @@ class DataViewer(QtGui.QWidget):
                                           children=self.modparamlist)
         # modify main tree
         self.tree.clear()
-        self.tree.addItems(self.keys, DataViewerTreeColors)
+        self.tree.addItems(self.keys, DATA_VIEWER_TREE_COLORS)
         self.modtree.setParameters(self.modparams, showTop=True)
         self.assignAttributes() # to get shorter names
 
@@ -453,12 +446,12 @@ class DataViewer(QtGui.QWidget):
             self.plt.plot(xdata, ydata,
                 pen=linestyle, name=plotlist[i])
             ylabel += " " + yunits
-            self.plt.setLabel('left', ylabel, **AxisLabelStyle)
+            self.plt.setLabel('left', ylabel, **AXIS_LABEL_STYLE)
 
         xunits = self.findUnits(xlabel)
         xlabel += " " + xunits
         # if len(plotlist)>0: self.bindCursors(data[xlabel],data[ylabel])
-        self.plt.setLabel('bottom', xlabel, **AxisLabelStyle)
+        self.plt.setLabel('bottom', xlabel, **AXIS_LABEL_STYLE)
 
     def plotVersusY(self):
         '''
@@ -647,8 +640,8 @@ class DataViewer(QtGui.QWidget):
         # set nice fonts
         setup_plot(self.plt)
 
-        self.plt.setLabel('bottom', 'X Axis', **AxisLabelStyle)
-        self.plt.setLabel('left', 'Y Axis', **AxisLabelStyle)
+        self.plt.setLabel('bottom', 'X Axis', **AXIS_LABEL_STYLE)
+        self.plt.setLabel('left', 'Y Axis', **AXIS_LABEL_STYLE)
         self.plt.enableAutoRange(enable=True)
         self.autoScaleButton.triggered.connect(self.plt.enableAutoRange)
 

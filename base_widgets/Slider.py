@@ -3,7 +3,7 @@ from PySide import QtCore, QtGui
 import sys
 import pyqtgraph as pg
 import numpy as np
-from ..lib.LabelStyles import *
+from TCI.styles.LabelStyles import *
 
 class Slider(pg.GradientEditorItem):
     def __init__(self, *args, **kargs):
@@ -25,11 +25,11 @@ class SliderWidget(pg.GraphicsLayout):
     def emitRangeChangedSig(self):
         self.sigRangeChanged.emit(self)
         self.interval()
-        
+
     def setupGUI(self):
         self.setWindowTitle("Igor")
-        pg.setConfigOption('background', (255,255,255))
-        pg.setConfigOption('foreground',(0,0,0))
+        pg.setConfigOption('background', (255, 255, 255))
+        pg.setConfigOption('foreground', (0, 0, 0))
         # self.setGeometry(500, 300, 350, 200)
         self.slider = Slider(orientation='top', allowAdd=False)
         # self.slider = pg.TickSliderItem(orientation='top', allowAdd=False)
@@ -37,18 +37,18 @@ class SliderWidget(pg.GraphicsLayout):
         self.slider.tickSizer = 0
         self.slider.rectSize = 0
         for i in self.slider.ticks:
-            self.slider.setTickColor(i, QtGui.QColor(150,150,150))
+            self.slider.setTickColor(i, QtGui.QColor(150, 150, 150))
         self.axis = pg.AxisItem('bottom')
         self.axis = Axis('bottom')
         self.nextRow()
         self.addItem(self.axis)
         # self.slider.setMaxDim(5)
-        self.axis.setStyle(tickTextOffset=TickOffset)
-        self.axis.tickFont = TickFont
+        self.axis.setStyle(tickTextOffset=TICK_OFFSET)
+        self.axis.tickFont = TICK_FONT_TYPE
 
     def setRange(self, min, max):
         self.axis.setRange(min, max)
-        
+
     def axisRange(self):
         return self.axis.range
 
@@ -60,7 +60,7 @@ class SliderWidget(pg.GraphicsLayout):
         scale = self.axisRange()[1]
         interval = np.array(sorted(interval))*scale
         return interval
-    
+
     def setInterval(self, interval):
         '''
         interval list [min, max]
@@ -69,7 +69,7 @@ class SliderWidget(pg.GraphicsLayout):
         for i, tick in enumerate(self.slider.ticks):
             self.slider.setTickValue(tick, interval[i])
 
-            
+
 if __name__ == '__main__':
     pg.setConfigOption('foreground',(0,0,0))
     pg.setConfigOption('background', (255,255,255))
@@ -81,4 +81,3 @@ if __name__ == '__main__':
     view.setGeometry(80, 50, 800, 600)
     view.show()
     App.exec_()
-

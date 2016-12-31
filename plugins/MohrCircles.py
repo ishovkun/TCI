@@ -79,16 +79,20 @@ class MohrCircles:
     def newDataSet(self):
         self.allCursors[self.parent.currentDataSetName] = []
 
-    def addCursor(self):
+    def addCursor(self, posx=None, posy = None):
         logger.info('adding a Cursor')
         viewrange = self.parent.plt.viewRange()
 
         # this is a weird way to scale a new cursor initially
         rangeX = [viewrange[0][0], viewrange[0][1]]
         rangeY = [viewrange[1][0], viewrange[1][1]]
-        pos = [(rangeX[0] + rangeX[1])/2, (rangeY[0] + rangeY[1])/2]
-        xSize = float(rangeX[1]-rangeX[0])/50*800/self.parent.plt.width()
-        ySize = float(rangeY[1]-rangeY[0])/50*800/self.parent.plt.height()
+        if posx is None and posy is None:
+            pos = [(rangeX[0] + rangeX[1])/2, (rangeY[0] + rangeY[1])/2]
+        else:
+            pos = [posx, posy]
+
+        xSize = (rangeX[1]-rangeX[0])/50*800/self.parent.plt.width()
+        ySize = (rangeY[1]-rangeY[0])/50*800/self.parent.plt.height()
         cursor = CursorItem(pos, [xSize,ySize], pen=(4, 9))
         self.cursors.append(cursor)
         self.allCursors[self.parent.currentDataSetName] = self.cursors
@@ -111,8 +115,8 @@ class MohrCircles:
         viewrange = plt.viewRange()
         rangeX = [viewrange[0][0], viewrange[0][1]]
         rangeY = [viewrange[1][0], viewrange[1][1]]
-        xSize = float(rangeX[1]-rangeX[0])*16/plt.width()
-        ySize = float(rangeY[1]-rangeY[0])*16/plt.height()
+        xSize = (rangeX[1]-rangeX[0])*16/plt.width()
+        ySize = (rangeY[1]-rangeY[0])*16/plt.height()
         size = np.array([xSize,ySize])
         for cursor in self.cursors:
             # workaround to force the cursor stay on the same place

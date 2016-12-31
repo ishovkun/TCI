@@ -12,8 +12,8 @@ import numpy as np
 # custom modules
 from TCI.base_classes.MultiLine import MultiLine
 from TCI.lib.functions import *
-from TCI.lib.Gradients import Gradients
-from TCI.lib.setup_plot import setup_plot
+from TCI.styles.Gradients import Gradients
+from TCI.styles.setup_plot import setup_plot
 from TCI.base_widgets.ViewBox import ViewBox
 from TCI.base_widgets.TableWidget import TableWidget
 from TCI.base_widgets.TriplePlotWidget import TriplePlotWidget

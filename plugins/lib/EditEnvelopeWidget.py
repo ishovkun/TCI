@@ -5,7 +5,7 @@ from PySide import QtCore, QtGui
 import numpy as np
 from TCI.base_widgets.ColorButton import ColorButton
 from TCI.lib.utils import findInDict
-from TCI.lib.setup_plot import setup_plot
+from TCI.styles.setup_plot import setup_plot
 
 CoulumbText = 'Mohr - Coulomb'
 HoekText = 'Hoek - Brown'
@@ -19,10 +19,10 @@ Mohr-Coulumb criterion:
 <BR>
 Hoek-Brown Criterion:
 <BR>
-&sigma;<sub>1</sub> = 
-	&sigma;<sub>3</sub> + 
+&sigma;<sub>1</sub> =
+	&sigma;<sub>3</sub> +
 	&radic;(
-		m UCS &sigma;<sub>3</sub> + 
+		m UCS &sigma;<sub>3</sub> +
 		UCS<sup>2</sup>
 		)
 """
@@ -31,7 +31,7 @@ class EditEnvelopeWidget(QtGui.QMainWindow):
 	def __init__(self):
 		super(EditEnvelopeWidget,self).__init__()
 		self.setupGUI()
-                
+
 	def setupGUI(self):
 		self.setWindowTitle("Edit envelope options")
 		self.setGeometry(500, 300, 400, 100)

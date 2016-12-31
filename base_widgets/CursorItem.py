@@ -22,11 +22,13 @@ class CursorItem(EllipseROI):
         EllipseROI.mouseDragEvent(self,ev)
         if self.translatable and self.isMoving and ev.buttons() == QtCore.Qt.LeftButton:
             if self.hasData: self.moveToNearest()
+
     def setData(self,xarray,yarray):
         self.xarray = xarray
         self.yarray = yarray
         self.hasData = True
         self.moveToNearest()
+
     def moveToNearest(self):
         '''
         moves cursor to the nearest point in x&y array
@@ -36,6 +38,7 @@ class CursorItem(EllipseROI):
         self.index = (np.abs(self.xarray-self.position()[0])).argmin()
         newPos = Point(self.xarray[self.index],self.yarray[self.index])
         self.translate(newPos - self.pos() - self.size()/2, snap=None, finish=False)
+
     def position(self):
     	return [self.pos().x()+self.size().x()/2,self.pos().y()+self.size().y()/2]
     def getSize(self):

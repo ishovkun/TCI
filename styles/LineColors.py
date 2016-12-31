@@ -1,4 +1,6 @@
-DataViewerTreeColors = [
+import pyqtgraph as pg
+
+DATA_VIEWER_TREE_COLORS = [
     (255,255,0),    # Ev
     (255,255,0),    # Ex
     (0,0,255),      # Ey
@@ -23,7 +25,7 @@ DataViewerTreeColors = [
     (0,0,255),      # Yb
 ]
 
-DynamicModuliColors = [
+DYNAMIC_MODULI_COLORS = [
     (170,0,255),    # Poiss X
     (255,0,255),    # Poiss Y
     (0,0,255),      # SHear x
@@ -31,7 +33,9 @@ DynamicModuliColors = [
     (255,255,0),    # Young_y
 ]
 
-StaticModuliColors = [
+STATIC_MODULI_COLORS =[
     (255,0,0),       # poiss
     (0,255,0),       # young
 ]
+
+TREND_PEN = pg.mkPen(color=(72, 209, 204), width=3)

@@ -4,10 +4,10 @@ import numpy as np
 from scipy.interpolate import interp1d
 import pyqtgraph as pg
 from PySide import QtGui, QtCore
-from TCI.gui_settings.setup_plot import setup_plot
+from TCI.styles.setup_plot import setup_plot
 from TCI.widgets.CParameterTree import CParameterTree
-from TCI.gui_settings.LabelStyles import AxisLabelStyle
-from TCI.gui_settings.Colors import DynamicModuliColors,StaticModuliColors
+from TCI.styles.LabelStyles import AXIS_LABEL_STYLE
+from TCI.styles.LineColors import DYNAMIC_MODULI_COLORS, STATIC_MODULI_COLORS
 
 WaveTypes = ['P','Sx','Sy']
 psi = 6894.75729
@@ -237,8 +237,8 @@ class BindingWidget(QtGui.QWidget):
                         xName = key
                         xUnits = self.config['units'][key]
                 self.plt.plot(x,y,pen=linestyle)
-                self.plt.setLabel('left',yName,units = yUnits,**AxisLabelStyle)
-                self.plt.setLabel('bottom',xName,units = xUnits,**AxisLabelStyle)
+                self.plt.setLabel('left',yName,units = yUnits, **AXIS_LABEL_STYLE)
+                self.plt.setLabel('bottom',xName,units = xUnits, **AXIS_LABEL_STYLE)
 
         if self.autoScaleAction.isChecked():
             self.plt.enableAutoRange()
@@ -247,8 +247,10 @@ class BindingWidget(QtGui.QWidget):
         # for mod in self.dmoduli:
         print ('setting up binding widget tree')
         self.tree.clear()
-        self.tree.addItems(self.dmoduli.keys(),group='Dynamic',colors=DynamicModuliColors)
-        self.tree.addItems(self.smoduli.keys(),group='Static',colors=StaticModuliColors)
+        self.tree.addItems(self.dmoduli.keys(),group='Dynamic',
+                           colors=DYNAMIC_MODULI_COLORS)
+        self.tree.addItems(self.smoduli.keys(),group='Static',
+                           colors=STATIC_MODULI_COLORS)
 
     def parameter(self):
         for key in self.parameterActions.keys():

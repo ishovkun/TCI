@@ -12,14 +12,20 @@ filename = ["/home/ishovkun/Dropbox/Experiments/TO_BE_ANALYZED/1500psi/" + \
 win.load(filename)
 win.tree.boxes["Sig1"].setChecked(True)
 
-# Mohr circle actions
-win.mcPlugin.addPointAction.trigger()
-win.mcPlugin.addPointAction.trigger()
-win.mcPlugin.activateAction.trigger()
-win.settingsButton.trigger()
-win.tree.boxes["Sig1"].setChecked(True)
-win.mcPlugin.activateAction.trigger()
-# autoscale bug case
-win.tree.boxes["Sig1"].setChecked(False)
+# find mohr circle plugin
+mc = win.plugins[1]
+mc.addPointAction.trigger()
+# print(mc.cursors)
+mc.cursors[0].translate(700, 0)
+mc.cursors[0].moveToNearest()
 
-win.close()
+mc.addPointAction.trigger()
+mc.activateAction.trigger()
+
+win.tree.boxes["Sig1"].setChecked(True)
+# mc.activateAction.trigger()
+# # autoscale bug case
+### win.tree.boxes["Sig1"].setChecked(False)
+
+# win.close()
+App.exec_()

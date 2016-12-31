@@ -5,9 +5,9 @@ import pyqtgraph as pg
 from PySide import QtGui, QtCore
 
 # custom modules
-from ..lib.setup_plot import setup_plot
-from ..base_widgets.ColorButton import ColorButton
-from ..base_widgets.CheckBox import CheckBox
+from TCI.styles.setup_plot import setup_plot
+from TCI.base_widgets.ColorButton import ColorButton
+from TCI.base_widgets.CheckBox import CheckBox
 from TCI.lib.logger import logger
 
 LabelStyle = {'color': '#000000', 'font-size': '14pt','font':'Times'}

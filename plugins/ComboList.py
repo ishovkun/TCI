@@ -4,10 +4,10 @@ import pyqtgraph as pg
 from PySide import QtCore, QtGui
 import numpy as np
 # from CParameterTree import ColorButton
-from ..widgets.CParameterTree import ColorButton
-from ..lib.utils import findInDict
-from ..lib.setup_plot import setup_plot
-from ..widgets.CustomizingWindow import CustomizingWindow
+from TCI.widgets.CParameterTree import ColorButton
+from TCI.lib.utils import findInDict
+from TCI.styles.setup_plot import setup_plot
+from TCI.widgets.CustomizingWindow import CustomizingWindow
 
 rand = lambda: np.random.rand()
 

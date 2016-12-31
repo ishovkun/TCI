@@ -4,9 +4,10 @@ import pyqtgraph as pg
 import numpy as np
 from copy import copy
 from PySide import QtGui, QtCore
-from TCI.lib.Gradients import Gradients
-from TCI.lib.setup_plot import setup_plot
 from TCI.base_widgets.PlotItem import PlotItem
+
+from TCI.styles.Gradients import Gradients
+from TCI.styles.setup_plot import setup_plot
 
 
 WAVE_TYPES = ['P','Sx','Sy']

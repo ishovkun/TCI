@@ -14,9 +14,12 @@ import sys
 from scipy.optimize import curve_fit
 from pyqtgraph.parametertree import Parameter, ParameterTree
 from pyqtgraph.parametertree import types as pTypes
-from TCI.lib.setup_plot import setup_plot
+
+# custom
+from TCI.styles.setup_plot import setup_plot
 from TCI.base_widgets import ColorButton, CheckBox
 from .EditEnvelopeWidget import EditEnvelopeWidget
+from TCI.lib.logger import logger
 
 EnvelopeParameters = [
     {'name':'Cohesion', 'type':'float', 'value':300.0,'step':10.0},
@@ -80,13 +83,12 @@ class MohrCirclesWidget(QtGui.QWidget):
 
     def callAddEnvelope(self):
         name = self.edit.nameBox.text()
-        self.addEnvelope(etype=self.edit.value(),name=name)
+        self.addEnvelope(etype=self.edit.value(), name=name)
         self.edit.hide()
 
     def setupGUI(self):
         pg.setConfigOption('background', (255,255,255))
-        pg.setConfigOption('foreground',(0,0,0))
-        self.setWindowIcon(QtGui.QIcon('../images/Logo.png'))
+        pg.setConfigOption('foreground', (0,0,0))
         self.setGeometry(80, 30, 1000, 700)
         # layout is the main layout widget
         self.layout = QtGui.QVBoxLayout()
@@ -126,7 +128,7 @@ class MohrCirclesWidget(QtGui.QWidget):
         addEnvelopeItem = pg.TreeWidgetItem([''])
         self.tree.addTopLevelItem(addEnvelopeItem)
         self.addEnvelopeButton = QtGui.QPushButton('Add Envelope')
-        addEnvelopeItem.setWidget(0,self.addEnvelopeButton)
+        addEnvelopeItem.setWidget(0, self.addEnvelopeButton)
 
     def addData(self, s1, s3, name=None):
         if name is None:
@@ -153,7 +155,8 @@ class MohrCirclesWidget(QtGui.QWidget):
         self.generateCircles()
         self.addEnvelope()
 
-    def addEnvelope(self,etype='Coulomb',name='Env'):
+    def addEnvelope(self, etype='Coulomb', name='Env'):
+        logger.info("Adding %s failure envelope: name %s"%(etype, name))
         item = pg.TreeWidgetItem([name])
         self.envelopes.addChild(item)
         self.eNames.append(name)
@@ -167,6 +170,7 @@ class MohrCirclesWidget(QtGui.QWidget):
         item.setExpanded(True)
         self.eBoxes[name] = {}
         colorItem = pg.TreeWidgetItem(['Color'])
+
         if etype == 'Coulomb':
             item1 = pg.TreeWidgetItem(['Friction Angle'])
             item2 = pg.TreeWidgetItem(['Cohesion'])
@@ -178,8 +182,10 @@ class MohrCirclesWidget(QtGui.QWidget):
             step1 = 1
             step2 = 1
         else:
-            # print(etype)
+            logger.error("Envelope type unknows: %s"%(etype))
+            # raise NotImplementedError("Envelope type unknows: %s"%(etype))
             return 0
+
         item.addChild(colorItem)
         item.addChild(item1)
         item.addChild(item2)
@@ -196,16 +202,16 @@ class MohrCirclesWidget(QtGui.QWidget):
             child = pg.TreeWidgetItem([dname])
             item.addChild(child)
             box = CheckBox.CheckBox()
-            child.setWidget(2,box)
+            child.setWidget(2, box)
             self.eBoxes[name][dname] = box
             box.click()
-            box.clicked.connect(lambda:self.getEnvelope(name))
+            box.clicked.connect(lambda: self.getEnvelope(name))
 
         removeEnvelopeItem = pg.TreeWidgetItem([''])
         item.addChild(removeEnvelopeItem)
         removeButton = QtGui.QPushButton('Remove')
-        removeEnvelopeItem.setWidget(2,removeButton)
-        removeButton.clicked.connect(lambda:self.removeEnvelope(item))
+        removeEnvelopeItem.setWidget(2, removeButton)
+        removeButton.clicked.connect(lambda: self.removeEnvelope(item))
         colorButton.sigColorChanged.connect(self.plot)
         self.nEnvelopes += 1
         self.getEnvelope(eName=name)
@@ -237,25 +243,23 @@ class MohrCirclesWidget(QtGui.QWidget):
             s1.append(500)
             s3.append(0)
         if (s1!=[]) and (s3!=[]):
-            par1,par2 = self.computeEnvelope(s1,s3,etype)
+            par1, par2 = self.computeEnvelope(s1, s3, etype)
             self.fBoxes[eName].setValue(par1)
             self.cBoxes[eName].setValue(par2)
 
-    def computeEnvelope(self,s1,s3,etype='Coulomb'):
+    def computeEnvelope(self, s1, s3, etype='Coulomb'):
         s1 = np.array(s1)
         s3 = np.array(s3)
         if etype == 'Coulomb':
-            popt, pcov = curve_fit(morh_coulomb,
-             s3, s1,maxfev=int(1e5))
+            popt, pcov = curve_fit(morh_coulomb, s3, s1,maxfev=int(1e5))
             a = popt[0]; b = popt[1]
-            phi = np.arcsin((a-1.)/(a+1.))
-            cohesion = b/(2*np.cos(phi))*(1-np.sin(phi))
+            phi = np.arcsin((a - 1.)/(a + 1.))
+            cohesion = b/(2*np.cos(phi))*(1. - np.sin(phi))
             angle = np.degrees(phi)
             return angle,cohesion
         elif etype == 'Brown':
-            popt, pcov = curve_fit(hoek_brown,
-             s3, s1,maxfev=int(1e5))
-            return popt[0],popt[1]
+            popt, pcov = curve_fit(hoek_brown, s3, s1, maxfev=int(1e5))
+            return popt[0], popt[1]
 
     def generateCircles(self,npoints=1e4):
         self.s1 = np.array(self.s1)
@@ -297,16 +301,4 @@ class MohrCirclesWidget(QtGui.QWidget):
             elif self.eTypes[eName]=='Brown':
                 x,y = hoek_on_mohr_plane(x,a,b)
 
-            self.plt.plot(x,y,pen=pen)
-
-if __name__ == '__main__':
-    sigma1 = 1100
-    sigma3 = 100
-    McApp = QtGui.QApplication(sys.argv)
-    win = MohrCircles()
-    win.addData(0,-300)
-    win.addData(sigma1,sigma3)
-    win.addData(sigma1*2,sigma3*2)
-    win.start()
-    win.show()
-    McApp.exec_()
+            self.plt.plot(x, y, pen=pen)
