@@ -1,7 +1,3 @@
-* Dataviewer part
-** [#B] Finish InputReader
-*** TODO Add reading sample length and other params (mass, density, porosity?)
-**** Make it a props dictionary
 * Sonic part
 ** TODO [#A] dt can be different in each sonic file
 ** TODO [#B] Shifting to the transmitter signal for each track
@@ -11,6 +7,9 @@
    transform), make the user pick the line that corresponds
    to the arrivals and another that corresponds to transmitting.
 ** TODO Add moduli/arrivals export
+** TODO Autoscaling
+** TODO Connect arrivals action
+
 * General
 ** TODO Make Windows executable
 ** TODO Write tutorial + methodology section
@@ -19,3 +18,5 @@
         1. make sure it doesn't break
         2. make sure arrival values are correct
 ** TODO [#A] ComboList styles in styles file
+** TODO Try to remove cursors when changing the data type or having
+   checkboxes empty (to workaround the auto-zoom bug).

@@ -20,7 +20,7 @@ from TCI.widgets.SettingsWidget import SettingsWidget
 from TCI.widgets.CParameterTree import CParameterTree
 from TCI.widgets.CrossHairPlot import CrossHairPlot
 from TCI.styles.setup_plot import setup_plot
-from TCI.styles.LineColors import DATA_VIEWER_TREE_COLORS
+from TCI.styles.LineColors import DATA_VIEWER_TREE_COLORS, TREND_PEN
 from TCI.styles.LabelStyles import *
 from TCI.base_widgets.Slider import SliderWidget
 from TCI.base_classes.InputReader import InputReader
@@ -496,7 +496,7 @@ class DataViewer(QtGui.QWidget):
             ypar = self.modparams.param('Parameter').value()
         x = self.findData(xpar)[self.indices]
         y = self.slope*x + self.intersection
-        self.plt.plot(x,y,pen=TrendPen, name='%s Trend'%(self.trendParameter.value()))
+        self.plt.plot(x,y,pen=TREND_PEN, name='%s Trend'%(self.trendParameter.value()))
         self.plt.setLabel('bottom', xpar)
         self.plt.setLabel('left', ypar)
 
@@ -644,7 +644,8 @@ class DataViewer(QtGui.QWidget):
         self.plotContainer.addItem(self.plt)
 
         # set nice fonts
-        setup_plot(self.plt)
+        # setup_plot(self.plt)
+        setup_plot(self.plt, axisWidth=AXIS_WIDTH)
 
         self.plt.setLabel('bottom', 'X Axis', **AXIS_LABEL_STYLE)
         self.plt.setLabel('left', 'Y Axis', **AXIS_LABEL_STYLE)
