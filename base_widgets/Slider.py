@@ -73,6 +73,7 @@ class SliderWidget(pg.GraphicsLayout):
 if __name__ == '__main__':
     pg.setConfigOption('foreground',(0,0,0))
     pg.setConfigOption('background', (255,255,255))
+    # ya cacas
 
     App = QtGui.QApplication(sys.argv)
     view = pg.GraphicsView()

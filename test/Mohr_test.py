@@ -1,4 +1,5 @@
 import sys, os
+import TCI
 from TCI.widgets.DataViewer import DataViewer
 from PySide import QtGui
 
@@ -6,9 +7,14 @@ App = QtGui.QApplication(sys.argv)
 win = DataViewer()
 win.show()
 
-filename = ["/home/ishovkun/Dropbox/Experiments/TO_BE_ANALYZED/1500psi/" + \
+test_data_path = TCI.__path__[0] + "/test/test-data/"
+
+filename = [
+    test_data_path +
+    "1500psi/" + \
     "_Training_Pc=1500 psi Sonic endcaps_Berea Mechanical Testing _2015-04-27_001.clf",
-    u'*.clf']
+    u'*.clf'
+    ]
 win.load(filename)
 win.tree.boxes["Sig1"].setChecked(True)
 
@@ -21,8 +27,8 @@ mc.cursors[0].moveToNearest()
 
 # load second dataset
 filename = [
-    "/home/ishovkun/Dropbox/Experiments/" + \
-    "TO_BE_ANALYZED/Unconfined/Unconfined/" + \
+    test_data_path +
+    "Unconfined/" + \
     "_Training_Unconfined Sonic endcaps_Berea Mechanical Testing _2015-04-28_001.clf",
     u'*.clf']
 

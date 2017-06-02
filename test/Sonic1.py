@@ -1,4 +1,5 @@
 import sys, os
+import TCI
 from TCI.widgets.DataViewer import DataViewer
 from PySide import QtGui
 
@@ -9,7 +10,10 @@ win = DataViewer()
 win.show()
 # win.showFullScreen()
 
-filename = ["/home/ishovkun/Dropbox/Experiments/TO_BE_ANALYZED/1500psi/" + \
+test_data_path = TCI.__path__[0] + "/test/test-data/"
+filename = [
+    test_data_path +
+    "1500psi/" + \
     "_Training_Pc=1500 psi Sonic endcaps_Berea Mechanical Testing _2015-04-27_001.clf",
     u'*.clf']
 win.load(filename)
@@ -18,10 +22,10 @@ win.tree.boxes["Sig1"].setChecked(True)
 
 # SONIC WIDGET TESTING
 # win.loadSonicDataAction.trigger()
-directory = "/home/ishovkun/Dropbox/Experiments/TO_BE_ANALYZED/1500psi/1500pc"
-files = os.listdir(directory)
+sonic_dir = test_data_path + "1500psi/1500pc"
+files = os.listdir(sonic_dir)
 for i in range(len(files)):
-    files[i] = os.path.join(directory, files[i])
+    files[i] = os.path.join(sonic_dir, files[i])
 
 sonic_plugin = win.plugins[-1]
 sonic_plugin.loadData(files)
@@ -61,19 +65,18 @@ sonic_plugin.shapeControlWidget.okButton.click()
 
 # load new data_set (testing stability)
 filename = [
-    "/home/ishovkun/Dropbox/Experiments/" + \
-    "TO_BE_ANALYZED/Hydrostatic w sonic/" + \
+    test_data_path +
+    "Hydrostatic w sonic/" + \
     "_Training_Hydrostatic with Sonic endcaps_Berea Mechanical Testing _2015-04-24_001.clf",
     u'*.clf']
 win.load(filename)
 
 # now load new sonic data
-directory = "/home/ishovkun/Dropbox/Experiments/" + \
-            "TO_BE_ANALYZED/Hydrostatic w sonic/"
-files = os.listdir(directory)
+sonic_dir = test_data_path + "Hydrostatic w sonic/"
+files = os.listdir(sonic_dir)
 for i in range(len(files)):
-    files[i] = os.path.join(directory, files[i])
-# print(win.plugins[-1])
+    files[i] = os.path.join(sonic_dir, files[i])
+
 sonic_plugin.loadData(files)
 sonic_plugin.bindData()
 win.slider.setInterval([0.1, 0.9])

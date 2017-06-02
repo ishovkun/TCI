@@ -236,7 +236,13 @@ class SonicInterpreter:
         self.menu = menuBar.addMenu('Sonic')
         viewMenu = self.parent.viewMenu
         viewMenu.addSeparator()
+        # This action is just a group name and is not connected to any event
+        # (disabled)
+        # Set the font bold
         separatorGroupTitleAction = QtGui.QAction('Sonic', self.parent)
+        font = separatorGroupTitleAction.font()
+        font.setBold(True)
+        separatorGroupTitleAction.setFont(font)
         viewMenu.addAction(separatorGroupTitleAction)
         separatorGroupTitleAction.setDisabled(True)
 

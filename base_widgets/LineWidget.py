@@ -50,8 +50,10 @@ class LineWidget(QtGui.QWidget):
         elif self.type == 'list':
             ind = self.box.findText(str(value))
             self.box.setCurrentIndex(ind)
-        elif self.type == 'value' or self.type == 'int':
-            self.box.setValue(value)
+        elif self.type == 'value':
+            self.box.setValue(float(value))
+        elif self.type == 'int':
+            self.box.setValue(int(value))
 
     def value(self):
         if self.type == 'text':
