@@ -136,7 +136,7 @@ class BindingWidget(QtGui.QWidget):
         '''
         velocities = {}
         for wave in WaveTypes:
-            arrival_times = self.controller.sonicViewer.arrival_times[wave]
+            arrival_times = np.copy(self.controller.sonicViewer.arrival_times[wave])
             ### correct for end-caps
             corr = float(self.capsconf[wave])
             arrival_times -= corr

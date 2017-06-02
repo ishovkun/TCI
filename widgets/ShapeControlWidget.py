@@ -4,6 +4,10 @@ from scipy import interpolate
 
 
 class ShapeControlWidget(QtGui.QWidget):
+    '''
+    This is a widget that shows up above the sonic widget in the sonic
+    tab. When pressed it calculates arrival times from ROIs
+    '''
     def __init__(self, parent=None):
         super(ShapeControlWidget, self).__init__(None)
         self.parent = parent
@@ -63,11 +67,7 @@ class ShapeControlWidget(QtGui.QWidget):
                 y = self.parent.getFullYArray(wave)
                 # interpolate to get x == arrival times
                 arrival_times[wave] = f(y)
-                # print('interp points x', f(y))
-                # print('points xy', points_x, points_y)
-                # print('points', points_y)
-                # print(y)
-                # print('points', points_x)
+
             self.cancel()
             self.parent.setArrivalTimes(arrival_times)
             self.parent.plot_arrival_times_flag = True
