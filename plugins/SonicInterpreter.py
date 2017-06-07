@@ -395,6 +395,7 @@ class SonicInterpreter:
         self.exportArrivalsAction.triggered.connect(self.raiseExportArrivalDialog)
 
         self.moduliAction.triggered.connect(self.interpretationSettings.show)
+        self.invertYAction.triggered.connect(self.sonicViewer.plot)
 
     def raiseExportArrivalDialog(self):
         pass

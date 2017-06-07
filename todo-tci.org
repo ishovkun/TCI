@@ -9,6 +9,7 @@
 ** TODO Add moduli/arrivals export
 ** TODO Autoscaling
 ** TODO Connect arrivals action
+** Export arrival times
 
 * General
 ** TODO Make Windows executable
@@ -16,7 +17,7 @@
 ** TODO [#A] Add unit testing
         Also, figure out how to do it properly...
         1. make sure it doesn't break
-        2. make sure arrival values are correct
 ** TODO [#A] ComboList styles in styles file
 ** TODO Try to remove cursors when changing the data type or having
    checkboxes empty (to workaround the auto-zoom bug).
+** Certain features activate appropriate tab
