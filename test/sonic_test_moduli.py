@@ -87,5 +87,5 @@ fname = project_root + "/arrivals.csv"
 sonic_plugin.exportArrivals(fname)
 os.remove(fname)
 
-# # win.close()
+# win.close()
 App.exec_()

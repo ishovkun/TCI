@@ -13,6 +13,7 @@ This software is written in Python 3.5 and needs several libraries to run:
 - PySide
 - pyqtgraph
 - configobj
+- regex
 
 ## Overview
 ### Geomechanics
