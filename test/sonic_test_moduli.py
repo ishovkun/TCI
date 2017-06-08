@@ -24,7 +24,7 @@ for i in range(len(files)):
     files[i] = os.path.join(sonic_dir, files[i])
 
 sonic_plugin = win.plugins[-1]
-sonic_plugin.loadData(files)
+sonic_plugin.loadData(sorted(files))
 sonic_plugin.addSonicTab()
 sonic_plugin.bindData()
 sonic_plugin.sonicViewer.plot()
@@ -81,5 +81,11 @@ sonic_plugin.moduliWidget.tree.boxes['Young_y'].setChecked(True)
 win.tabWidget.setCurrentWidget(sonic_plugin.sonicViewer)
 win.slider.setInterval([0.1, 0.6])
 
-# win.close()
+# sonic_plugin.exportArrivalsAction.trigger()
+project_root = TCI.__path__[0]
+fname = project_root + "/arrivals.csv"
+sonic_plugin.exportArrivals(fname)
+os.remove(fname)
+
+# # win.close()
 App.exec_()

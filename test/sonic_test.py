@@ -88,5 +88,8 @@ win.slider.setInterval([0.1, 0.9])
 win.setCurrentDataSet(data_set1)
 win.slider.setInterval([0.5, 0.7])
 
+sonic_plugin.invertYAction.trigger()
+
+
 # win.close()
 App.exec_()

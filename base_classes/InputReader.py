@@ -149,6 +149,11 @@ class InputReader:
 if __name__ == "__main__":
     fname = "_Training_Pc=1500 psi Sonic " + \
         "endcaps_Berea Mechanical Testing _2015-04-27_001.clf"
+    import TCI
+    test_data_path = TCI.__path__[0] + "/test/test-data/"
+    fname = test_data_path + \
+            "1500psi/" + \
+            "_Training_Pc=1500 psi Sonic endcaps_Berea Mechanical Testing _2015-04-27_001.clf"
     reader = InputReader()
-    reader.read_clf(fname)
-    # print(fname)
+    output = reader.read_clf(fname)
+    print(output)

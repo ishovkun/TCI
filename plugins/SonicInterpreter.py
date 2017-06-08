@@ -16,6 +16,7 @@ from TCI.widgets.ShapeControlWidget import ShapeControlWidget
 from TCI.lib.logger import logger
 from TCI.widgets.InterpretationSettingsWidget import InterpretationSettingsWidget
 from TCI.widgets.BindingWidget import BindingWidget
+from lib.write_csv import write_csv
 
 BadBindingMessage = '''
 Duplicates found in the comments column.
@@ -119,7 +120,7 @@ class SonicInterpreter:
         self.progressDialog.show()
 
         # iterate through files
-        i = 0.
+        i = 0
         for f in filenames:
             fdir, fname = os.path.split(f)
             # check file extension
@@ -136,7 +137,7 @@ class SonicInterpreter:
             else:
                 logger.error('unknown extension in %s'%(fname))
             i += 1
-            self.progressDialog.setValue(i/n_files*100)
+            self.progressDialog.setValue(float(i)/n_files*100)
         self.progressDialog.hide()
 
         # organize data
@@ -393,15 +394,28 @@ class SonicInterpreter:
         self.shapeArrivalsAction.triggered.connect(self.activateShapePicking)
         self.showArrivalsAction.triggered.connect(self.sonicViewer.plot)
         self.exportArrivalsAction.triggered.connect(self.raiseExportArrivalDialog)
-
         self.moduliAction.triggered.connect(self.interpretationSettings.show)
         self.invertYAction.triggered.connect(self.sonicViewer.plot)
 
     def raiseExportArrivalDialog(self):
-        pass
+        lastdir = str(self.parent.checkForLastDir())  # convert normal string
+        fname, filter = QtGui.QFileDialog.getSaveFileName(self.parent, "",
+                                                          lastdir, "*.csv")
+        self.exportArrivals(fname)
 
-    def exportArrivals(self):
-        pass
+    def exportArrivals(self, fname):
+        data = []
+        keys = []
+        sv = self.sonicViewer
+        for k, wave in enumerate(sv.getActivePlots()):
+            if wave in sv.arrival_times.keys():
+                keys.append("time_" + wave)
+                keys.append(wave)
+                arrivals = sv.arrival_times[wave][sv.indices[wave]]
+                exp_times = self.sonicViewer.getYArray(wave)
+                data.append(exp_times)
+                data.append(arrivals)
+        write_csv(keys, data, fname)
 
     def activateShapePicking(self):
         active_waves = self.activeWaves()
