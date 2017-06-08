@@ -16,7 +16,7 @@ from TCI.widgets.ShapeControlWidget import ShapeControlWidget
 from TCI.lib.logger import logger
 from TCI.widgets.InterpretationSettingsWidget import InterpretationSettingsWidget
 from TCI.widgets.BindingWidget import BindingWidget
-from lib.write_csv import write_csv
+from TCI.lib.write_csv import write_csv
 
 BadBindingMessage = '''
 Duplicates found in the comments column.
@@ -208,6 +208,8 @@ class SonicInterpreter:
         # export arrival times in file menu
         self.exportArrivalsAction = QtGui.QAction(
             'Export Arrival Times', self.parent)
+        self.exportModuliAction = QtGui.QAction(
+            'Export Moduli', self.parent)
 
         # dict to store actions for y Axis
         self.yAxisActions = {}
@@ -231,8 +233,8 @@ class SonicInterpreter:
                                           self.loadSonicDataAction)
         self.parent.fileMenu.insertAction(self.parent.exitAction,
                                           self.exportArrivalsAction)
-
-        # raiseExportArrivalDialog
+        self.parent.fileMenu.insertAction(self.parent.exitAction,
+                                          self.exportModuliAction)
         # menubar entry corresponding to sonic widget
         self.menu = menuBar.addMenu('Sonic')
         viewMenu = self.parent.viewMenu
@@ -394,8 +396,15 @@ class SonicInterpreter:
         self.shapeArrivalsAction.triggered.connect(self.activateShapePicking)
         self.showArrivalsAction.triggered.connect(self.sonicViewer.plot)
         self.exportArrivalsAction.triggered.connect(self.raiseExportArrivalDialog)
+        self.exportModuliAction.triggered.connect(self.raiseExportModuliDialog)
         self.moduliAction.triggered.connect(self.interpretationSettings.show)
         self.invertYAction.triggered.connect(self.sonicViewer.plot)
+
+    def raiseExportModuliDialog(self):
+        lastdir = str(self.parent.checkForLastDir())  # convert normal string
+        fname, filter = QtGui.QFileDialog.getSaveFileName(self.parent, "",
+                                                          lastdir, "*.csv")
+        self.exportModuli(fname)
 
     def raiseExportArrivalDialog(self):
         lastdir = str(self.parent.checkForLastDir())  # convert normal string
@@ -403,7 +412,22 @@ class SonicInterpreter:
                                                           lastdir, "*.csv")
         self.exportArrivals(fname)
 
+    def exportModuli(self, fname):
+        logger.info('Saving moduli to %s'%(fname))
+        data = []
+        keys = []
+        # get experimental plot parameter
+        keys.append(self.moduliWidget.parameter())
+        data.append(self.moduliWidget.getGeoArray())
+        # get moduli
+        mod = self.moduliWidget.getActiveModuli()
+        for key in mod.keys():
+            keys.append(key)
+            data.append(mod[key])
+        write_csv(keys, data, fname)
+
     def exportArrivals(self, fname):
+        logger.info('Saving arrivals to %s'%(fname))
         data = []
         keys = []
         sv = self.sonicViewer

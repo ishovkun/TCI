@@ -203,45 +203,91 @@ class BindingWidget(QtGui.QWidget):
         self.plt.showGrid(x=True, y=True)
         interval_parameter = self.parent.sliderParam
         interval = self.parent.slider.interval()
-        ind = (self.itimes>=interval[0]) & (self.itimes<=interval[1])
+        ind = self.getIndices()
         active = self.tree.activeItems()
         par = self.parameter()
+        geo_data = self.getGeoArray()
+        geo_unit_str = self.parent.findUnits(par)
         if self.plotVsXAction.isChecked():
-            x = self.gdata[par][ind]
+            x = geo_data
             xName = par
-            xUnits = self.parent.findUnits(par)
+            xName += " %s"%geo_unit_str
         elif self.plotVsYAction.isChecked():
-            y = self.gdata[par][ind]
+            y = geo_data
             yName = par
-            yUnits = self.parent.findUnits(par)
+            yName += " %s"%geo_unit_str
         for group in active.keys():
             for key in active[group]:
-                color = self.tree.groups[group]['colors'][key].getColor()
+                color = self.getColor(group, key)
                 linestyle = pg.mkPen(color=color, width=3)
+                unit_str = self.config['units'][key]
                 if group=='Static':
                     if self.plotVsXAction.isChecked():
                         y = self.smoduli[key][ind]
-                        yName = key
-                        yUnits = self.config['units'][key]
+                        yName = key + " (%s)"%unit_str
                     elif self.plotVsYAction.isChecked():
-                        xName = key
                         x = self.smoduli[key][ind]
-                        xUnits = self.config['units'][key]
+                        xName = key + " (%s)"%unit_str
                 elif group=='Dynamic':
                     if self.plotVsXAction.isChecked():
                         y = self.dmoduli[key][ind]
-                        yName = key
-                        yUnits = self.config['units'][key]
+                        yName = key + " (%s)"%unit_str
                     elif self.plotVsYAction.isChecked():
                         x = self.dmoduli[key][ind]
-                        xName = key
-                        xUnits = self.config['units'][key]
-                self.plt.plot(x,y,pen=linestyle)
-                self.plt.setLabel('left',yName,units = yUnits, **AXIS_LABEL_STYLE)
-                self.plt.setLabel('bottom',xName,units = xUnits, **AXIS_LABEL_STYLE)
+                        xName = key + " (%s)"%unit_str
+                self.plt.plot(x, y, pen=linestyle)
+                self.plt.setLabel('left', yName, **AXIS_LABEL_STYLE)
+                self.plt.setLabel('bottom', xName, **AXIS_LABEL_STYLE)
 
         if self.autoScaleAction.isChecked():
             self.plt.enableAutoRange()
+
+    def getGeoArray(self, idx=None):
+        '''
+        get vector from the geomechanical dataset
+        '''
+        if idx is None:
+            idx = self.getIndices()
+        par = self.parameter()
+        result = self.gdata[par][idx]
+        return result
+
+    def getIndices(self):
+        interval = self.parent.slider.interval()
+        idx = (self.itimes>=interval[0]) & (self.itimes<=interval[1])
+        return idx
+
+    def getColor(self, group, key):
+        '''
+        get color from tree
+        Input:
+        group: string
+        key: string
+        '''
+        assert group in self.tree.activeItems().keys(), \
+            "Bad group keyword %s"%(group)
+        assert key in self.tree.groups[group]['colors'].keys(), \
+            "Bad key keyword %s"%(key)
+        return self.tree.groups[group]['colors'][key].getColor()
+
+    def getActiveModuli(self):
+        '''
+        get arrays (truncated with indices) of moduli
+        corresponding to active checkboxes
+        returns a dict: {key: np.array}
+        '''
+        moduli = {}
+        active = self.tree.activeItems()
+        idx = self.getIndices()
+        for group in active.keys():
+            for key in active[group]:
+                if group=='Static':
+                    # key_out = key + "_" + "st"
+                    moduli[key] = self.smoduli[key][idx]
+                elif group=='Dynamic':
+                    # key_out = key + "_" + "din"
+                    moduli[key] = self.dmoduli[key][idx]
+        return moduli
 
     def setupTree(self):
         # for mod in self.dmoduli:

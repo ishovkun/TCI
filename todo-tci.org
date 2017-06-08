@@ -8,7 +8,8 @@
    to the arrivals and another that corresponds to transmitting.
 ** TODO Add moduli/arrivals export
 ** TODO Autoscaling
-** Export arrival times
+** DONE Export arrival times
+** TODO Export moduli
 
 * General
 ** TODO Make Windows executable
