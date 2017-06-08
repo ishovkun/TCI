@@ -429,6 +429,7 @@ class SonicViewer(QtGui.QWidget):
         arrival_times is a dict:[wave] = np.array(arrival_times)
         '''
         self.arrival_times = arrival_times
+        self.arrivalsPicked = True
 
 
     def setYAxisParameters(self,parameters):

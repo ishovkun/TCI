@@ -6,13 +6,12 @@
    idea: create lines base on color gradients (maybe Hough
    transform), make the user pick the line that corresponds
    to the arrivals and another that corresponds to transmitting.
-** TODO Add moduli/arrivals export
+** DONE Add moduli/arrivals export
+   CLOSED: [2017-06-08 Thu 09:50]
 ** TODO Autoscaling
-** DONE Export arrival times
-** TODO Export moduli
 
 * General
-** TODO Make Windows executable
+** TODO [#C] Make Windows executable
 ** TODO Write tutorial + methodology section
 ** TODO [#A] Add unit testing
         Also, figure out how to do it properly...
@@ -21,3 +20,6 @@
 ** TODO Try to remove cursors when changing the data type or having
    checkboxes empty (to workaround the auto-zoom bug).
 ** Certain features activate appropriate tab
+** All actions need to work
+** DONE Export actions need to be disabled when no data
+   CLOSED: [2017-06-08 Thu 11:14]

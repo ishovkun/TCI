@@ -3,6 +3,19 @@ import sys, os
 import TCI
 from TCI.widgets.DataViewer import DataViewer
 
+'''
+Description
+Read cfl from 1500psi
+Read sonic data
+Tweak slider
+Plot contours
+Shape-pick:
+    Assign some hard-coded arrival points
+    Compute arrivals from shapes
+Compute moduli
+Plot young's moduli
+'''
+
 App = QtGui.QApplication(sys.argv)
 win = DataViewer()
 win.show()
@@ -89,6 +102,7 @@ os.remove(fname)
 
 fname = project_root + "/moduli.csv"
 sonic_plugin.exportModuli(fname)
+os.remove(fname)
 
 # win.close()
 App.exec_()

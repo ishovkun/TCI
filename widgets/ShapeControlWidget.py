@@ -71,4 +71,6 @@ class ShapeControlWidget(QtGui.QWidget):
             self.cancel()
             self.parent.setArrivalTimes(arrival_times)
             self.parent.plot_arrival_times_flag = True
+            self.parent.controller.exportArrivalsAction.setEnabled(True)
+            self.parent.controller.exportModuliAction.setEnabled(True)
             self.parent.controller.showArrivalsAction.trigger()

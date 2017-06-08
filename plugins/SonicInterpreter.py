@@ -79,6 +79,7 @@ class SonicInterpreter:
             # self.sonicViewer.plot_arrival_times_flag = False
             length = self.parent.props['length']
             self.interpretationSettings.lengthLine.setValue(length)
+            self.sonicViewer.arrivalsPicked = False
             self.setEnabled()
             self.sonicViewer.plot()
 
@@ -404,13 +405,19 @@ class SonicInterpreter:
         lastdir = str(self.parent.checkForLastDir())  # convert normal string
         fname, filter = QtGui.QFileDialog.getSaveFileName(self.parent, "",
                                                           lastdir, "*.csv")
-        self.exportModuli(fname)
+        if (fname):
+            self.exportModuli(fname)
+        else:
+            logger.debug("File name not set")
 
     def raiseExportArrivalDialog(self):
         lastdir = str(self.parent.checkForLastDir())  # convert normal string
         fname, filter = QtGui.QFileDialog.getSaveFileName(self.parent, "",
                                                           lastdir, "*.csv")
-        self.exportArrivals(fname)
+        if (fname):
+            self.exportArrivals(fname)
+        else:
+            logger.debug("File name not set")
 
     def exportModuli(self, fname):
         logger.info('Saving moduli to %s'%(fname))
@@ -455,7 +462,6 @@ class SonicInterpreter:
                 roi.setPoints([(x, range_y[0]), (x, range_y[1])])
 
         self.shapeControlWidget = ShapeControlWidget(parent=self.sonicViewer)
-        # self.shapeControlWidget.okButton.clicked.connect(self.sonicViewer.plot)
 
     def setViewerMode(self):
         if self.waveFormAction.isChecked():
@@ -513,14 +519,21 @@ class SonicInterpreter:
         self.sonicViewer.setEnabled(enabled)
         if enabled:
             self.parent.tabWidget.setCurrentWidget(self.sonicViewer)
+            if self.sonicViewer.arrivalsPicked:
+                self.exportArrivalsAction.setEnabled(True)
+                self.exportModuliAction.setEnabled(True)
+            else:
+                self.exportArrivalsAction.setEnabled(False)
+                self.exportModuliAction.setEnabled(False)
 
         # also disable  moduli widget (it's enabled only when ran)
         if not enabled:
             tab_index = self.parent.tabWidget.indexOf(self.moduliWidget)
-            # i think it should remove this widget
-            # but i don't have documentation on board
+            # maybe i should remove/block this widget tab?
             self.parent.tabWidget.setTabEnabled(tab_index, False)
             self.sonicViewer.setEnabled(False)
+            self.exportArrivalsAction.setEnabled(False)
+            self.exportModuliAction.setEnabled(False)
 
 
     def runModuliWidget(self):
