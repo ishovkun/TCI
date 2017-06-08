@@ -254,16 +254,16 @@ class SonicViewer(QtGui.QWidget):
         self.plot()
 
     def autoScalePlots(self):
-        if self.autoScaleButton.isChecked():
+        if self.controller.autoScaleAction.isChecked():
             for wave in self.getActivePlots():
                 self.plots[wave].enableAutoRange()
-                self.fWidget.plots[wave].enableAutoRange()
-                self.phWidget.plots[wave].enableAutoRange()
+                # self.fWidget.plots[wave].enableAutoRange()
+                # self.phWidget.plots[wave].enableAutoRange()
         else:
             for wave in self.getActivePlots():
                 self.plots[wave].disableAutoRange()
-                self.fWidget.plots[wave].disableAutoRange()
-                self.phWidget.plots[wave].disableAutoRange()
+                # self.fWidget.plots[wave].disableAutoRange()
+                # self.phWidget.plots[wave].disableAutoRange()
 
     def getActivePlots(self):
         if self.controller is None: return WaveTypes

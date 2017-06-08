@@ -3,6 +3,12 @@ import sys, os
 import TCI
 from TCI.widgets.DataViewer import DataViewer
 
+'''
+Description:
+
+test autoscaling
+'''
+
 App = QtGui.QApplication(sys.argv)
 win = DataViewer()
 win.show()
@@ -89,6 +95,11 @@ win.setCurrentDataSet(data_set1)
 win.slider.setInterval([0.5, 0.7])
 
 sonic_plugin.invertYAction.trigger()
+
+# test autoscale
+# sonic_plugin.sonicViewer.plots['P'].setXRange(0, 200)
+# sonic_plugin.autoScaleAction.setChecked(False)
+# sonic_plugin.autoScaleAction.setChecked(True)
 
 
 # win.close()

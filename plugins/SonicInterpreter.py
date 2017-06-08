@@ -400,6 +400,7 @@ class SonicInterpreter:
         self.exportModuliAction.triggered.connect(self.raiseExportModuliDialog)
         self.moduliAction.triggered.connect(self.interpretationSettings.show)
         self.invertYAction.triggered.connect(self.sonicViewer.plot)
+        self.autoScaleAction.triggered.connect(self.sonicViewer.autoScalePlots)
 
     def raiseExportModuliDialog(self):
         lastdir = str(self.parent.checkForLastDir())  # convert normal string
