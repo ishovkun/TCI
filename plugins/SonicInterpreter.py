@@ -163,8 +163,8 @@ class SonicInterpreter:
                                                 checkable=True)
         # view menu
         self.showArrivalsAction.setDisabled(True)
-        self.showTableAction = QtGui.QAction('Table', self.parent)
-        self.editGradientsAction = QtGui.QAction('Edit Gradients', self.parent)
+        # self.showTableAction = QtGui.QAction('Table', self.parent)
+        # self.editGradientsAction = QtGui.QAction('Edit Gradients', self.parent)
         self.invertYAction = QtGui.QAction('Invert y axis', self.parent,
                                            checkable=True)
         # mode menu
@@ -258,8 +258,8 @@ class SonicInterpreter:
         # VIEW MENU
         viewMenu.addAction(self.autoScaleAction)
         viewMenu.addAction(self.showArrivalsAction)
-        viewMenu.addAction(self.showTableAction)
-        viewMenu.addAction(self.editGradientsAction)
+        # viewMenu.addAction(self.showTableAction)
+        # viewMenu.addAction(self.editGradientsAction)
         viewMenu.addAction(self.invertYAction)
 
 

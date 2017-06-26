@@ -20,6 +20,10 @@ from TCI.base_widgets.TriplePlotWidget import TriplePlotWidget
 from TCI.base_widgets.GradientEditorWidget import GradientEditorWidget
 from TCI.lib.logger import logger
 
+# styles
+from TCI.styles.LineColors import ARRIVALS_PEN
+from TCI.styles.LabelStyles import AXIS_LABEL_STYLE
+
 X_LABEL = 'Oscilloscope time (μs)'
 fXAxisName = 'Frequency (MHz)'
 phXAxisName = 'Phase (deg)'
@@ -35,9 +39,6 @@ Parameters = [
         ]},
     ]
 WaveTypes = ['P','Sx','Sy']
-LabelStyle = {'color': '#000000', 'font-size': '14pt','font':'Times'}
-
-ARRIVALS_PEN = pg.mkPen(color=(72, 209, 204), width=2)
 
 class SonicViewer(QtGui.QWidget):
     '''
@@ -338,8 +339,8 @@ class SonicViewer(QtGui.QWidget):
             plot.clear();
             # labels
             ylabel = self.controller.yLabel()
-            plot.getAxis('left').setLabel(ylabel, **LabelStyle)
-            plot.getAxis('bottom').setLabel(X_LABEL, **LabelStyle)
+            plot.getAxis('left').setLabel(ylabel, **AXIS_LABEL_STYLE)
+            plot.getAxis('bottom').setLabel(X_LABEL, **AXIS_LABEL_STYLE)
 
             # auto scaling
             if self.controller.autoScaleAction.isChecked():

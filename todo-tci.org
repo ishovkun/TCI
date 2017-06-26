@@ -1,5 +1,5 @@
 * Sonic part
-** [#A] dt can be different in each sonic file
+** [#B] dt can be different in each sonic file
 ** [#B] Shifting to the transmitter signal for each track
    May be different start-recording times and scaling
 ** [#C] Better automated arrival picking
@@ -12,13 +12,16 @@
    CLOSED: [2017-06-08 Thu 13:33]
 
 * General
-** [#C] Make Windows executable
-** Write tutorial + methodology section
+** [#A] All actions need to work
 ** [#A] Add unit testing
 ** [#A] ComboList styles in styles file
-** Try to remove cursors when changing the data type or having
+** [#B] Write tutorial + methodology section
+** [#B] Block tabs when no data in a new dataset
+** [#C] Certain features activate appropriate tab
+** [#C] Make Windows executable
+** [#C] Try to remove cursors when changing the data type or having
    checkboxes empty (to workaround the auto-zoom bug).
-** Certain features activate appropriate tab
-** All actions need to work
+** [#C] Tab drag (within bar) & close  (isMovable + tabClosable)
+** [#C] Tab drag & drop outside the bar
 ** DONE Export actions need to be disabled when no data
    CLOSED: [2017-06-08 Thu 11:14]

@@ -43,3 +43,5 @@ TREND_PEN = pg.mkPen(color=(72, 209, 204), width=3)
 MOHR_CIRCLE_PEN = pg.mkPen(color=(0, 0, 0), width=2)
 
 CROSS_HAIR_PEN = pg.mkPen(color=(12, 0, 130), width=1)
+
+ARRIVALS_PEN = pg.mkPen(color=(72, 209, 204), width=2)

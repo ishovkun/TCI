@@ -11,6 +11,7 @@ test autoscaling
 
 App = QtGui.QApplication(sys.argv)
 win = DataViewer()
+win.setGeometry(2200, 400, 800, 600)
 win.show()
 
 test_data_path = TCI.__path__[0] + "/test/test-data/"
@@ -91,6 +92,7 @@ win.slider.setInterval([0.2, 0.3])
 data_set2 = "_Training_Hydrostatic with Sonic endcaps_Berea Mechanical Testing _2015-04-24_001"
 win.setCurrentDataSet(data_set2)
 win.slider.setInterval([0.1, 0.9])
+# files[i] = os.path.join(sonic_dir, files[i])
 win.setCurrentDataSet(data_set1)
 win.slider.setInterval([0.5, 0.7])
 
@@ -100,6 +102,8 @@ sonic_plugin.invertYAction.trigger()
 # sonic_plugin.sonicViewer.plots['P'].setXRange(0, 200)
 # sonic_plugin.autoScaleAction.setChecked(False)
 # sonic_plugin.autoScaleAction.setChecked(True)
+
+# Fourrier analysis
 
 
 # win.close()
