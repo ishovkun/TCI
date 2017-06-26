@@ -19,6 +19,7 @@ from TCI.base_widgets.TableWidget import TableWidget
 from TCI.base_widgets.TriplePlotWidget import TriplePlotWidget
 from TCI.base_widgets.GradientEditorWidget import GradientEditorWidget
 from TCI.lib.logger import logger
+from TCI.calculations.fft import get_fft
 
 # styles
 from TCI.styles.LineColors import ARRIVALS_PEN
@@ -40,6 +41,7 @@ Parameters = [
     ]
 WaveTypes = ['P','Sx','Sy']
 
+
 class SonicViewer(QtGui.QWidget):
     '''
     Has 3 plots stored in dict plots={'P':,'Sx':,'Sy':}
@@ -57,6 +59,8 @@ class SonicViewer(QtGui.QWidget):
     enabled = True
 
     plot_arrival_times_flag = False
+    plot_fft_amplitude = False
+    plot_fft_phase = False
 
     def __init__(self, parent=None, controller=None):
         super(SonicViewer, self).__init__()
@@ -64,6 +68,7 @@ class SonicViewer(QtGui.QWidget):
         self.controller = controller
 
         self.setupGUI()
+        self.fftWidget = TriplePlotWidget()
         # self.fWidget = TriplePlotWidget()
         # self.phWidget = TriplePlotWidget()
         # self.bWidget = BindingWidget(parents=[parent, self])
@@ -147,7 +152,7 @@ class SonicViewer(QtGui.QWidget):
         for wave in WaveTypes:
             self.data[wave] = data[wave]
         self.createTable()
-        # self.getFourrierTransforms()
+        self.getFourrierTransforms()
         self.arrivalsPicked = False
 
     def setSonicTable(self, table, y=None):
@@ -194,54 +199,46 @@ class SonicViewer(QtGui.QWidget):
             self.table[wave] = get_table(self.data[wave])
             self.y[wave] = np.arange(self.table[wave].shape[1])
 
-    def showFourrier(self):
-        self.fWidget.show()
-        self.fWidget.activateWindow()
-        self.parent.plotSonicData()
+    def showFFTAmplitude(self):
+        self.plot_fft_phase = False
+        self.plot_fft_amplitude = True
+        self.fftWidget.show()
+        self.fftWidget.activateWindow()
+        self.plot()
 
-    def showPhases(self):
-        self.phWidget.show()
-        self.phWidget.activateWindow()
-        self.parent.plotSonicData()
+    def showFFTPhases(self):
+        # self.phWidget.show()
+        # self.phWidget.activateWindow()
+        # self.parent.plotSonicData()
+        self.plot_fft_phase = True
+        self.plot_fft_amplitude = False
+        self.fftWidget.show()
+        self.fftWidget.activateWindow()
+        self.plot()
 
     def getFourrierTransforms(self):
         if not self.hasData(): return 0 # if no data pass
         logger.info('Building Fourrier matrix')
-        self.fft = {} # power
+        self.fft = {} # fourrier transform
         self.fftamp = {} # power
         self.fftph = {} # phase
         for wave in WaveTypes:
             x = self.table[wave][0,:,:]
             y = self.table[wave][1,:,:]
-            N = y.shape[1]
-            h = x[0,1] - x[0,0]
-            # yf = np.fft.fft(y).real[:,:N/2]
-            ft = np.fft.fft(y)
-            fft = ft[:, :N/2]
-            fft = np.fft.fft(y)[:, :N/2]
-            yf = np.absolute(fft)
-            yp = np.arctan2(fft.imag,fft.real)
-            xf0 = np.fft.fftfreq(N,h)
-            xf = xf0[:N/2]
-            xf = np.tile(xf,y.shape[0])
-            xf0 = np.tile(xf0,y.shape[0])
-            xf = xf.reshape(yf.shape[0],yf.shape[1])
-            xf0 = xf0.reshape(ft.shape[0],ft.shape[1])
-            self.fft[wave] = np.array((xf0,ft))
-            self.fftamp[wave] = np.array((xf,yf))
-            self.fftph[wave] = np.array((xf,yp))
+            [self.fft[wave], self.fftamp[wave], self.fftph[wave]] = get_fft(x, y)
 
     def connectPlotButtons(self):
         for wave in WaveTypes:
             self.params[wave].param('Show').sigValueChanged.connect(self.changeLayout)
 
-    def showHidePlots(self):
+    def togglePlotVisibility(self):
         logger.info('changing layout')
         for wave in WaveTypes:
             try:
                 # self.sublayout.removeItem(self.plots[wave])
                 self.plotWidget.sublayout.removeItem(self.plots[wave])
                 # self.fWidget.sublayout.removeItem(self.fWidget.plots[wave])
+                self.fftWidget.sublayout.removeItem(self.fftWidget.plots[wave])
             except:
                 pass
 
@@ -249,6 +246,7 @@ class SonicViewer(QtGui.QWidget):
             if wave:
                 self.plotWidget.sublayout.addItem(self.plots[wave])
                 # self.fWidget.sublayout.addItem(self.fWidget.plots[wave])
+                self.fftWidget.sublayout.addItem(self.fftWidget.plots[wave])
                 # self.sublayout.nextRow()
                 # self.fWidget.sublayout.nextRow()
 
@@ -258,36 +256,19 @@ class SonicViewer(QtGui.QWidget):
         if self.controller.autoScaleAction.isChecked():
             for wave in self.getActivePlots():
                 self.plots[wave].enableAutoRange()
+                self.fftWidget[wave].enableAutoRange()
                 # self.fWidget.plots[wave].enableAutoRange()
                 # self.phWidget.plots[wave].enableAutoRange()
         else:
             for wave in self.getActivePlots():
                 self.plots[wave].disableAutoRange()
+                self.fftWidget[wave].disableAutoRange()
                 # self.fWidget.plots[wave].disableAutoRange()
                 # self.phWidget.plots[wave].disableAutoRange()
 
     def getActivePlots(self):
         if self.controller is None: return WaveTypes
         else: return self.controller.activeWaves()
-
-    def pickAllArrivals(self) :
-        pBar = QtGui.QProgressDialog(None,QtCore.Qt.WindowStaysOnTopHint)
-        pBar.setWindowTitle("Picking first arrivals")
-        pBar.setAutoClose(True)
-        pBar.show()
-        pBar.activateWindow()
-        progress = 0
-        pBar.setValue(progress)
-        for wave in WaveTypes:
-            self.pickArrivals(wave)
-            progress += 33
-            pBar.setValue(progress)
-        pBar.setValue(100)
-        self.arrivalsPicked = True
-        self.showArrivalsButton.setDisabled(False)
-        self.moduliButton.setDisabled(False)
-        self.handPickArrivalsButton.setDisabled(False)
-        self.showArrivalsButton.trigger()
 
     def getInverseFFT(self):
         ifft = {}
@@ -334,9 +315,11 @@ class SonicViewer(QtGui.QWidget):
     def plot(self):
         if not self.enabled: return 0
         for k, wave in enumerate(self.getActivePlots()):
-            # prepare plot
+            # prepare plots
             plot = self.plots[wave]
-            plot.clear();
+            fft_plot = self.fftWidget.plots[wave]
+            plot.clear()
+            fft_plot.clear()
             # labels
             ylabel = self.controller.yLabel()
             plot.getAxis('left').setLabel(ylabel, **AXIS_LABEL_STYLE)
@@ -345,8 +328,10 @@ class SonicViewer(QtGui.QWidget):
             # auto scaling
             if self.controller.autoScaleAction.isChecked():
                 plot.enableAutoRange(enable=True)
+                self.fftWidget.plots[wave].enableAutoRange(enable=True)
             else:
                 plot.disableAutoRange()
+                self.fftWidget.plots[wave].disableAutoRange()
 
             # y axis invert
             if self.controller.invertYAction.isChecked():
@@ -358,16 +343,32 @@ class SonicViewer(QtGui.QWidget):
             y = self.getYArray(wave)
 
             data = self.table[wave][:, ind,:]
+
+            fft_data = None
+            if self.fftWidget.isVisible():
+                if self.plot_fft_amplitude:
+                    fft_data = self.fftamp[wave][:, ind,:]
+                if self.plot_fft_phase:
+                    fft_data = self.fftph[wave][:, ind,:]
+
             if data.shape[1] == 0: continue  # skip empty plot
 
+            # ACTUAL PLOTTING
             if self.mode == 'WaveForms':
+                # plot waves
                 self.plotWaveForms(data, self.plots[wave], y)
+                # plot fft
+                if self.fftWidget.isVisible():
+                    self.plotWaveForms(fft_data, fft_plot, y)
+
             elif self.mode == 'Contours':
                 if k == 0: # get only one color lookup table
                     gradient_widget = self.gradEditor.sgw
                     lut = gradient_widget.getLookupTable(N_COLORS, alpha=None)
-
                 self.plotContours(data, self.plots[wave], y, lut)
+
+                if self.fftWidget.isVisible():
+                    self.plotContours(fft_data, fft_plot, y, lut)
 
             # plot arrival times
             if (self.plot_arrival_times_flag and
@@ -394,7 +395,8 @@ class SonicViewer(QtGui.QWidget):
 
         # convert array to a graphical path
         graphic_path = MultiLine(data[0, :, :], y)
-        try: plot_widget.addItem(graphic_path)
+        try:
+            plot_widget.addItem(graphic_path)
         except: pass
 
     def plotContours(self, data, plot_widget, y_array, lut=None):
@@ -541,6 +543,7 @@ class SonicViewer(QtGui.QWidget):
 
     def closeEvent(self,event):
         QtGui.QWidget.closeEvent(self, event)
+        self.fftWidget.close()
         # self.fWidget.close()
         # self.phWidget.close()
         # self.QTable.close()

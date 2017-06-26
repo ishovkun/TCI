@@ -104,7 +104,13 @@ sonic_plugin.invertYAction.trigger()
 # sonic_plugin.autoScaleAction.setChecked(True)
 
 # Fourrier analysis
-
+sonic_plugin.waveFormAction.trigger()
+sonic_plugin.waveFormAction.setChecked(True)
+sonic_plugin.showFFTMagnitudeAction.trigger()
+sonic_plugin.contourAction.trigger()
+sonic_plugin.contourAction.setChecked(True)
+sonic_plugin.showFFTPhaseAction.trigger()
+sonic_plugin.sonicViewer.fftWidget.close()
 
 # win.close()
 App.exec_()

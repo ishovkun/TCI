@@ -191,9 +191,9 @@ class SonicInterpreter:
         # self.moduliAction.setDisabled(True)
         # self.handPickArrivalsAction.setDisabled(True)
 
-        self.showForrierMagnitudeAction = QtGui.QAction('Fourrier magnitude',
+        self.showFFTMagnitudeAction = QtGui.QAction('Fourrier magnitude',
                                                         self.parent)
-        self.showForrierPhasesAction = QtGui.QAction('Fourrier phases',
+        self.showFFTPhaseAction = QtGui.QAction('Fourrier phases',
                                                      self.parent)
         self.filteringAction = QtGui.QAction('Frequency filtering',
                                              self.parent,
@@ -273,14 +273,13 @@ class SonicInterpreter:
 
         # INTERPRETATION MENU
         # self.intMenu.addAction(self.pickArrivalsAction)
-        # self.intMenu.addAction(self.handPickArrivalsAction)
         self.intMenu.addAction(self.shapeArrivalsAction)
         self.intMenu.addAction(self.moduliAction)
 
         # TRANSFORM MENU
-        self.transformMenu.addAction(self.showForrierMagnitudeAction)
-        self.transformMenu.addAction(self.showForrierPhasesAction)
-        self.transformMenu.addAction(self.filteringAction)
+        self.transformMenu.addAction(self.showFFTMagnitudeAction)
+        self.transformMenu.addAction(self.showFFTPhaseAction)
+        # self.transformMenu.addAction(self.filteringAction)
 
         # Show waves menu
         self.activeWaveMenu.addAction(self.pWaveAction)
@@ -391,9 +390,9 @@ class SonicInterpreter:
         self.parent.slider.sigRangeChanged.connect(self.moduliWidget.plot)
         self.contourAction.triggered.connect(self.setViewerMode)
         self.waveFormAction.triggered.connect(self.setViewerMode)
-        self.pWaveAction.triggered.connect(self.sonicViewer.showHidePlots)
-        self.sxWaveAction.triggered.connect(self.sonicViewer.showHidePlots)
-        self.syWaveAction.triggered.connect(self.sonicViewer.showHidePlots)
+        self.pWaveAction.triggered.connect(self.sonicViewer.togglePlotVisibility)
+        self.sxWaveAction.triggered.connect(self.sonicViewer.togglePlotVisibility)
+        self.syWaveAction.triggered.connect(self.sonicViewer.togglePlotVisibility)
         self.shapeArrivalsAction.triggered.connect(self.activateShapePicking)
         self.showArrivalsAction.triggered.connect(self.sonicViewer.plot)
         self.exportArrivalsAction.triggered.connect(self.raiseExportArrivalDialog)
@@ -401,6 +400,8 @@ class SonicInterpreter:
         self.moduliAction.triggered.connect(self.interpretationSettings.show)
         self.invertYAction.triggered.connect(self.sonicViewer.plot)
         self.autoScaleAction.triggered.connect(self.sonicViewer.autoScalePlots)
+        self.showFFTMagnitudeAction.triggered.connect(self.sonicViewer.showFFTAmplitude)
+        self.showFFTPhaseAction.triggered.connect(self.sonicViewer.showFFTPhases)
 
     def raiseExportModuliDialog(self):
         lastdir = str(self.parent.checkForLastDir())  # convert normal string
