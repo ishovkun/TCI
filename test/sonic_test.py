@@ -75,42 +75,40 @@ filename = [
     u'*.clf']
 win.load(filename)
 
-# now load new sonic data
-sonic_dir = test_data_path + "Hydrostatic w sonic/"
-files = os.listdir(sonic_dir)
-for i in range(len(files)):
-    files[i] = os.path.join(sonic_dir, files[i])
+# # now load new sonic data
+# sonic_dir = test_data_path + "Hydrostatic w sonic/"
+# files = os.listdir(sonic_dir)
+# for i in range(len(files)):
+#     files[i] = os.path.join(sonic_dir, files[i])
 
-sonic_plugin.loadData(files)
-sonic_plugin.bindData()
-win.slider.setInterval([0.1, 0.9])
+# sonic_plugin.loadData(files)
+# sonic_plugin.bindData()
+# win.slider.setInterval([0.1, 0.9])
 
-# now activate old dataset
-data_set1 = "_Training_Pc=1500 psi Sonic endcaps_Berea Mechanical Testing _2015-04-27_001"
-win.setCurrentDataSet(data_set1)
-win.slider.setInterval([0.2, 0.3])
-data_set2 = "_Training_Hydrostatic with Sonic endcaps_Berea Mechanical Testing _2015-04-24_001"
-win.setCurrentDataSet(data_set2)
-win.slider.setInterval([0.1, 0.9])
-# files[i] = os.path.join(sonic_dir, files[i])
-win.setCurrentDataSet(data_set1)
-win.slider.setInterval([0.5, 0.7])
+# # now activate old dataset
+# data_set1 = "_Training_Pc=1500 psi Sonic endcaps_Berea Mechanical Testing _2015-04-27_001"
+# win.setCurrentDataSet(data_set1)
+# win.slider.setInterval([0.2, 0.3])
+# data_set2 = "_Training_Hydrostatic with Sonic endcaps_Berea Mechanical Testing _2015-04-24_001"
+# win.setCurrentDataSet(data_set2)
+# win.slider.setInterval([0.1, 0.9])
+# win.setCurrentDataSet(data_set1)
+# win.slider.setInterval([0.5, 0.7])
 
-sonic_plugin.invertYAction.trigger()
+# sonic_plugin.invertYAction.trigger()
 
-# test autoscale
+# # test autoscale
 # sonic_plugin.sonicViewer.plots['P'].setXRange(0, 200)
-# sonic_plugin.autoScaleAction.setChecked(False)
-# sonic_plugin.autoScaleAction.setChecked(True)
+# # sonic_plugin.autoScaleAction.trigger()
 
-# Fourrier analysis
-sonic_plugin.waveFormAction.trigger()
-sonic_plugin.waveFormAction.setChecked(True)
-sonic_plugin.showFFTMagnitudeAction.trigger()
-sonic_plugin.contourAction.trigger()
-sonic_plugin.contourAction.setChecked(True)
-sonic_plugin.showFFTPhaseAction.trigger()
-sonic_plugin.sonicViewer.fftWidget.close()
+# # Fourrier analysis
+# sonic_plugin.waveFormAction.trigger()
+# sonic_plugin.waveFormAction.setChecked(True)
+# sonic_plugin.showFFTMagnitudeAction.trigger()
+# sonic_plugin.contourAction.trigger()
+# sonic_plugin.contourAction.setChecked(True)
+# sonic_plugin.showFFTPhaseAction.trigger()
+# sonic_plugin.sonicViewer.fftWidget.close()
 
 # win.close()
 App.exec_()

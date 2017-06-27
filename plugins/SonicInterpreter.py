@@ -82,6 +82,8 @@ class SonicInterpreter:
             self.sonicViewer.arrivalsPicked = False
             self.setEnabled()
             self.sonicViewer.plot()
+        else:
+            self.setEnabled(False)
 
     def loadFileDialog(self):
         '''
@@ -149,11 +151,9 @@ class SonicInterpreter:
 
     def setupActions(self):
         # add entry to load sonic files
-        self.loadSonicDataAction = QtGui.QAction('Load sonic',
-                                                 self.parent)
+        self.loadSonicDataAction = QtGui.QAction('Load sonic', self.parent)
         self.parent.loadSonicDataAction = self.loadSonicDataAction
         self.loadSonicDataAction.triggered.connect(self.loadFileDialog)
-
 
         self.autoScaleAction = QtGui.QAction('Auto scale', self.parent,
                                              checkable=True,
@@ -181,14 +181,15 @@ class SonicInterpreter:
             self.waveFormAction.setChecked(True)
 
         # interpretation menu
-        self.pickArrivalsAction = QtGui.QAction('Pick arrivals', self.parent)
-        self.handPickArrivalsAction = QtGui.QAction('Hand pick', self.parent,
-                                                    checkable=True)
-        self.handPickArrivalsAction.setDisabled(True)
-        self.pickArrivalsAction.setDisabled(True)
+        # self.pickArrivalsAction = QtGui.QAction('Pick arrivals', self.parent)
+        # self.handPickArrivalsAction = QtGui.QAction('Hand pick', self.parent,
+        #                                             checkable=True)
+        # self.handPickArrivalsAction.setDisabled(True)
+        # self.pickArrivalsAction.setDisabled(True)
+
         self.shapeArrivalsAction = QtGui.QAction('Shape pick', self.parent)
         self.moduliAction = QtGui.QAction('Elastic moduli', self.parent)
-        # self.moduliAction.setDisabled(True)
+        self.moduliAction.setDisabled(True)
         # self.handPickArrivalsAction.setDisabled(True)
 
         self.showFFTMagnitudeAction = QtGui.QAction('Fourrier magnitude',
@@ -261,7 +262,6 @@ class SonicInterpreter:
         # viewMenu.addAction(self.showTableAction)
         # viewMenu.addAction(self.editGradientsAction)
         viewMenu.addAction(self.invertYAction)
-
 
         # y axis menu
         self.yAxisMenu = viewMenu.addMenu('y axis')
@@ -537,6 +537,13 @@ class SonicInterpreter:
             self.exportArrivalsAction.setEnabled(False)
             self.exportModuliAction.setEnabled(False)
 
+        # enable/block actions/menus
+        self.autoScaleAction.setEnabled(enabled)
+        self.modeMenu.setEnabled(enabled)
+        self.activeWaveMenu.setEnabled(enabled)
+        self.invertYAction.setEnabled(enabled)
+        self.yAxisMenu.setEnabled(enabled)
+        self.menu.setEnabled(enabled)
 
     def runModuliWidget(self):
         '''

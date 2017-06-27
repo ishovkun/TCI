@@ -256,13 +256,13 @@ class SonicViewer(QtGui.QWidget):
         if self.controller.autoScaleAction.isChecked():
             for wave in self.getActivePlots():
                 self.plots[wave].enableAutoRange()
-                self.fftWidget[wave].enableAutoRange()
+                self.fftWidget.plots[wave].enableAutoRange()
                 # self.fWidget.plots[wave].enableAutoRange()
                 # self.phWidget.plots[wave].enableAutoRange()
         else:
             for wave in self.getActivePlots():
                 self.plots[wave].disableAutoRange()
-                self.fftWidget[wave].disableAutoRange()
+                self.fftWidget.plots[wave].disableAutoRange()
                 # self.fWidget.plots[wave].disableAutoRange()
                 # self.phWidget.plots[wave].disableAutoRange()
 
@@ -287,15 +287,13 @@ class SonicViewer(QtGui.QWidget):
         '''
         get y values that are plotted
         '''
-        if self.controller is None: y = None
+        if self.controller is None: return None
+        ylabel = self.controller.yLabel()
+        if ylabel == "Track #":
+            y = self.indices[wave]
         else:
-            ylabel = self.controller.yLabel()
-            if ylabel == "Track #":
-                y = self.indices[wave]
-            else:
-                y = self.getFullYArray(wave)[self.indices[wave]]
-
-            return y
+            y = self.getFullYArray(wave)[self.indices[wave]]
+        return y
 
     def getFullYArray(self, wave):
         '''
