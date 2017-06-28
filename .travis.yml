@@ -1,0 +1,10 @@
+language: python
+python:
+  - "3.5"
+  - "3.4"
+cache: pip
+install:
+  - pip install -r numpy scipy pyside pyqtgraph configobj regex
+script:
+  - test/sonic_test.py
+  # - py.test --cov-report term-missing --cov app -v
