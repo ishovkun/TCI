@@ -26,9 +26,6 @@ python:
 #           GIT_SOURCE_EXTRA="";
 #       fi;
 
-before-install:
-  - sudo apt install python3-pyside
-
 install:
   # - export GIT_FULL_HASH=`git rev-parse HEAD`
   # - conda update conda --yes
@@ -37,6 +34,7 @@ install:
   # - conda install numpy scipy pyopengl pytest flake8 six coverage --yes
   # - echo ${PYTHON}
   # - conda install pyside --yes
+  - sudo apt install python3-pyside
   - pip3 install configobj
   - pip3 install regex
   - pip3 install pyqtgraph
