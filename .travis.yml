@@ -1,10 +1,9 @@
 language: python
 python:
   - "3.4"
-# virtualenv:
-#     system_site_packages: true
+virtualenv:
+    system_site_packages: true
 # cache: pip
-
 # env:
 #     # Enable python 2 and python 3 builds
 #     # Note that the 2.6 build doesn't get flake8, and runs old versions of
@@ -25,6 +24,9 @@ python:
 #           GIT_TARGET_EXTRA="";
 #           GIT_SOURCE_EXTRA="";
 #       fi;
+
+before_install:
+ - sudo apt-get install -qq python-numpy python-scipy
 
 install:
   # - export GIT_FULL_HASH=`git rev-parse HEAD`
