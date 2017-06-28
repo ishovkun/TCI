@@ -6,7 +6,7 @@ install:
   # - pip3 install numpy scipy
   - pip3 install configobj
   - pip3 install regex
-  # - travis_wait pip3 install PySide
+  - travis_wait pip3 install PySide
   - pip3 install pyqtgraph
   # - pip install -r numpy scipy pyside pyqtgraph configobj regex
 script:
