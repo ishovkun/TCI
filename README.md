@@ -1,5 +1,7 @@
 # TCI
 
+[![Build Status](https://travis-ci.org/ishovkun/TCI.svg?branch=master)](https://travis-ci.org/ishovkun/TCI)
+
 ## About
 
 TCI is a software developed for visualization and interpretation of the data produced by
