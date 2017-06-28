@@ -10,18 +10,21 @@
    CLOSED: [2017-06-08 Thu 11:16]
 ** DONE Autoscaling
    CLOSED: [2017-06-08 Thu 13:33]
+** TODO [#A] Error in moduliwidget when arrivals not for all waves are picked
 
 * General
-** [#A] All actions need to work
+** DONE All actions need to work
+   CLOSED: [2017-06-27 Tue 17:25]
 ** [#A] Add unit testing
 ** [#A] ComboList styles in styles file
 ** [#B] Write tutorial + methodology section
-** [#B] Block tabs when no data in a new dataset
+** DONE Block tabs when no data in a new dataset
+   CLOSED: [2017-06-27 Tue 17:25]
 ** [#C] Certain features activate appropriate tab
 ** [#C] Make Windows executable
 ** [#C] Try to remove cursors when changing the data type or having
    checkboxes empty (to workaround the auto-zoom bug).
-** [#C] Tab drag (within bar) & close  (isMovable + tabClosable)
-** [#C] Tab drag & drop outside the bar
+** [#C] Tab close  (isMovable + tabClosable)
+** [#C] Way to detach tab from the window
 ** DONE Export actions need to be disabled when no data
    CLOSED: [2017-06-08 Thu 11:14]

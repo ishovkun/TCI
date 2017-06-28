@@ -16,22 +16,25 @@ Compute moduli
 Plot young's moduli
 '''
 
+test_data_path = TCI.__path__[0] + "/test/test-data/"
+data_set1 = "_Training_Pc=1500 psi Sonic endcaps_Berea Mechanical Testing _2015-04-27_001.clf"
+data_set2 = "_Training_Hydrostatic with Sonic endcaps_Berea Mechanical Testing _2015-04-24_001.clf"
+data_set1_dir = "1500psi/"
+data_set2_dir = "Hydrostatic w sonic/"
+data_set1_sonic_dir = "1500psi/1500pc"
+data_set2_sonic_dir = "Hydrostatic w sonic/"
+
 App = QtGui.QApplication(sys.argv)
 win = DataViewer()
 win.show()
 
-test_data_path = TCI.__path__[0] + "/test/test-data/"
-filename = [
-    test_data_path +
-    "1500psi/" + \
-    "_Training_Pc=1500 psi Sonic endcaps_Berea Mechanical Testing _2015-04-27_001.clf",
-    u'*.clf']
+filename = [test_data_path + data_set1_dir + data_set1, u'*.clf']
 win.load(filename)
 win.tree.boxes["Sig1"].setChecked(True)
 
 # SONIC WIDGET TESTING
 # win.loadSonicDataAction.trigger()
-sonic_dir = test_data_path + "1500psi/1500pc"
+sonic_dir = test_data_path + data_set1_sonic_dir
 files = os.listdir(sonic_dir)
 for i in range(len(files)):
     files[i] = os.path.join(sonic_dir, files[i])
@@ -103,6 +106,14 @@ os.remove(fname)
 fname = project_root + "/moduli.csv"
 sonic_plugin.exportModuli(fname)
 os.remove(fname)
+
+# load new dataset
+filename = [test_data_path + data_set2_dir + data_set2, u'*.clf']
+win.load(filename)
+
+# check if moduli widget is plotting anything when disabled
+moduli_widget_tab = win.tabWidget.indexOf(sonic_plugin.moduliWidget)
+assert not win.tabWidget.isTabEnabled(moduli_widget_tab)
 
 # win.close()
 App.exec_()

@@ -13,6 +13,7 @@ WaveTypes = ['P','Sx','Sy']
 psi = 6894.75729
 cm = 1e-2
 inch = 2.54*cm
+arrival_time_units = 1e-6
 
 class BindingWidget(QtGui.QWidget):
     '''
@@ -141,7 +142,7 @@ class BindingWidget(QtGui.QWidget):
             corr = float(self.capsconf[wave])
             arrival_times -= corr
             # convert to seconds
-            arrival_times *= 1e-6
+            arrival_times *= arrival_time_units
             # interpolate arrival times
             interpolator = interp1d(self.controller.times[wave], arrival_times,
                                     bounds_error=False)

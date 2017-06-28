@@ -74,3 +74,4 @@ class ShapeControlWidget(QtGui.QWidget):
             self.parent.controller.exportArrivalsAction.setEnabled(True)
             self.parent.controller.exportModuliAction.setEnabled(True)
             self.parent.controller.showArrivalsAction.trigger()
+            self.parent.controller.moduliAction.setEnabled(True)

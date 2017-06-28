@@ -79,6 +79,8 @@ class SonicInterpreter:
             # self.sonicViewer.plot_arrival_times_flag = False
             length = self.parent.props['length']
             self.interpretationSettings.lengthLine.setValue(length)
+            # moduli action disabled cause arrival times not stored
+            self.moduliAction.setEnabled(False)
             self.sonicViewer.arrivalsPicked = False
             self.setEnabled()
             self.sonicViewer.plot()
@@ -536,6 +538,7 @@ class SonicInterpreter:
             self.sonicViewer.setEnabled(False)
             self.exportArrivalsAction.setEnabled(False)
             self.exportModuliAction.setEnabled(False)
+            self.sonicViewer.fftWidget.close()
 
         # enable/block actions/menus
         self.autoScaleAction.setEnabled(enabled)
@@ -556,6 +559,7 @@ class SonicInterpreter:
         if tab_index == -1:
             self.parent.tabWidget.addTab(self.moduliWidget, "Moduli")
         self.parent.tabWidget.setCurrentWidget(self.moduliWidget)
+        self.parent.tabWidget.setTabEnabled(tab_index, True)
         # now set config
         testconf = self.interpretationSettings.testconf
         capsconf = self.interpretationSettings.capsconf
