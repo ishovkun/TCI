@@ -1,12 +1,36 @@
 language: python
 python:
   - "3.4"
+virtualenv:
+    system_site_packages: true
 cache: pip
+
+before_install:
+    - if [ ${TRAVIS_PYTHON_VERSION:0:1} == "2" ]; then wget http://repo.continuum.io/miniconda/Miniconda-3.5.5-Linux-x86_64.sh -O miniconda.sh; else wget http://repo.continuum.io/miniconda/Miniconda3-3.5.5-Linux-x86_64.sh -O miniconda.sh; fi
+    - chmod +x miniconda.sh
+    - ./miniconda.sh -b -p /home/travis/mc
+    - export PATH=/home/travis/mc/bin:$PATH
+
+    # not sure what is if block is for
+    - if [ "${TRAVIS_PULL_REQUEST}" != "false" ]; then
+          GIT_TARGET_EXTRA="+refs/heads/${TRAVIS_BRANCH}";
+          GIT_SOURCE_EXTRA="+refs/pull/${TRAVIS_PULL_REQUEST}/merge";
+      else
+          GIT_TARGET_EXTRA="";
+          GIT_SOURCE_EXTRA="";
+      fi;
+
+
 install:
-  # - pip3 install numpy scipy
+  - export GIT_FULL_HASH=`git rev-parse HEAD`
+  - conda update conda --yes
+  - conda create -n test_env python=${PYTHON} --yes
+  - source activate test_env
+  - conda install numpy scipy pyopengl pytest flake8 six coverage --yes
+  - echo ${PYTHON}
+  - conda install pyside --yes
   - pip3 install configobj
   - pip3 install regex
-  - travis_wait pip3 install PySide
   - pip3 install pyqtgraph
   # - pip install -r numpy scipy pyside pyqtgraph configobj regex
 script:
