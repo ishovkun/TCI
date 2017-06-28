@@ -3,7 +3,12 @@ python:
   - "3.4"
 cache: pip
 install:
-  - pip install numpy scipy PySide pyqtgraph configobj regex
+  - pip install numpy
+  - pip install scipy
+  - pip install pyqtgraph
+  - pip install configobj
+  - pip install regex
+  - travis_wait pip install PySide
   # - pip install -r numpy scipy pyside pyqtgraph configobj regex
 script:
   - test/sonic_test.py
