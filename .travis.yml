@@ -25,5 +25,9 @@ before_script:
   - sleep 3 # give xvfb some time to start
 
 script:
-  - python3 test/sonic_test.py
-  # - py.test --cov-report term-missing --cov app -v
+  - python test/sonic_test.py
+  - python sonic_test_moduli.py
+  - python Sonic1.py
+  - python Mohr_test.py
+  - python geo_test1.py
+  - python combo_test.py
