@@ -2,8 +2,8 @@ language: python
 python:
   - "3.4"
 sudo: required
-virtualenv:
-    system_site_packages: true
+# virtualenv:
+#     system_site_packages: true
 # cache: pip
 # env:
 #     # Enable python 2 and python 3 builds
