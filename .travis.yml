@@ -4,8 +4,9 @@ python:
 sudo: required
 
 install:
-  # - sudo apt install python3-pyside
+  # shared libs for pyopengl pyqtgraph
   - sudo apt install libqt4-gui
+  # this is a weird way to install pyside
   - pip install PySide --no-index --find-links https://parkin.github.io/python-wheelhouse/
   - python ~/virtualenv/python${TRAVIS_PYTHON_VERSION}/bin/pyside_postinstall.py -install
   - pip3 install configobj
@@ -13,21 +14,22 @@ install:
   - pip3 install pyqtgraph
   - pip install PyOpenGL
   - pip install scipy
-  # - pip install -r numpy scipy pyside pyqtgraph configobj regex
+  # test pyside
   - python3 -c "import PySide; print(PySide)"
-  - pwd
+  # - pwd
 
 before_script:
-  # - export PYTHONPATH=$PYTHONPATH:/home/travis/build/ishovkun
+  # path to module
   - export PYTHONPATH=$PYTHONPATH:$HOME/build/ishovkun
+  # in order to use display server
   - "export DISPLAY=:99.0"
   - "sh -e /etc/init.d/xvfb start"
   - sleep 3 # give xvfb some time to start
 
 script:
   - python test/sonic_test.py
-  - python sonic_test_moduli.py
-  - python Sonic1.py
-  - python Mohr_test.py
-  - python geo_test1.py
-  - python combo_test.py
+  - python test/sonic_test_moduli.py
+  - python test/Sonic1.py
+  - python test/Mohr_test.py
+  - python test/geo_test1.py
+  - python test/combo_test.py
