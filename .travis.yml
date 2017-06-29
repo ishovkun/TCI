@@ -3,11 +3,6 @@ python:
   - "3.4"
 sudo: required
 
-before_install:
-  # - PYTHONPATH="${PYTHONPATH}:$HOME/travis/build/ishovkun"
-  # - export PYTHONPATH
-  - export PYTHONPATH=$HOME/travis/build/ishovkun
-
 install:
   # - sudo apt install python3-pyside
   - pip install PySide --no-index --find-links https://parkin.github.io/python-wheelhouse/
@@ -18,6 +13,10 @@ install:
   # - pip install -r numpy scipy pyside pyqtgraph configobj regex
   - python3 -c "import PySide; print(PySide)"
   - pwd
+
+before_script:
+  - export PYTHONPATH=$PYTHONPATH:$HOME/travis/build/ishovkun
+
 script:
   - python3 test/sonic_test.py
   # - py.test --cov-report term-missing --cov app -v
