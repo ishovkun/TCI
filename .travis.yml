@@ -15,7 +15,8 @@ install:
   - pwd
 
 before_script:
-  - export PYTHONPATH=$PYTHONPATH:$HOME/travis/build/ishovkun
+  # - export PYTHONPATH=$PYTHONPATH:/home/travis/build/ishovkun
+  - export PYTHONPATH=$PYTHONPATH:$HOME/build/ishovkun
 
 script:
   - python3 test/sonic_test.py
