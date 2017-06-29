@@ -3,8 +3,9 @@ python:
   - "3.4"
 sudo: required
 
-# before_install:
-#  - sudo apt-get install -qq python3-numpy python3-scipy python3-pyside
+before_install:
+  - export PYTHONPATH=${PYTHONPATH}:$HOME/travis/build/ishovkun
+  # /home/travis/build/ishovkun
 
 install:
   # - sudo apt install python3-pyside
