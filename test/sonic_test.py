@@ -123,4 +123,4 @@ sonic_plugin.showFFTPhaseAction.trigger()
 sonic_plugin.sonicViewer.fftWidget.close()
 
 # win.close()
-App.exec_()
+# App.exec_()
