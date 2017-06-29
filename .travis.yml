@@ -5,6 +5,7 @@ sudo: required
 
 install:
   # - sudo apt install python3-pyside
+  - sudo apt install libqt4-gui
   - pip install PySide --no-index --find-links https://parkin.github.io/python-wheelhouse/
   - python ~/virtualenv/python${TRAVIS_PYTHON_VERSION}/bin/pyside_postinstall.py -install
   - pip3 install configobj
