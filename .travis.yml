@@ -10,6 +10,7 @@ install:
   - pip3 install configobj
   - pip3 install regex
   - pip3 install pyqtgraph
+  - pip install PyOpenGL
   # - pip install -r numpy scipy pyside pyqtgraph configobj regex
   - python3 -c "import PySide; print(PySide)"
   - pwd
