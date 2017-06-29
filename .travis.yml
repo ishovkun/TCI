@@ -3,11 +3,13 @@ python:
   - "3.4"
 sudo: required
 
-before_install:
- - sudo apt-get install -qq python3-numpy python3-scipy python3-pyside
+# before_install:
+#  - sudo apt-get install -qq python3-numpy python3-scipy python3-pyside
 
 install:
-  - sudo apt install python3-pyside
+  # - sudo apt install python3-pyside
+  - pip install PySide --no-index --find-links https://parkin.github.io/python-wheelhouse/
+  - python ~/virtualenv/python${TRAVIS_PYTHON_VERSION}/bin/pyside_postinstall.py -install
   - pip3 install configobj
   - pip3 install regex
   - pip3 install pyqtgraph
