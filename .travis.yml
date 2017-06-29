@@ -4,9 +4,9 @@ python:
 sudo: required
 
 before_install:
-  - PYTHONPATH="${PYTHONPATH}:$HOME/travis/build/ishovkun"
-  - export PYTHONPATH
-  # /home/travis/build/ishovkun
+  # - PYTHONPATH="${PYTHONPATH}:$HOME/travis/build/ishovkun"
+  # - export PYTHONPATH
+  - export PYTHONPATH=$HOME/travis/build/ishovkun
 
 install:
   # - sudo apt install python3-pyside
