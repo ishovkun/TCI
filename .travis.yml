@@ -1,6 +1,7 @@
 language: python
 python:
   - "3.4"
+sudo: required
 virtualenv:
     system_site_packages: true
 # cache: pip
@@ -26,7 +27,7 @@ virtualenv:
 #       fi;
 
 before_install:
- - sudo apt-get install -qq python-numpy python-scipy
+ - sudo apt-get install -qq python3-numpy python3-scipy python3-pyside
 
 install:
   # - export GIT_FULL_HASH=`git rev-parse HEAD`
@@ -36,11 +37,12 @@ install:
   # - conda install numpy scipy pyopengl pytest flake8 six coverage --yes
   # - echo ${PYTHON}
   # - conda install pyside --yes
-  - sudo apt install python3-pyside
+  # - sudo apt install python3-pyside
   - pip3 install configobj
   - pip3 install regex
   - pip3 install pyqtgraph
   # - pip install -r numpy scipy pyside pyqtgraph configobj regex
+  - python3 -c "import PySide; print(PySide)"
 script:
   - python3 test/sonic_test.py
   # - py.test --cov-report term-missing --cov app -v
