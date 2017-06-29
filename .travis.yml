@@ -4,7 +4,8 @@ python:
 sudo: required
 
 before_install:
-  - export PYTHONPATH=${PYTHONPATH}:$HOME/travis/build/ishovkun
+  - PYTHONPATH="${PYTHONPATH}:$HOME/travis/build/ishovkun"
+  - export PYTHONPATH
   # /home/travis/build/ishovkun
 
 install:
