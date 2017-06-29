@@ -15,6 +15,7 @@ install:
   - pip3 install pyqtgraph
   # - pip install -r numpy scipy pyside pyqtgraph configobj regex
   - python3 -c "import PySide; print(PySide)"
+  - pwd
 script:
   - python3 test/sonic_test.py
   # - py.test --cov-report term-missing --cov app -v
