@@ -116,4 +116,4 @@ moduli_widget_tab = win.tabWidget.indexOf(sonic_plugin.moduliWidget)
 assert not win.tabWidget.isTabEnabled(moduli_widget_tab)
 
 # win.close()
-App.exec_()
+# App.exec_()

@@ -44,4 +44,4 @@ mc.activateAction.trigger()
 ### win.tree.boxes["Sig1"].setChecked(False)
 
 # win.close()
-App.exec_()
+# App.exec_()

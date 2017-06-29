@@ -25,4 +25,4 @@ combo.plotButton.click()
 
 # win.close()
 
-App.exec_()
+# App.exec_()

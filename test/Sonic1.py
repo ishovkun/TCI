@@ -89,4 +89,4 @@ win.setCurrentDataSet(data_set)
 
 
 # win.close()
-App.exec_()
+# App.exec_()
